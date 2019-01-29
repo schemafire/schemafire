@@ -1,5 +1,3 @@
-import { Timestamp } from '@google-cloud/firestore';
-
 export const snapData = {
   data: jest.fn(),
   exists: false,
@@ -54,12 +52,11 @@ firestore.Timestamp = jest.fn(() => {
     toMillis: jest.fn(() => Date.now()),
   };
 });
-
-const timestamp = Timestamp.now();
-const fromDate = new Timestamp(timestamp.seconds, timestamp.nanoseconds);
+class Timestamp {}
+const timestamp = new Timestamp();
 
 firestore.Timestamp.now = jest.fn(() => timestamp);
-firestore.Timestamp.fromDate = jest.fn(() => fromDate);
+firestore.Timestamp.fromDate = jest.fn(() => timestamp);
 firestore.Timestamp.fromMillis = firestore.Timestamp.fromDate;
 
 const initializeApp = jest.fn(() => ({

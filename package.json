@@ -4,8 +4,7 @@
   "workspaces": {
     "packages": [
       "@skeema/*",
-      "dependencies/*",
-      "@utilities/*"
+      "dependencies/*"
     ]
   },
   "scripts": {
@@ -27,7 +26,7 @@
     "lint:config": "tslint --project config/tsconfig.json --config tslint.json",
     "lint:dts": "tslint -p dtslint/tsconfig.custom.json -c dtslint/tslint.custom.json dtslint/*.dts.ts",
     "lint:ts": "lerna run lint --parallel",
-    "prepublish:alpha": "run-s build",
+    "prepublish:alpha": "run-s ci:checks",
     "publish:alpha": "lerna publish prerelease --preid=alpha --exact --dist-tag=alpha",
     "test": "jest",
     "test:ci": "cross-env TEST_ENV=live jest",
@@ -47,11 +46,11 @@
     }
   },
   "lint-staged": {
-    "@{skeema,utilities}/*/src/**/*.{ts,tsx}": [
+    "@skeema/*/src/**/*.{ts,tsx}": [
       "tslint --fix",
       "git add"
     ],
-    "@skeema/*/src/**/!(unit-test-helpers)?*.{ts,tsx}": [
+    "@skeema/!(jest-mocks)?*/src/**/!(unit-test-helpers)?*.{ts,tsx}": [
       "jest --coverage=false --bail --findRelatedTests"
     ],
     "*.js": [
@@ -66,7 +65,7 @@
       "prettier-package-json --write",
       "git add"
     ],
-    "@{packages,deps,utils}/*/package.json": [
+    "@skeema/*/package.json": [
       "prettier-package-json --write",
       "git add"
     ]

@@ -4,7 +4,7 @@
     "paths": {
       "@unit-test-helpers": ["@skeema/core/src/__tests__/unit-test-helpers.ts"],
       "@live-test-helpers": ["@skeema/firestore/src/__tests__/live-test-helpers.ts"],
-      "@skeema/jest-mocks/lib/*": ["@utilities/jest-mocks/src/*"],
+      "@skeema/jest-mocks/lib/*": ["@skeema/jest-mocks/src/*"],
       "@skeema/core": ["@skeema/core/src/index.ts"]
     },
     "module": "commonjs",

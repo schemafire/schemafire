@@ -11,6 +11,10 @@ const coverage = {
   },
 };
 
+if (!process.env.FIREBASE_CONFIG) {
+  process.env.FIREBASE_CONFIG = '{}';
+}
+
 global.__DB_PREFIX__ = createDBPrefix();
 
 module.exports = {
