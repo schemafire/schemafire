@@ -1,5 +1,4 @@
 import { testCollection } from '@live-test-helpers';
-import { baseDefinitionObject, createDefaultBase } from '@skeema/core';
 import {
   collectionRef,
   docData,
@@ -7,6 +6,7 @@ import {
   snapData,
 } from '@skeema/jest-mocks/lib/firebase-admin';
 import { Any } from '@unit-test-helpers';
+import admin from 'firebase-admin';
 import * as t from 'io-ts';
 import { Model } from '../model';
 import { Query } from '../query';
@@ -16,10 +16,9 @@ const definition = t.interface({
   name: t.string,
   age: t.number,
   data: t.object,
-  ...baseDefinitionObject,
 });
 
-const defaultData = { name: '', data: {}, age: 20, ...createDefaultBase() };
+const defaultData = { name: '', data: {}, age: 20 };
 const realData = {
   ...defaultData,
   name: 'Real',
@@ -60,9 +59,13 @@ describe('constructor', () => {
   });
   it('creates models with correct params', () => {
     const base = Base.create(realData);
-    expect(base.data.createdAt).toBeTruthy();
-    expect(base.data.schemaVersion).toEqual(expect.any(Number));
+    const timestamp = admin.firestore.Timestamp.now(); // Works because of mocks
+    expect(base.data.createdAt).toBe(timestamp);
+    expect(base.data.updatedAt).toBe(timestamp);
+    expect(base.data.schemaVersion).toBe(base.schema.version);
+    jest.doMock('firebase-admin');
   });
+
   it('works with snapshots', () => {
     snapData.data.mockReturnValueOnce(realData);
     const m = Base.fromSnap(Any(snapData));

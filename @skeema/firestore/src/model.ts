@@ -1,4 +1,5 @@
 import {
+  BaseDefinition,
   Cast,
   logError,
   removeUndefined,
@@ -62,6 +63,9 @@ export class Model<
   private lastRunStatus?: 'force-created' | 'created' | 'updated' | 'deleted';
   private existsViaCreation: boolean = false;
   private actionsRun: ModelActions = {};
+  private baseData: BaseDefinition;
+  // After any successful run this is set to true. At this point we no longer provide mock values for any of the base data
+  private hasRunSuccessfully = false;
 
   public get data(): TypeOfPropsWithBase<GProps> {
     return this.dataProxy;
@@ -98,6 +102,13 @@ export class Model<
     this.methods = this.createMethods(methods);
     this.setupInitialActions(type, data, callback, clauses);
     this.currentRunConfig = this.schema.config;
+
+    // Set up the base data so that we have a fallback while the data has not yet been created
+    this.baseData = {
+      updatedAt: admin.firestore.Timestamp.now(),
+      createdAt: admin.firestore.Timestamp.now(),
+      schemaVersion: this.schema.version,
+    };
   }
 
   private setupInitialActions(
@@ -166,7 +177,11 @@ export class Model<
   private createProxy(data: t.TypeOfProps<GProps>) {
     return new Proxy(data, {
       get: (_, prop: string) => {
-        return prop in this.rawData ? this.rawData[prop] : undefined;
+        return this.rawData[prop] !== undefined
+          ? this.rawData[prop]
+          : isBaseProp(prop) && !this.hasRunSuccessfully
+          ? this.baseData[prop]
+          : undefined;
       },
       set: (_, prop: keyof GProps, value) => {
         if (isBaseProp(prop)) {
@@ -496,6 +511,7 @@ export class Model<
 
       await this.forceGetIfNeeded(config);
       // Only reset if successful
+      this.hasRunSuccessfully = true;
       this.actions = [];
     } catch (e) {
       logError('Something went wrong with the latest push', e);

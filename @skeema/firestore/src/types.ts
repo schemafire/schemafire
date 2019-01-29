@@ -1,4 +1,4 @@
-import { BaseDefinition, baseDefinitionObject } from '@skeema/core';
+import { BaseDefinition, BaseDefinitionKeys, baseDefinitionObject, Omit } from '@skeema/core';
 import * as t from 'io-ts';
 
 /**
@@ -190,9 +190,24 @@ export interface ISchema<
  * Configuration that is passed into the schema.
  */
 export interface RunConfig {
+  /**
+   * Should data be mirrored for this run
+   * @default true
+   */
   mirror?: boolean;
+  /**
+   * Whether to run the actions inside a transaction
+   * @default true
+   */
   useTransactions?: boolean;
+  /**
+   * Number of attempts the transaction should take before failing
+   */
   maxAttempts?: number;
+  /**
+   * Whether we want to get the latest data after an Create or Update action.
+   * This can be useful when creating data for the first time and we want to view the ServerTimestamp.
+   */
   forceGet?: boolean;
 }
 
@@ -362,7 +377,20 @@ export type ModelAction<GData, GModel extends AnyModel> =
 export type AnySchema = ISchema<any, any, any>;
 export type AnyModel = IModel<any, any, any>;
 
-export type TypeOfModel<GSchema extends AnySchema> = ReturnType<GSchema['create']>;
+/**
+ * Extract the type of a model from a given schema
+ */
+export type TypeOfModel<GSchema extends AnySchema> = ReturnType<GSchema['model']>;
+
+/**
+ * Extract the type of data including the BaseProps like `createdAt`, `updatedAt`.
+ */
+export type TypeOfData<GSchema extends AnySchema> = TypeOfModel<GSchema>['data'];
+
+export type TypeOfCreateData<GSchema extends AnySchema> = Omit<
+  TypeOfData<GSchema>,
+  BaseDefinitionKeys
+>;
 
 export type PickPropertiesFromModel<GModel extends AnyModel> = Pick<
   GModel,

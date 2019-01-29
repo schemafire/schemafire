@@ -1,5 +1,4 @@
 import { testCollection } from '@live-test-helpers';
-import { baseDefinitionObject, createDefaultBase } from '@skeema/core';
 import * as t from 'io-ts';
 import { Schema } from '../schema';
 
@@ -52,7 +51,6 @@ export const simpleSchema = new Schema({
 });
 
 export const advancedDefinition = t.interface({
-  ...baseDefinitionObject,
   name: t.string,
   age: t.number,
   custom: t.string,
@@ -60,12 +58,10 @@ export const advancedDefinition = t.interface({
 });
 
 export const advancedDefaultData = {
-  ...createDefaultBase(),
   ...defaultData,
 };
 
 export const advancedRealData = {
-  ...createDefaultBase(),
   ...realData,
 };
 

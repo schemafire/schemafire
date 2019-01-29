@@ -1,4 +1,4 @@
-import { removeUndefined } from '@skeema/core';
+import { omitBaseFields, removeUndefined } from '@skeema/core';
 import {
   collectionRef,
   doc,
@@ -39,7 +39,7 @@ describe('constructor', () => {
   it('is created', () => {
     const m1 = new Model({ schema: simpleSchema, methods: Any({}) });
     expect(m1.id).toBe(docData.id);
-    expect(m1.data).toEqual(defaultData);
+    expect(omitBaseFields(m1.data)).toEqual(defaultData);
     const m2 = new Model({ schema: simpleSchema, methods: Any({}), id: 'abc' });
     expect(m2.id).toBe('abc');
     expect(doc).toHaveBeenCalledWith('abc');
