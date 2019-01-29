@@ -246,7 +246,7 @@ Below are some of the things that
 - [x] Create schema using using [`io-ts`](https://github.com/gcanti/io-ts/blob/master/README.md) definitions.
 - [x] Add instance methods and static methods to help manage data in the models.
 - [x] All updates are automatically wrapped in transactions
-- [ ] Create getting started guide.
+- [x] Create getting started guide.
 - [ ] Support data validation with io-ts
 - [ ] Allow config option for automated data validation
 - [ ] Enable option for non transactional updates
