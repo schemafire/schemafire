@@ -1,0 +1,22 @@
+{
+  "extends": ["@kj/tslint-rules/base"],
+  "rules": {
+    "custom-no-implicit-dependencies": [
+      true,
+      "dev",
+      [
+        "@skeema/jest-mocks",
+        "firebase-functions-test",
+        "@live-test-helpers",
+        "@unit-test-helpers",
+        "firebase-tools",
+        "jest-cli",
+        "chalk"
+      ]
+    ],
+    "no-any": false,
+    "max-classes-per-file": false,
+    "no-empty-interface": false,
+    "no-console": false
+  }
+}

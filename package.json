@@ -1,0 +1,70 @@
+{
+  "private": true,
+  "name": "root",
+  "workspaces": {
+    "packages": [
+      "@skeema/*",
+      "dependencies/*",
+      "@utilities/*"
+    ]
+  },
+  "scripts": {
+    "build": "lerna run build",
+    "checks": "run-s lint typecheck test",
+    "checks:parallel": "run-p lint typecheck test",
+    "clean:modules": "lerna lerna clean --yes && lerna run --parallel clean",
+    "clean:root": "rimraf node_modules .jest coverage",
+    "dev": "lerna run dev --parallel",
+    "fix": "run-s lint:fix prettier:fix",
+    "lint": "run-s lint:dts lint:ts prettier",
+    "lint:dts": "tslint -p dtslint/tsconfig.custom.json -c dtslint/tslint.custom.json dtslint/*.dts.ts",
+    "lint:fix": "lerna run lint --parallel -- --fix",
+    "lint:ts": "lerna run lint --parallel",
+    "prepublish:alpha": "run-s build",
+    "publish:alpha": "lerna publish prerelease --preid=alpha --exact --dist-tag=alpha",
+    "test": "jest",
+    "test:ci": "cross-env TEST_ENV=live jest",
+    "test:live": "cross-env TEST_ENV=live FIREBASE_CONFIG={} jest",
+    "test:setup": "node config/scripts/setup.js",
+    "test:watch": "jest  --watch --verbose=false",
+    "test:watch:live": "cross-env TEST_ENV=live FIREBASE_CONFIG={} jest  --watch --verbose=false --coverage=false",
+    "prettier": "prettier \"**/*.{json,yml,yaml,md}\"",
+    "prettier:fix": "prettier --write \"**/*.{json,yml,yaml,md}\"",
+    "typecheck": "lerna run typecheck",
+    "yarn:integrity": "yarn check --integrity"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "pre-push": "yarn checks",
+      "post-merge": "lerna bootstrap"
+    }
+  },
+  "lint-staged": {
+    "@{skeema,utilities}/*/src/**/*.{ts,tsx}": [
+      "tslint --fix",
+      "git add",
+      "jest --coverage=false --bail --findRelatedTests"
+    ],
+    "*.js": [
+      "eslint --fix",
+      "git add"
+    ],
+    "*.{json,yml,yaml,md}": [
+      "prettier --write",
+      "git add"
+    ],
+    "package.json": [
+      "prettier-package-json --write",
+      "git add"
+    ],
+    "@{packages,deps,utils}/*/package.json": [
+      "prettier-package-json --write",
+      "git add"
+    ]
+  },
+  "resolutions": {
+    "babel-core": "7.0.0-bridge.0",
+    "@google-cloud/firestore": "0.21.0"
+  }
+}
