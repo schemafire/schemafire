@@ -1,5 +1,5 @@
 {
   "extends": "./tsconfig.json",
-  "compilerOptions": { "baseUrl": "src", "paths": {} },
+  "compilerOptions": {},
   "exclude": ["**/*.test.ts", "**/*.spec.ts", "**/__mocks__/**", "**/__tests__/**"]
 }

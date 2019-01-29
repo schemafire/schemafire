@@ -12,7 +12,7 @@
   "scripts": {
     "prebuild": "run-s clean lint",
     "build": "run-s build:declaration build:babel",
-    "build:babel": "babel src --out-dir ./lib --extensions \".ts\" --source-maps",
+    "build:babel": "babel src --out-dir ./lib --extensions \".ts\" --source-maps true",
     "build:declaration": "tsc -p ./tsconfig.prod.json --emitDeclarationOnly --declarationMap",
     "clean": "rimraf lib",
     "dev": "run-p watch:*",

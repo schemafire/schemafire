@@ -49,7 +49,9 @@
   "lint-staged": {
     "@{skeema,utilities}/*/src/**/*.{ts,tsx}": [
       "tslint --fix",
-      "git add",
+      "git add"
+    ],
+    "@skeema/*/src/**/!(unit-test-helpers)?*.{ts,tsx}": [
       "jest --coverage=false --bail --findRelatedTests"
     ],
     "*.js": [

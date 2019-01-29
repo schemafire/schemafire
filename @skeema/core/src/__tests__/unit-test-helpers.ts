@@ -64,15 +64,3 @@ export const typeSafeMockClear: (mock: any) => jest.Mock = jest.fn((mock: jest.M
   mock.mockClear();
   return mock;
 });
-
-export const testError = () => new Error('TEST');
-
-declare global {
-  namespace NodeJS {
-    interface Global {
-      __TEST__: boolean;
-      __DEV__: boolean;
-      __DB_PREFIX__: string;
-    }
-  }
-}
