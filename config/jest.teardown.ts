@@ -8,7 +8,7 @@ module.exports = async (_: GlobalConfig) => {
     return;
   }
 
-  const { refresh_token: token } = require(userFirebaseConfig());
+  const token = process.env.CI ? require(userFirebaseConfig()) : process.env.FIREBASE_TOKEN!;
   const { projectId: project } = require('./test/db.json');
   const params = {
     project,
@@ -22,7 +22,6 @@ module.exports = async (_: GlobalConfig) => {
     console.log('Something went wrong', e);
     return;
   }
-  // TODO fix this line once needed
-  // await firebaseTools.database.remove(global.__DB_PREFIX__, params);
+
   console.log('successfully deleted collections', global.__DB_PREFIX__);
 };

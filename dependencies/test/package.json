@@ -10,6 +10,7 @@
     "@types/nanoid": "1.2.0",
     "@kj/tslint-rules": "1.0.3",
     "tslint": "5.12.1",
+    "codeclimate-test-reporter": "0.5.1",
     "dtslint": "0.4.2",
     "eslint": "^5.12.1",
     "eslint-config-prettier": "3.6.0",
