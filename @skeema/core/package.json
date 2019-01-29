@@ -12,6 +12,7 @@
     "lib",
     "src"
   ],
+  "license": "MIT",
   "scripts": {
     "prebuild": "run-s clean lint",
     "build": "run-s build:declaration build:babel",

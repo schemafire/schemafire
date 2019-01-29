@@ -35,5 +35,6 @@
   "peerDependencies": {
     "firebase-admin": "^6.5.1"
   },
+  "license": "MIT",
   "types": "lib/index.d.ts"
 }
