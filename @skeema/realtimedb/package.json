@@ -1,13 +1,11 @@
 {
-  "name": "@skeema/realtime-db",
   "private": true,
-  "publishConfig": {
-    "access": "public"
-  },
+  "name": "@skeema/realtime-db",
   "description": "Quickly create schema for Firebase real-time DB",
+  "license": "MIT",
   "author": "Ifiok Jr. <ifiokotung@gmail.com>",
   "repository": "https://github.com/ifiokjr/skeema",
-  "version": "0.0.0",
+  "version": "0.0.1-alpha.0",
   "main": "lib/index.js",
   "files": [
     "lib",
@@ -28,13 +26,15 @@
     "watch:declaration": "tsc -p ./tsconfig.prod.json --emitDeclarationOnly --declarationMap --watch"
   },
   "dependencies": {
-    "@skeema/core": "0.0.0",
+    "@skeema/core": "0.0.1-alpha.0",
     "io-ts": "1.6.4",
     "lodash": "4.17.11"
   },
   "peerDependencies": {
     "firebase-admin": "^6.5.1"
   },
-  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "types": "lib/index.d.ts"
 }
