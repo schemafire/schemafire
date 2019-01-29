@@ -13,7 +13,7 @@
     "checks": "run-s integrity lint typecheck test",
     "checks:parallel": "run-p integrity lint typecheck test",
     "ci:checks": "run-s integrity lint ci:typecheck build test:ci",
-    "ci:coverage": "codeclimate-test-reporter < lcov.info",
+    "ci:coverage": "codeclimate-test-reporter < coverage/lcov.info",
     "ci:setup": "node config/scripts/ci-setup.js",
     "ci:typecheck": "run-s typecheck:config",
     "clean:modules": "lerna lerna clean --yes && lerna run --parallel clean",
