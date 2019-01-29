@@ -17,9 +17,9 @@ The following are some pointers to getting started with contributing to the code
 Run the following commands from the command line to get your local environment set up:
 
 ```bash
-git clone https://github.com/ifiokjr/skeema.git
-cd skeema    # go to the firebase-admin-node directory
-yarn                      # Yarn is the preferred package manager due to our reliance on `workspaces`
+git clone https://github.com/ifiokjr/skeema
+cd skeema  # go to the firebase-admin-node directory
+yarn # Yarn is preferred for its `workspace` support
 ```
 
 In order to run the tests, you also need to
@@ -40,7 +40,7 @@ candidates.
 To run the unit test suite:
 
 ```bash
-yarn checks  # Run tests, the type-checker and  lint the codebase
+yarn checks  # Run lints, type-checks and tests the codebase
 ```
 
 If you wish to skip the linter and type-checking, and only run the unit tests:
