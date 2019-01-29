@@ -1,5 +1,3 @@
-/* tslint:disable:no-any */
-
 const snap = jest.fn(() => ({
   data: jest.fn(),
   exists: false,

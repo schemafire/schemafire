@@ -1,5 +1,3 @@
-/* tslint:disable:no-any no-object-literal-type-assertion */
-
 import { Cast, simpleError } from '@skeema/core';
 import admin from 'firebase-admin';
 import * as t from 'io-ts';
@@ -27,6 +25,12 @@ import {
   TypeOfPropsWithBase,
 } from './types';
 
+/**
+ * Create schema for your Firestore collections
+ * ```ts
+ * import { Schema } from '@skeema/firestore';
+ * const User = new Schema({ });
+ */
 export class Schema<
   GProps extends t.Props,
   GInstanceMethods extends InstanceMethodConfig<GProps, GDependencies>,
@@ -75,7 +79,7 @@ export class Schema<
   public Type: symbol;
   public defaultData: t.TypeOfProps<GProps>;
   public mirror?: SchemaCacheRules<keyof GProps>;
-  public dependencies: GDependencies = { initialized: false } as GDependencies;
+  public dependencies: GDependencies = Cast<GDependencies>({ initialized: false });
   public config: SchemaConfig;
   public methods: MappedStaticMethods<this, GStaticMethods> = Cast<
     MappedStaticMethods<this, GStaticMethods>
@@ -83,6 +87,36 @@ export class Schema<
 
   public readonly version: number;
 
+  /**
+   * This class sets the structure and template for a collection within your firestore database.
+   * All models can be created from a schema with built in validation and typechecking.
+   *
+   * ```ts
+   * const definition = t.interface({
+   *   name: t.string,
+   *   age: t.number,
+   *   data: t.object,
+   * });
+   *
+   * const defaultData = { name: '', data: {}, age: 20 };
+   *
+   * const User = new Schema({
+   *   fields: definition,
+   *   defaultData,
+   *   collection: 'User',
+   *   staticMethods: {
+   *     simple: ctx => (...args) => { },
+   *     withArgs: () => (custom: string) => {},
+   *     withReturnValue: () => (ret: boolean) => {},
+   *   },
+   * });
+   * ```
+   *
+   * Static methods can now be used as follows.
+   * ```ts
+   * await User.simple(...args); // Called with the args you expect
+   * ```
+   */
   constructor({
     fields,
     collection,
@@ -116,14 +150,15 @@ export class Schema<
   }
 
   private createFieldTypes() {
-    return Object.keys(this.fields.props).reduce(
-      (prev, current) => {
-        return Object.assign({}, prev, { [current]: current });
-      },
-      {} as FieldTypes<GProps>,
-    );
+    const initialValue = Cast<FieldTypes<GProps>>({});
+    return Object.keys(this.fields.props).reduce((prev, current) => {
+      return Object.assign({}, prev, { [current]: current });
+    }, initialValue);
   }
 
+  /**
+   * Create the static methods which can be called directly from the Schema instance.
+   */
   private createStaticMethods(methods?: GStaticMethods): MappedStaticMethods<this, GStaticMethods> {
     const defaultMethods = Cast<MappedStaticMethods<this, GStaticMethods>>({});
     if (!methods) {
@@ -153,7 +188,7 @@ export class Schema<
   ): IModel<GProps, GInstanceMethods, GDependencies> {
     /* Potential options for a custom ID */
     const mergedData = Object.assign({}, this.defaultData, data);
-    return new Model({
+    return this.model({
       schema: this,
       methods: this.instanceMethods,
       data: mergedData,
@@ -166,7 +201,7 @@ export class Schema<
     id: string,
     callback?: ModelCallback<IModel<GProps, GInstanceMethods, GDependencies>>,
   ): IModel<GProps, GInstanceMethods, GDependencies> {
-    return new Model({
+    return this.model({
       schema: this,
       methods: this.instanceMethods,
       id,
@@ -175,21 +210,12 @@ export class Schema<
     });
   }
 
-  /**
-   * Will find the firestore model if it exists, otherwise a new one is created with the passed data.
-   *
-   * @param id
-   * @param data
-   * @param [callback] called if the model doesn't exist in Firestore
-   * @returns {IModel<GProps, GInstanceMethods, GDependencies>}
-   */
   public findOrCreate(
     id: string,
     data: Partial<t.TypeOfProps<GProps>>,
     callback?: ModelCallback<IModel<GProps, GInstanceMethods, GDependencies>>,
   ): IModel<GProps, GInstanceMethods, GDependencies> {
-    /* Potential options for a custom ID */
-    return new Model({
+    return this.model({
       schema: this,
       methods: this.instanceMethods,
       data,
@@ -199,13 +225,10 @@ export class Schema<
     });
   }
 
-  /**
-   * Creates a model from the provided snapshot.
-   */
   public fromSnap(
     snap: FirebaseFirestore.DocumentSnapshot,
   ): IModel<GProps, GInstanceMethods, GDependencies> {
-    return new Model({
+    return this.model({
       schema: this,
       methods: this.instanceMethods,
       data: snap.data() as TypeOfPropsWithBase<GProps>,
@@ -217,7 +240,7 @@ export class Schema<
   public fromDoc(
     doc: FirebaseFirestore.DocumentReference,
   ): IModel<GProps, GInstanceMethods, GDependencies> {
-    return new Model({
+    return this.model({
       schema: this,
       methods: this.instanceMethods,
       doc,
@@ -226,7 +249,7 @@ export class Schema<
   }
 
   public deleteById(id: string): IModel<GProps, GInstanceMethods, GDependencies> {
-    return new Model({
+    return this.model({
       schema: this,
       methods: this.instanceMethods,
       id,
@@ -248,14 +271,11 @@ export class Schema<
     return new Query(params);
   }
 
-  /**
-   * Finds the first occurrence of your specified clauses
-   */
   public find(
     clauses: QueryTuples<GProps>,
     callback?: ModelCallback<IModel<GProps, GInstanceMethods, GDependencies>>,
   ): IModel<GProps, GInstanceMethods, GDependencies> {
-    return new Model({
+    return this.model({
       schema: this,
       methods: this.instanceMethods,
       callback,

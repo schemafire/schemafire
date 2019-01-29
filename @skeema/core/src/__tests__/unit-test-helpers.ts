@@ -1,5 +1,3 @@
-/* tslint:disable:no-any */
-
 /**
  * Useful for acting on mocked libraries without breaking TypeScript
  */

@@ -92,48 +92,103 @@ export interface ISchema<
   ref: FirebaseFirestore.CollectionReference;
   db: FirebaseFirestore.Firestore;
 
+  /**
+   * A utility method for creating the model with full control.
+   * @param params
+   */
   model(
     params?: Partial<ModelParams<GProps, GInstanceMethods, GDependencies>>,
   ): IModel<GProps, GInstanceMethods, GDependencies>;
+
+  /**
+   * Create a query from the defined schema
+   * @param params
+   */
   query(
     params?: Partial<QueryParams<GProps, GInstanceMethods, GDependencies>>,
   ): IQuery<GProps, GInstanceMethods, GDependencies>;
 
   create(data: TypeOfProps<GProps>, id?: string): IModel<GProps, GInstanceMethods, GDependencies>;
+  /**
+   * This will find the firestore model if it exists, otherwise a new one is created with the passed data.
+   *
+   * @param id
+   * @param data
+   * @param [callback] called if the model doesn't exist in Firestore
+   */
   findOrCreate(
     id: string,
     data: TypeOfProps<GProps>,
     callback?: ModelCallback<IModel<GProps, GInstanceMethods, GDependencies>>,
   ): IModel<GProps, GInstanceMethods, GDependencies>;
 
+  /**
+   * Find data by ID.
+   * The callback parameter is called with the data once it is received.
+   * @param id
+   * @param callback
+   */
   findById(
     id: string,
     callback?: ModelCallback<IModel<GProps, GInstanceMethods, GDependencies>>,
   ): IModel<GProps, GInstanceMethods, GDependencies>;
 
+  /**
+   * Deletes te instance of the collection with the provided id.
+   *
+   * ```ts
+   * UserSchema.deleteById('sally').run()
+   *   .then(() => console.log('Deleted'))
+   *   .catch(e => console.log(e));
+   * ```
+   * @param id
+   */
   deleteById(id: string): IModel<GProps, GInstanceMethods, GDependencies>;
+
   /**
    * Creates a model from the provided snapshot.
+   * @param snap
    */
   fromSnap(
     snap: FirebaseFirestore.DocumentSnapshot,
   ): IModel<GProps, GInstanceMethods, GDependencies>;
+
+  /**
+   * Creates a model from the provided `DocumentReference`
+   * @param doc
+   */
   fromDoc(
     doc: FirebaseFirestore.DocumentReference,
   ): IModel<GProps, GInstanceMethods, GDependencies>;
 
+  /**
+   * Finds an instance of the model with the provided clauses.
+   *
+   * @param clauses
+   */
   findWhere(params: QueryTuples<GProps>): IQuery<GProps, GInstanceMethods, GDependencies>;
 
+  /**
+   * Finds the first occurrence of your specified clauses
+   */
   find(
     params: QueryTuples<GProps>,
     callback?: ModelCallback<IModel<GProps, GInstanceMethods, GDependencies>>,
   ): IModel<GProps, GInstanceMethods, GDependencies>;
+
+  /**
+   * Finds the first occurrence of your specified clauses
+   * @alias this.find
+   */
   findOne(
     params: QueryTuples<GProps>,
     callback?: ModelCallback<IModel<GProps, GInstanceMethods, GDependencies>>,
   ): IModel<GProps, GInstanceMethods, GDependencies>;
 }
 
+/**
+ * Configuration that is passed into the schema.
+ */
 export interface RunConfig {
   mirror?: boolean;
   useTransactions?: boolean;
@@ -161,12 +216,17 @@ export interface IModel<
   methods: MappedInstanceMethods<GProps, GInstanceMethods, GDependencies>;
   /**
    * Async method that runs all pending actions.
-   * The order of preference is as such.
+   * The order of preference is as such, with one being the highest priority.
    *
-   * - **Delete** overrides all other actions and leaves you with an empty model.
-   * - **FindOrCreate** will always perform a read to see if data exists. If so the models data will be populated, if not then the new data will be added. It uses the softer create method internally so it would fail if a model of the same id is created in the time between checking and creation.
-   * - **Create** will unconditionally create a new document and override anything in the process.
-   * - **Find** will find data for usage
+   * Nothing happens until run is called on the model.
+   *
+   * 1. **Delete** overrides all other actions and leaves you with an empty model.
+   * 2. **FindOrCreate** will always perform a read to see if data exists.
+   *    If so the models data will be populated, if not then the new data will be added.
+   *    It uses the softer create method internally so it would fail if a model of the
+   *    same id is created in the time between checking and creation.
+   * 3. **Create** will unconditionally create a new document and override anything in the process.
+   * 4. **Find** will find data for usage
    */
   run(config?: RunConfig): Promise<this>;
   /**
@@ -181,6 +241,17 @@ export interface IModel<
    * Update multiple params in one run.
    */
   attach(callback: ModelCallback<IModel<GProps, GInstanceMethods, GDependencies>>): this;
+
+  /**
+   * Create data on the model. Usually this is done on an empty model, however it can also be used to
+   * completely overwrite data on an existing model.
+   *
+   * ```ts
+   * await model.create({ ...data }, false).run();
+   * ```
+   * @param data  Full data for the model
+   * @param force if true will overwrite data if it exists defaults to `false`
+   */
   create(data: TypeOfProps<GProps>, force?: boolean): this;
 }
 
@@ -196,11 +267,6 @@ export interface IQuery<
   /**
    * Async method that runs all pending actions.
    * The order of preference is as such.
-   *
-   * - **Delete** overrides all other actions and leaves you with an empty model.
-   * - **FindOrCreate** will always perform a read to see if data exists. If so the models data will be populated, if not then the new data will be added. It uses the softer create method internally so it would fail if a model of the same id is created in the time between checking and creation.
-   * - **Create** will unconditionally create a new document and override anything in the process.
-   * - **Find** will find data for usage
    */
   run(config?: RunConfig): Promise<this>;
 
@@ -356,6 +422,9 @@ export interface ModelActions {
   query?: boolean;
 }
 
+/**
+ * Holds the data of a firestore document.
+ */
 export interface FirestoreRecord<GData> {
   doc: FirebaseFirestore.DocumentReference;
   snap: FirebaseFirestore.DocumentSnapshot;

@@ -2,7 +2,7 @@
 
 [![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lernajs.io/)
 
-Manage your NodeJS firebase server with pre-defined schema and built in type checks.
+Manage your firebase data with pre-defined schema and built in type checking.
 
 ## Getting started
 

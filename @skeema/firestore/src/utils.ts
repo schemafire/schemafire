@@ -1,5 +1,3 @@
-/* tslint:disable no-object-literal-type-assertion */
-
 import admin from 'firebase-admin';
 import * as t from 'io-ts';
 import { overSome } from 'lodash/fp';

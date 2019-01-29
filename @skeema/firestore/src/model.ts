@@ -1,5 +1,3 @@
-/* tslint:disable:no-object-literal-type-assertion no-any no-console */
-
 import {
   Cast,
   logError,
@@ -464,16 +462,14 @@ export class Model<
   }
 
   /**
-   * When a model is created there is no snapshot but we want to the user to have a way of knowing whether the model exists or not.
+   * When a model is created there is no snapshot but we want the user to have a way of knowing whether the model exists or not.
    * We pass a flag during the run to tell whether the model has been created or updated, or deleted.
    */
   private manageLastRunStatus() {
     if (!this.lastRunStatus) {
       return;
     }
-    this.existsViaCreation = ['updated', 'created', 'force-created'].includes(this.lastRunStatus)
-      ? true
-      : false;
+    this.existsViaCreation = ['updated', 'created', 'force-created'].includes(this.lastRunStatus);
   }
 
   private async forceGetIfNeeded(config: RunConfig) {
@@ -550,13 +546,14 @@ export class Model<
   }
 
   public update = (data: t.TypeOfProps<GProps>) => {
+    type Data = Partial<t.TypeOfProps<GProps>>;
     if (isEmpty(data)) {
       return this;
     }
 
     Object.entries(data).forEach(([key, val]) => {
       this.actions.push({
-        data: { [key]: val } as Partial<t.TypeOfProps<GProps>>,
+        data: Cast<Data>({ [key]: val }),
         type: ModelActionType.Update,
       });
     });
@@ -568,9 +565,9 @@ export class Model<
   public create = (data: t.TypeOfProps<GProps>, force: boolean = true) => {
     this.actions.push({
       data,
-      type: (force
-        ? ModelActionType.Create
-        : ModelActionType.FindOrCreate) as ModelActionType.Create,
+      type: Cast<ModelActionType.Create>(
+        force ? ModelActionType.Create : ModelActionType.FindOrCreate,
+      ),
     });
     this.resetRawData(Object.assign({}, this.rawData, data));
     return this;

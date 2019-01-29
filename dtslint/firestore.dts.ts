@@ -1,5 +1,3 @@
-/* tslint:disable-line:file-name-casing */
-
 import * as t from 'io-ts';
 import { Schema } from '../@skeema/firestore/src';
 
