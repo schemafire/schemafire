@@ -1,3 +1,4 @@
+import { testCollection } from '@live-test-helpers';
 import { baseDefinitionObject, createDefaultBase } from '@skeema/core';
 import {
   collectionRef,
@@ -27,7 +28,7 @@ const realData = {
   custom: 'realness',
 };
 
-const collection = `test/123/base`;
+const collection = testCollection('base');
 const mock = jest.fn();
 
 const dependencies = { initialized: true, firebase: jest.fn() };
@@ -123,13 +124,13 @@ test('setDefaultConfig', () => {
   Schema.setDefaultConfig(newConfig);
   const configTest = new Schema({
     fields: definition,
-    collection: 'configTest',
+    collection: testCollection('configTest'),
     defaultData,
   });
   expect(configTest.config).toEqual(newConfig);
   const altConfigTest = new Schema({
     fields: definition,
-    collection: 'altConfigTest',
+    collection: testCollection('altConfigTest'),
     defaultData,
     config: { maxAttempts: 2 },
   });

@@ -1,3 +1,4 @@
+import { testCollection } from '@live-test-helpers';
 import { baseDefinitionObject, createDefaultBase } from '@skeema/core';
 import * as t from 'io-ts';
 import { Schema } from '../schema';
@@ -27,8 +28,8 @@ export const mock = jest.fn();
 export const schema = new Schema({
   fields: definition,
   defaultData,
-  collection: 'standard',
-  mirror: { collection: 'mirror', idField: 'custom', name: 'user' },
+  collection: testCollection('standard'),
+  mirror: { collection: testCollection('mirror'), idField: 'custom', name: 'user' },
   instanceMethods: {
     extraArg: (model, deps) => (extra: string) => {
       mock(model, deps, extra);
@@ -47,7 +48,7 @@ export const schema = new Schema({
 export const simpleSchema = new Schema({
   fields: definition,
   defaultData,
-  collection: 'simple',
+  collection: testCollection('simple'),
 });
 
 export const advancedDefinition = t.interface({
@@ -71,8 +72,8 @@ export const advancedRealData = {
 export const advancedSchema = new Schema({
   fields: advancedDefinition,
   defaultData: advancedDefaultData,
-  collection: 'advanced',
-  mirror: { collection: 'mirror', idField: 'custom', name: 'user' },
+  collection: testCollection('advanced'),
+  mirror: { collection: testCollection('mirror'), idField: 'custom', name: 'user' },
   instanceMethods: {
     world: (model, deps) => (extra: string, num: number) => {
       mock(model, deps, extra, num);
