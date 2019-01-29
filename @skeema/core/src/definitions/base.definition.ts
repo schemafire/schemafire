@@ -4,6 +4,9 @@ import { omit } from 'lodash/fp';
 import { Omit } from '../types';
 import { timestamp, utils } from './io-types';
 
+/**
+ * The lowest level definition object
+ */
 export const baseDefinitionObject = {
   createdAt: timestamp,
   updatedAt: timestamp,

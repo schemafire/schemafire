@@ -77,18 +77,18 @@ describe('strings', () => {
   });
 
   test('#username', () => {
-    expect(() => ThrowReporter.report(strings.username.decode('should fail'))).toThrow();
-    expect(() => ThrowReporter.report(strings.username.decode('123'))).toThrow();
-    expect(() => ThrowReporter.report(strings.username.decode('_'))).toThrow();
-    expect(() => ThrowReporter.report(strings.username.decode('_abc'))).toThrow();
-    expect(() => ThrowReporter.report(strings.username.decode('abcdef1234567890'))).toThrow();
-    expect(() => ThrowReporter.report(strings.username.decode('abcd'))).not.toThrow();
+    expect(() => ThrowReporter.report(strings.username().decode('should fail'))).toThrow();
+    expect(() => ThrowReporter.report(strings.username().decode('123'))).toThrow();
+    expect(() => ThrowReporter.report(strings.username().decode('_'))).toThrow();
+    expect(() => ThrowReporter.report(strings.username().decode('_abc'))).toThrow();
+    expect(() => ThrowReporter.report(strings.username().decode('abcdef1234567890'))).toThrow();
+    expect(() => ThrowReporter.report(strings.username().decode('abcd'))).not.toThrow();
   });
 });
 
 test('#validateUnionType', () => {
-  expect(validateUnionType(strings.username, 'valid')).toEqual([]);
-  const errors = validateUnionType(strings.username, '_invalid');
+  expect(validateUnionType(strings.username(), 'valid')).toEqual([]);
+  const errors = validateUnionType(strings.username(), '_invalid');
   expect(errors).toHaveLength(1);
   expect(errors[0]).toContain('start.with.letter');
 });

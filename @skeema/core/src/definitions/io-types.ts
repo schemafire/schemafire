@@ -5,11 +5,37 @@ import { DictionaryType, GenericDictionaryType, TimestampType } from './class-ty
 
 export const timestamp: TimestampType = new TimestampType();
 
+/**
+ * Ensures that a number is greater than or equal to the passed in value
+ *
+ * @param minimum
+ */
 const gte = (minimum: number) => t.refinement(t.number, val => val >= minimum, 'MinNumber');
+
+/**
+ * Ensures that a number is greater than the passed in value
+ *
+ * @param minimum
+ */
 const gt = (minimum: number) => t.refinement(t.number, val => val > minimum, 'MinNumber');
+
+/**
+ * Ensures that a number is less than or equal to the passed in value
+ *
+ * @param maximum
+ */
 const lte = (maximum: number) => t.refinement(t.number, val => val <= maximum, 'MaxNumber');
+
+/**
+ * Ensures that a number is less than the passed in value
+ *
+ * @param maximum
+ */
 const lt = (maximum: number) => t.refinement(t.number, val => val < maximum, 'MaxNumber');
 
+/**
+ * Number validation
+ */
 export const numbers = {
   gte,
   lte,
@@ -17,6 +43,9 @@ export const numbers = {
   gt,
 };
 
+/**
+ * Allows for regex validation
+ */
 interface RegexValidation {
   regex: RegExp;
   code: string;
@@ -40,12 +69,23 @@ const regex = (mapper: RegexValidation) =>
 const reverseRegex = (obj: RegexValidation) =>
   t.refinement(t.string, val => !obj.regex.test(val), obj.code);
 
-const username = t.intersection([
-  min(3),
-  max(15),
-  regex(regexMap.startWithLetter),
-  regex(regexMap.letterNumberUnderscore),
-]);
+interface UsernameParams {
+  minimum?: number;
+  maximum?: number;
+}
+
+/**
+ * Allows for custom username validation creation.
+ * @param params
+ */
+const username = ({ minimum = 3, maximum = 15 }: UsernameParams = {}) =>
+  t.intersection([
+    min(minimum),
+    max(maximum),
+    regex(regexMap.startWithLetter),
+    regex(regexMap.letterNumberUnderscore),
+  ]);
+
 const email = t.refinement(t.string, val => isEmail(val), 'Email');
 
 export const strings = {

@@ -1,6 +1,10 @@
 import { Timestamp } from '@google-cloud/firestore';
 import * as t from 'io-ts';
 
+/**
+ * A timestamp type for Firestore data. Allows creating a validation
+ * field which can be used to ensure time data is correct.
+ */
 export class TimestampType extends t.Type<Timestamp> {
   public readonly _tag: 'TimestampType' = 'TimestampType';
   constructor() {
@@ -13,6 +17,9 @@ export class TimestampType extends t.Type<Timestamp> {
   }
 }
 
+/**
+ * Plain dictionary type with little typechecking.
+ */
 export class DictionaryType extends t.Type<{ [key: string]: any }> {
   public readonly _tag: 'DictionaryType' = 'DictionaryType';
   constructor() {
@@ -25,6 +32,10 @@ export class DictionaryType extends t.Type<{ [key: string]: any }> {
   }
 }
 
+/**
+ * Allows the creation of a generic dictionary type which can be validated according to requirements and present a custom
+ * type to the TypeScript compiler.
+ */
 export class GenericDictionaryType<T, U extends string> extends t.Type<T> {
   public readonly _tag: 'DictionaryType' = 'DictionaryType';
   constructor(name: U, validation = (_: unknown) => true) {
