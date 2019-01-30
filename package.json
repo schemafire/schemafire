@@ -28,6 +28,7 @@
     "lint:ts": "lerna run lint --parallel",
     "prepublish:alpha": "run-s ci:checks",
     "publish:alpha": "lerna publish prerelease --preid=alpha --exact --dist-tag=alpha",
+    "setup": "run-s test:setup",
     "test": "jest",
     "test:ci": "cross-env TEST_ENV=live jest",
     "test:live": "cross-env TEST_ENV=live FIREBASE_CONFIG={} jest",

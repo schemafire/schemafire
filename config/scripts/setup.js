@@ -5,6 +5,7 @@ const firebaseTools = require('firebase-tools');
 const inquirer = require('inquirer');
 const fs = require('mz/fs');
 const { resolve } = require('path');
+const Listr = require('listr');
 
 // Command Line Arguments
 const userToken = argv.token;
@@ -31,7 +32,9 @@ Promise.resolve(userToken || cachedToken)
     const project = await (async () => {
       if (projectId) return projectId;
 
-      const projects = await firebaseTools.list({ token });
+      const projects = await firebaseTools.list({
+        token,
+      });
       const response = await inquirer.prompt([
         {
           type: 'list',
@@ -51,23 +54,34 @@ Promise.resolve(userToken || cachedToken)
       return id;
     })();
 
-    // Write config to top-level config directory
-    await firebaseTools.setup
-      .web({ project, token })
-      .then(config => fs.writeFile(configDir('test', 'db.json'), JSON.stringify(config, null, 2)));
+    // Write config to top-level config directory and deploy rules
+    const tasks = new Listr([
+      {
+        title: `Creating a local \`db.json\` file for the project ${project}`,
+        task: () =>
+          firebaseTools.setup
+            .web({ project, token })
+            .then(config =>
+              fs.writeFile(configDir('test', 'db.json'), JSON.stringify(config, null, 2)),
+            ),
+      },
+      {
+        title: `Deploying RealtimeDB and Firestore rules`,
+        task: () =>
+          firebaseTools.deploy({
+            project,
+            token,
+            cwd: configDir(),
+          }),
+      },
+    ]);
 
-    // Deploy database rules
-    await firebaseTools.deploy({
-      project,
-      token,
-      cwd: configDir(),
-    });
+    await tasks.run();
   })
   .then(() => {
-    console.log('Success! Exiting...');
     process.exit();
   })
   .catch(err => {
-    console.error(err);
+    console.error('Something went wrong', err);
     process.exit(1);
   });

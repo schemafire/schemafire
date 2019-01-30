@@ -59,7 +59,7 @@ account key file from the "Settings > Service Accounts" page of the project, and
 After this run
 
 ```bash
-yarn test:setup
+yarn setup
 ```
 
 Some Auth integration tests require that you enable the IAM API for your Firebase/GCP project,
