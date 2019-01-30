@@ -1,4 +1,4 @@
-import { initializeTestFirebase, testCollection } from '@live-test-helpers';
+import { initializeFirebase, testCollection } from '@live-test-helpers';
 import { ThrowReporter } from '@skeema/core';
 import admin from 'firebase-admin';
 import {
@@ -11,7 +11,7 @@ import {
 
 jest.unmock('firebase-admin');
 
-initializeTestFirebase();
+initializeFirebase();
 const db = admin.firestore();
 
 test('baseDefinition', () => {

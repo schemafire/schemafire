@@ -1,4 +1,4 @@
-import { initializeTestFirebase, testCollection } from '@live-test-helpers';
+import { initializeFirebase, testCollection } from '@live-test-helpers';
 import { generateId } from '@skeema/core';
 import admin from 'firebase-admin';
 import * as t from 'io-ts';
@@ -9,7 +9,7 @@ import { getDocument } from '../utils';
 
 jest.unmock('firebase-admin');
 
-initializeTestFirebase(true);
+initializeFirebase();
 
 const codec = t.interface({
   name: t.string,

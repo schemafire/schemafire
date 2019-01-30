@@ -52,7 +52,7 @@
       "tslint --fix",
       "git add"
     ],
-    "@skeema/!(jest-mocks)?*/src/**/!(unit-test-helpers)?*.{ts,tsx}": [
+    "@skeema/!(jest-mocks)?*/src/**/!(unit-test-helpers)?*.!(test.)?{ts,tsx}": [
       "jest --coverage=false --bail --findRelatedTests"
     ],
     "*.js": [

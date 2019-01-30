@@ -23,20 +23,17 @@ export const createLiveFunctionsTester = (unitTest: boolean = false) => {
 
 /**
  * Initialized firebase admin and return the instance of firestore.
- * @param standalone means that the code directly initializes with all the required config
  */
-export const initializeTestFirebase = (standalone: boolean = false) => {
-  if (standalone) {
-    const serviceAccountKey = require('../../../../config/test/key.json');
+export const initializeFirebase = () => {
+  const serviceAccountKey = require('../../../../config/test/key.json');
 
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccountKey),
-      databaseURL: TEST_PROJECT_CONFIG.databaseURL,
-      projectId: TEST_PROJECT_CONFIG.projectId,
-    });
-  } else {
-    admin.initializeApp();
-  }
-  const firestore = admin.firestore();
-  return firestore;
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccountKey),
+    databaseURL: TEST_PROJECT_CONFIG.databaseURL,
+    projectId: TEST_PROJECT_CONFIG.projectId,
+  });
+};
+
+export const initializeFirebaseWithoutConfig = () => {
+  admin.initializeApp();
 };
