@@ -15,10 +15,10 @@ _First, be sure you have installed [firebase-admin](https://github.com/firebase
 yarn add firebase-admin io-ts
 ```
 
-Now install `@skeema/firestore` and `@skeema/core`:
+Now install `@skeema/firestore`:
 
 ```bash
-yarn add @skeema/firestore @skeema/core
+yarn add @skeema/firestore
 ```
 
 One key goal of this project is to provide first-class TypeScript support when defining your data models. As a result, the rest of this guide is written using TypeScript.
@@ -60,49 +60,49 @@ Speaking of blowing up, we're going to build a lottery schema so foolish it coul
 
 You have been warned. Proceed with caution.
 
-The foundation of `@skeema/firestore`, is the **definition type** which accomplishes _a few of my favourite things_ 🎶
+The foundation of `@skeema/firestore`, is the **codec type** from [`io-ts`](https://github.com/gcanti/io-ts) which accomplishes _a few of my favourite things_ 🎶
 
 - Runtime type checks
 - Automatic schema validation
 - Lightweight enough to be used throughout the whole development stack (for those as hipster and suave as yours truly)
 
-So, in summary, [io-ts](https://github.com/gcanti/io-ts) changes lives.
+So, in summary, [`io-ts`](https://github.com/gcanti/io-ts) changes lives.
 
-_Cough_\* let's create our definition.
+_Cough_\* let's create our codec.
 
 ```ts
-/* definitions.ts */
+/* codec.ts */
 import * as t from 'io-ts';
-import { utils, string, number } from '@skeema/core';
+import { utils, string, number } from '@skeema/firestore';
 
-export const userDefinition = t.type({
+export const userCodec = t.type({
   username: strings.username,
   email: utils.nullable(strings.email),
   ticket: utils.optional(t.string),
 });
 ```
 
-Look at that! We've just defined the shape of data for every user and this same shape can be used throughout our code base. I call these little bundles of code, **definitions**. You can call them whatever you like.
+Look at that! We've just defined the shape of data for every user and this same shape can be used throughout our code base. We call these little bundles of joy, **codecs**. You can call them whatever you like.
 
 - `t.type` is from [`io-ts`](https://github.com/gcanti/io-ts) and defines the shape.
 - `utils.nullable(strings.email)` is from the `@skeema/core` library and lets the runtime know that this an email which is also nullable
 
 There are several other utilities hidden within `@skeema/core`. Perhaps you could [help](https://github.com/ifiokjr/skeema/blob/CONTRIBUTING.md) in ensuring their dark secrets are brought into the light.
 
-[Schema's](https://github.com/ifiokjr/skeema/blob/@skeema/firestore/src/schema.ts) allow us to apply definitions to our database models. Let's pull in this class and start writing some world changing code.
+[Schema's](https://github.com/ifiokjr/skeema/blob/@skeema/firestore/src/schema.ts) allow us to apply codecs to our database models. Let's pull in this class and start writing some world changing code.
 
 ```ts
 /* user.ts */
 
 import { Schema } from '@skeema/firestore';
-import { userDefinition } from './definitions';
+import { userCodec } from './codec';
 
 const UserSchema = new Schema({
-  // The definition (io-ts type) we defined earlier
-  definition: userDefinition,
+  // The codec (io-ts type) we defined earlier
+  codec: userCodec,
   // The name of the firestore collection this refers to
   collection: 'users',
-  // The default data for a user (should match the shape of the definition)
+  // The default data for a user (should match the shape of the codec)
   defaultData: { username: '', email: null, ticket: undefined },
   instanceMethods: {
     assignWinningLotteryTicket: (
@@ -122,7 +122,7 @@ const UserSchema = new Schema({
 });
 ```
 
-So far so good. We've got a schema with three properties defined by the definition. It is attached to our firestore collection `users` and has one instance method and one static method.
+So far so good. We've got a schema with three properties defined by the codec. It is attached to our firestore collection `users` and has one instance method and one static method.
 
 The next step is to build a model from this.
 
@@ -243,7 +243,7 @@ Below are some of the things that
 
 ### Coming soon
 
-- [x] Create schema using using [`io-ts`](https://github.com/gcanti/io-ts/blob/master/README.md) definitions.
+- [x] Create schema using using [`io-ts`](https://github.com/gcanti/io-ts/blob/master/README.md) codecs.
 - [x] Add instance methods and static methods to help manage data in the models.
 - [x] All updates are automatically wrapped in transactions
 - [x] Create getting started guide.
