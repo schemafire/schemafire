@@ -11,7 +11,7 @@ const coverage = {
   },
 };
 
-if (!process.env.FIREBASE_CONFIG) {
+if (!process.env.CI && !process.env.FIREBASE_CONFIG) {
   process.env.FIREBASE_CONFIG = '{}';
 }
 

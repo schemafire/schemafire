@@ -34,7 +34,7 @@
     "test:ci": "cross-env TEST_ENV=live jest",
     "test:live": "cross-env TEST_ENV=live FIREBASE_CONFIG={} jest",
     "test:setup": "node config/scripts/setup.js",
-    "test:watch": "jest  --watch --verbose=false",
+    "test:watch": "jest  --watch --verbose=false FIREBASE_CONFIG={}",
     "test:watch:live": "cross-env TEST_ENV=live FIREBASE_CONFIG={} jest  --watch --verbose=false --coverage=false",
     "typecheck": "run-s typecheck:*",
     "typecheck:config": "tsc -p config/tsconfig.json --noEmit ",

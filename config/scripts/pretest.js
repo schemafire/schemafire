@@ -77,9 +77,11 @@ const runChecks = (exports.runChecks = () => {
     .then(() => validateYarnInstall());
 });
 
+console.log('within checks');
+
 if (!module.parent) {
   runChecks().catch(err => {
-    console.error(err);
+    console.error('Something went wrong', err);
     return process.exit(1);
   });
 }

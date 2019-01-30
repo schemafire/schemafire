@@ -8,7 +8,10 @@ module.exports = async (_: GlobalConfig) => {
     return;
   }
 
-  const token = process.env.CI ? require(userFirebaseConfig()) : process.env.FIREBASE_TOKEN!;
+  const token = process.env.CI
+    ? process.env.FIREBASE_TOKEN!
+    : require(userFirebaseConfig()).tokens.refresh_token;
+
   const { projectId: project } = require('./test/db.json');
   const params = {
     project,
