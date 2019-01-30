@@ -11,8 +11,11 @@ node_js:
   - '11'
 env:
   global:
-    - PATH=$HOME/.yarn/bin:$PATH
+    - PATH=$HOME/.yarn/bin:$HOME/bin:$PATH
 before_install:
+  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > $HOME/bin/cc-test-reporter
+  - chmod +x $HOME/bin/cc-test-reporter
+  - cc-test-reporter before-build
   - curl -o- -L https://yarnpkg.com/install.sh | bash
   - yarn ci:setup
 install:
@@ -20,7 +23,7 @@ install:
 script:
   - yarn ci:checks
 after_script:
-  - yarn ci:coverage
+  - cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
 notifications:
   slack:
     rooms:

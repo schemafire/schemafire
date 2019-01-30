@@ -21,6 +21,7 @@
     "fix:config": "tslint --project config/tsconfig.json --config tslint.json --fix",
     "fix:lint": "lerna run lint --parallel -- --fix",
     "fix:prettier": "prettier --write \"**/*.{json,yml,yaml,md}\"",
+    "postinstall": "node config/scripts/postinstall.js",
     "integrity": "yarn check --integrity",
     "lint": "run-s lint:*",
     "lint:config": "tslint --project config/tsconfig.json --config tslint.json",

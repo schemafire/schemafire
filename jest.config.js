@@ -20,15 +20,6 @@ global.__DB_PREFIX__ = createDBPrefix();
 module.exports = {
   cacheDirectory: '<rootDir>/.jest',
   collectCoverage: isLiveTest(),
-  coveragePathIgnorePatterns: [
-    '**/dtslint/*.ts',
-    '**/*.d.ts',
-    'config/**',
-    '**/__mocks__/**',
-    '**/tmp/**',
-    '**/__tests__/**',
-    'jest.*.ts',
-  ],
   projects: ['<rootDir>/@skeema/*/'],
   watchPlugins: ['jest-watch-typeahead/filename', 'jest-watch-typeahead/testname'],
   ...(isLiveTest() ? coverage : {}),
