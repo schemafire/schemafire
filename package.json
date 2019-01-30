@@ -74,6 +74,6 @@
   },
   "resolutions": {
     "babel-core": "7.0.0-bridge.0",
-    "@google-cloud/firestore": "0.21.0"
+    "@google-cloud/firestore": "1.0.1"
   }
 }
