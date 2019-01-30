@@ -12,7 +12,6 @@ module.exports = {
   ],
   plugins: [
     'lodash',
-    'date-fns',
     '@babel/plugin-proposal-object-rest-spread',
     '@babel/plugin-transform-arrow-functions',
     ['@babel/plugin-proposal-decorators', { legacy: true }],

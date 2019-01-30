@@ -2081,10 +2081,6 @@ babel-jest@24.0.0:
     babel-plugin-istanbul "^5.1.0"
     babel-preset-jest "^24.0.0"
 
-babel-plugin-date-fns@ifiokjr/babel-plugin-date-fns#d031bbe:
-  version "0.2.1"
-  resolved "https://codeload.github.com/ifiokjr/babel-plugin-date-fns/tar.gz/d031bbe43711b4404e381df868a4c6f395e1e57c"
-
 babel-plugin-istanbul@^5.1.0:
   version "5.1.0"
   resolved "https://registry.yarnpkg.com/babel-plugin-istanbul/-/babel-plugin-istanbul-5.1.0.tgz#6892f529eff65a3e2d33d87dc5888ffa2ecd4a30"
