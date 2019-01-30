@@ -10,7 +10,7 @@ export const mockTransaction = {
   get: jest.fn(),
 };
 
-export const definition = t.interface({
+export const codec = t.interface({
   name: t.string,
   age: t.number,
   custom: t.string,
@@ -25,7 +25,7 @@ export const realData = {
 };
 export const mock = jest.fn();
 export const schema = new Schema({
-  fields: definition,
+  codec,
   defaultData,
   collection: testCollection('standard'),
   mirror: { collection: testCollection('mirror'), idField: 'custom', name: 'user' },
@@ -45,7 +45,7 @@ export const schema = new Schema({
   },
 });
 export const simpleSchema = new Schema({
-  fields: definition,
+  codec,
   defaultData,
   collection: testCollection('simple'),
 });
@@ -66,7 +66,7 @@ export const advancedRealData = {
 };
 
 export const advancedSchema = new Schema({
-  fields: advancedDefinition,
+  codec: advancedDefinition,
   defaultData: advancedDefaultData,
   collection: testCollection('advanced'),
   mirror: { collection: testCollection('mirror'), idField: 'custom', name: 'user' },

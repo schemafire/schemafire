@@ -1,5 +1,6 @@
-import { BaseDefinition, BaseDefinitionKeys, baseDefinitionObject, Omit } from '@skeema/core';
+import { Omit } from '@skeema/core';
 import * as t from 'io-ts';
+import { baseCodecObject, BaseDefinition } from './base';
 
 /**
  * Determines where data should be copied to when an update happens in the model.
@@ -14,7 +15,8 @@ export interface SchemaCacheRules<GKeys> {
   idField?: GKeys;
 }
 
-export type PropsWithBase<GProps extends t.Props> = GProps & Readonly<typeof baseDefinitionObject>;
+export type BaseDefinitionKeys = 'createdAt' | 'updatedAt' | 'schemaVersion';
+export type PropsWithBase<GProps extends t.Props> = GProps & Readonly<typeof baseCodecObject>;
 export type PropKeysWithBase<GProps extends t.Props> = keyof PropsWithBase<GProps>;
 export type FieldsOfProps<GProps extends t.AnyProps> = t.TypeC<GProps>;
 export type TypeOfProps<GProps extends t.AnyProps> = t.TypeOf<FieldsOfProps<GProps>>;
@@ -65,7 +67,7 @@ export interface SchemaParams<
     ISchema<GProps, GInstanceMethods, GDependencies, GStaticMethods>
   > = any
 > {
-  fields: FieldsOfProps<GProps>;
+  codec: FieldsOfProps<GProps>;
   collection: string;
   defaultData: TypeOfProps<GProps>;
   mirror?: SchemaCacheRules<keyof GProps>;
@@ -82,7 +84,7 @@ export interface ISchema<
   GStaticMethods extends StaticMethodConfig<ISchema<GProps, any, GDependencies, any>> = any
 > {
   readonly version: number;
-  fields: FieldsOfProps<GProps>;
+  codec: FieldsOfProps<GProps>;
   collection: string;
   defaultData: TypeOfProps<GProps>;
   mirror?: SchemaCacheRules<keyof GProps>;
@@ -383,10 +385,13 @@ export type AnyModel = IModel<any, any, any>;
 export type TypeOfModel<GSchema extends AnySchema> = ReturnType<GSchema['model']>;
 
 /**
- * Extract the type of data including the BaseProps like `createdAt`, `updatedAt`.
+ * Extract the type of data including the BaseProps `createdAt` | `updatedAt` | `schemaVersion`.
  */
 export type TypeOfData<GSchema extends AnySchema> = TypeOfModel<GSchema>['data'];
 
+/**
+ * Type of data without any of the base props.
+ */
 export type TypeOfCreateData<GSchema extends AnySchema> = Omit<
   TypeOfData<GSchema>,
   BaseDefinitionKeys

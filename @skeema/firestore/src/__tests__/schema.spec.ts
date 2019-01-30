@@ -7,32 +7,17 @@ import {
 } from '@skeema/jest-mocks/lib/firebase-admin';
 import { Any } from '@unit-test-helpers';
 import admin from 'firebase-admin';
-import * as t from 'io-ts';
+import { codec, defaultData, realData } from '../__fixtures__/shared.fixtures';
 import { Model } from '../model';
 import { Query } from '../query';
 import { Schema } from '../schema';
-
-const definition = t.interface({
-  name: t.string,
-  age: t.number,
-  data: t.object,
-});
-
-const defaultData = { name: '', data: {}, age: 20 };
-const realData = {
-  ...defaultData,
-  name: 'Real',
-  data: { real: 'stuff' },
-  age: 32,
-  custom: 'realness',
-};
 
 const collection = testCollection('base');
 const mock = jest.fn();
 
 const dependencies = { initialized: true, firebase: jest.fn() };
 const Base = new Schema({
-  fields: definition,
+  codec,
   defaultData,
   collection,
   dependencies,
@@ -51,7 +36,7 @@ const Base = new Schema({
 
 describe('constructor', () => {
   it("doesn't allow identical collections to be registered", () => {
-    expect(() => new Schema({ fields: definition, collection, defaultData })).toThrowError();
+    expect(() => new Schema({ codec, collection, defaultData })).toThrowError();
   });
   it('provides itself to the created models', () => {
     const m = Base.create(realData);
@@ -116,7 +101,7 @@ test('getInstance', () => {
   expect(() => Schema.getInstance('alt')).toThrowError();
   expect(() => Schema.getInstance(collection)).not.toThrowError();
   // tslint:disable-next-line:no-unused-expression
-  new Schema({ fields: definition, collection: 'alt', defaultData });
+  new Schema({ codec, collection: 'alt', defaultData });
   expect(() => Schema.getInstance('alt')).not.toThrowError();
 });
 
@@ -126,13 +111,13 @@ test('setDefaultConfig', () => {
   expect(Base.config).toEqual(oldConfig);
   Schema.setDefaultConfig(newConfig);
   const configTest = new Schema({
-    fields: definition,
+    codec,
     collection: testCollection('configTest'),
     defaultData,
   });
   expect(configTest.config).toEqual(newConfig);
   const altConfigTest = new Schema({
-    fields: definition,
+    codec,
     collection: testCollection('altConfigTest'),
     defaultData,
     config: { maxAttempts: 2 },

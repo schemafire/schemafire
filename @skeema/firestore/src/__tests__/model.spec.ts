@@ -1,4 +1,4 @@
-import { omitBaseFields, removeUndefined } from '@skeema/core';
+import { removeUndefined } from '@skeema/core';
 import {
   collectionRef,
   doc,
@@ -18,6 +18,7 @@ import {
   schema,
   simpleSchema,
 } from '../__fixtures__/shared.fixtures';
+import { omitBaseFields } from '../base';
 import { Model } from '../model';
 import { ModelActionType, TypeOfModel } from '../types';
 

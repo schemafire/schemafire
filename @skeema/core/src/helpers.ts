@@ -1,8 +1,6 @@
-import admin from 'firebase-admin';
 import { Change } from 'firebase-functions/lib/cloud-functions';
 import { FunctionsErrorCode, HttpsError } from 'firebase-functions/lib/providers/https';
 import { get, isEqual } from 'lodash';
-import { pipe } from 'lodash/fp';
 import generate from 'nanoid/generate';
 
 /**
@@ -32,86 +30,6 @@ export const removeUndefined = <T extends {}>(data: T) => {
     Cast<T>({}),
   );
 };
-
-/**
- * Adds a `createdAt` timestamp to the passed in object.
- * It's currently not used directly except in combination for newly created data.
- *
- * @param data The object to extend
- */
-export const serverCreateTimestamp = <T extends object>(data: T) => ({
-  ...data,
-  createdAt: admin.firestore.FieldValue.serverTimestamp(),
-});
-
-/**
- * Adds an `updatedAt` at timestamp to the passed in object.
- *
- * @param data The object to extend
- */
-export const serverUpdateTimestamp = <T extends object>(data: T) => ({
-  ...data,
-  updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-});
-
-/**
- * Adds both `createdAt` and `updatedAt` timestamps to the passed in object.
- * Useful when creating data for the first time.
- *
- * @param data The object to extend
- */
-export const serverCreateUpdateTimestamp: (
-  data: object,
-) => object & {
-  createdAt: FirebaseFirestore.FieldValue;
-  updatedAt: FirebaseFirestore.FieldValue;
-} = pipe(
-  serverUpdateTimestamp,
-  serverCreateTimestamp,
-);
-
-/**
- * Removes undefined and adds both `createdAt` and `updatedAt` timestamps to the passed in object.
- *
- * @param data The object to extend
- */
-export const safeFirestoreCreateUpdate: (
-  data: object,
-) => object & {
-  createdAt: FirebaseFirestore.FieldValue;
-  updatedAt: FirebaseFirestore.FieldValue;
-} = pipe(
-  removeUndefined,
-  serverCreateUpdateTimestamp,
-);
-
-/**
- * Removes undefined and adds both `createdAt` timestamp to the passed in object.
- *
- * @param data The object to extend
- */
-export const safeFirestoreCreate: (
-  data: object,
-) => object & {
-  createdAt: FirebaseFirestore.FieldValue;
-} = pipe(
-  removeUndefined,
-  serverCreateTimestamp,
-);
-
-/**
- * Removes undefined and adds `updatedAt` timestamp to the passed in object.
- *
- * @param data The object to extend
- */
-export const safeFirestoreUpdate: (
-  data: object,
-) => object & {
-  updatedAt: FirebaseFirestore.FieldValue;
-} = pipe(
-  removeUndefined,
-  serverUpdateTimestamp,
-);
 
 export interface ErrorDetails {
   [x: string]: string | object;

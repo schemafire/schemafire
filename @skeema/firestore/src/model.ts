@@ -1,16 +1,8 @@
-import {
-  BaseDefinition,
-  Cast,
-  logError,
-  removeUndefined,
-  safeFirestoreCreateUpdate,
-  safeFirestoreUpdate,
-  serverUpdateTimestamp,
-  simpleError,
-} from '@skeema/core';
+import { Cast, logError, removeUndefined, simpleError } from '@skeema/core';
 import admin from 'firebase-admin';
 import * as t from 'io-ts';
 import { get, isEmpty } from 'lodash/fp';
+import { BaseDefinition, createDefaultBase } from './base';
 import {
   AnyModel,
   AnySchema,
@@ -45,6 +37,9 @@ import {
   isCallbackAction,
   isDeleteFieldAction,
   isUpdateAction,
+  safeFirestoreCreateUpdate,
+  safeFirestoreUpdate,
+  serverUpdateTimestamp,
 } from './utils';
 
 const getIdField: (schema: AnySchema) => string = get(['mirror', 'idField']);
@@ -104,11 +99,7 @@ export class Model<
     this.currentRunConfig = this.schema.config;
 
     // Set up the base data so that we have a fallback while the data has not yet been created
-    this.baseData = {
-      updatedAt: admin.firestore.Timestamp.now(),
-      createdAt: admin.firestore.Timestamp.now(),
-      schemaVersion: this.schema.version,
-    };
+    this.baseData = createDefaultBase({ schemaVersion: this.schema.version });
   }
 
   private setupInitialActions(

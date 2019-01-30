@@ -1,9 +1,7 @@
 import * as t from 'io-ts';
 import { reporter } from 'io-ts-reporters';
 import { isEmail } from 'validator';
-import { DictionaryType, GenericDictionaryType, TimestampType } from './class-types';
-
-export const timestamp: TimestampType = new TimestampType();
+import { DictionaryType, GenericDictionaryType } from './class-types';
 
 /**
  * Ensures that a number is greater than or equal to the passed in value

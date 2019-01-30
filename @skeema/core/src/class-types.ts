@@ -1,21 +1,4 @@
-import { Timestamp } from '@google-cloud/firestore';
 import * as t from 'io-ts';
-
-/**
- * A timestamp type for Firestore data. Allows creating a validation
- * field which can be used to ensure time data is correct.
- */
-export class TimestampType extends t.Type<Timestamp> {
-  public readonly _tag: 'TimestampType' = 'TimestampType';
-  constructor() {
-    super(
-      'Timestamp',
-      (m): m is Timestamp => m instanceof Timestamp,
-      (m, c) => (this.is(m) ? t.success(m) : t.failure(m, c)),
-      t.identity,
-    );
-  }
-}
 
 /**
  * Plain dictionary type with little typechecking.

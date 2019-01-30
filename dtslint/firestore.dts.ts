@@ -1,7 +1,7 @@
 import * as t from 'io-ts';
 import { Schema } from '../@skeema/firestore/src';
 
-const definition = t.interface({
+const codec = t.interface({
   name: t.string,
   age: t.number,
   custom: t.string,
@@ -13,7 +13,7 @@ const defaultData = { name: '', data: {}, age: 20, custom: 'custom' };
 const mock = (...args: any[]) => console.log(args);
 
 const schema = new Schema({
-  fields: definition,
+  codec,
   defaultData,
   collection: 'standard',
   mirror: { collection: 'mirror', idField: 'custom', name: 'user' },

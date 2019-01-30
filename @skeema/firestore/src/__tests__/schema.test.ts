@@ -1,24 +1,23 @@
 import { initializeTestFirebase, testCollection } from '@live-test-helpers';
-import { baseDefinitionObject, createDefaultBase, generateId } from '@skeema/core';
+import { generateId } from '@skeema/core';
 import admin from 'firebase-admin';
 import * as t from 'io-ts';
 import { pick } from 'lodash/fp';
 import { Schema } from '../schema';
-import { AnyModel, TypeOfModel } from '../types';
+import { AnyModel, TypeOfData, TypeOfModel } from '../types';
 import { getDocument } from '../utils';
 
 jest.unmock('firebase-admin');
 
 initializeTestFirebase(true);
 
-const definition = t.interface({
+const codec = t.interface({
   name: t.string,
   age: t.number,
   data: t.object,
-  ...baseDefinitionObject,
 });
 
-const defaultData = { name: '', data: {}, age: 20, ...createDefaultBase() };
+const defaultData = { name: '', data: {}, age: 20 };
 const realData = {
   ...defaultData,
   name: 'Real',
@@ -33,7 +32,7 @@ const collection = testCollection('base');
 const simple = jest.fn();
 const dependencies = { initialized: true, firebase: jest.fn() };
 const Base = new Schema({
-  fields: definition,
+  codec,
   defaultData,
   collection,
   instanceMethods: { simple },
@@ -61,9 +60,9 @@ describe('#create', () => {
     ids.push(m.id);
     const m2 = Base.create({ ...realData, age: 100 }, m.id);
     await m.run();
-    const record = await getDocument<t.TypeOf<typeof definition>>(m.id, collection);
+    const record = await getDocument<TypeOfData<typeof Base>>(m.id, collection);
     await m2.run();
-    const record2 = await getDocument<t.TypeOf<typeof definition>>(m.id, collection);
+    const record2 = await getDocument<TypeOfData<typeof Base>>(m.id, collection);
     expect(record2.data).not.toEqual(record.data);
     expect(record2.data!.createdAt.isEqual(record.data!.createdAt)).toBe(false);
   });
@@ -76,7 +75,7 @@ describe('#findOrCreate', () => {
   });
   it('should create a document', async () => {
     await Base.findOrCreate(id, realData).run();
-    const record = await getDocument<t.TypeOf<typeof definition>>(id, collection);
+    const record = await getDocument<TypeOfData<typeof Base>>(id, collection);
     expect(record.data).toEqual(
       expect.objectContaining({
         name: 'Real',
@@ -103,7 +102,7 @@ describe('#deleteById', () => {
   it('deletes data', async () => {
     const m = await Base.deleteById(id);
     await m.run();
-    const record = await getDocument<t.TypeOf<typeof definition>>(id, collection);
+    const record = await getDocument<TypeOfData<typeof Base>>(id, collection);
     expect(m.data).toEqual({});
     expect(m.exists).toBeFalse();
     expect(record.snap.exists).toBe(false);
@@ -113,7 +112,7 @@ describe('#deleteById', () => {
     m.create(realData);
     m.data.age = 100;
     await m.run();
-    const record = await getDocument<t.TypeOf<typeof definition>>(id, collection);
+    const record = await getDocument<TypeOfData<typeof Base>>(id, collection);
     expect(m.data).toEqual({});
     expect(record.snap.exists).toBe(false);
   });
@@ -140,7 +139,7 @@ describe('#fromSnap', () => {
   it('can update from snap', async () => {
     await model.update(updateData).run();
     expect(model.snap).toBeTruthy();
-    const record = await getDocument<t.TypeOf<typeof definition>>(id, collection);
+    const record = await getDocument<t.TypeOf<typeof codec>>(id, collection);
     expect(record.data).toEqual(expect.objectContaining(updateData));
   });
 
@@ -149,7 +148,7 @@ describe('#fromSnap', () => {
       .create(realData)
       .delete(['data'])
       .run();
-    const record = await getDocument<t.TypeOf<typeof definition>>(id, collection);
+    const record = await getDocument<t.TypeOf<typeof codec>>(id, collection);
     expect(record.data).not.toHaveProperty('data');
   });
 });
@@ -183,7 +182,7 @@ describe('#findById', () => {
       model.update(newData);
       model.delete(['name']);
     }).run();
-    const record = await getDocument<t.TypeOf<typeof definition>>(id, collection);
+    const record = await getDocument<t.TypeOf<typeof codec>>(id, collection);
     expect(record.data).toEqual(expect.objectContaining(newData));
     expect(record.data).not.toHaveProperty('name');
   });

@@ -67,7 +67,7 @@ export class Schema<
   }
 
   private instanceMethods: GInstanceMethods = Cast<GInstanceMethods>({});
-  public fields: FieldsOfProps<GProps>;
+  public codec: FieldsOfProps<GProps>;
   public field: FieldTypes<GProps>;
   public collection: string;
   public get ref(): FirebaseFirestore.CollectionReference {
@@ -118,7 +118,7 @@ export class Schema<
    * ```
    */
   constructor({
-    fields,
+    codec: fields,
     collection,
     defaultData,
     mirror,
@@ -127,7 +127,7 @@ export class Schema<
     config,
     staticMethods,
   }: SchemaParams<GProps, GInstanceMethods, GDependencies, GStaticMethods>) {
-    this.fields = fields;
+    this.codec = fields;
     this.defaultData = defaultData;
     this.collection = collection;
     this.Type = Symbol(collection);
@@ -151,7 +151,7 @@ export class Schema<
 
   private createFieldTypes() {
     const initialValue = Cast<FieldTypes<GProps>>({});
-    return Object.keys(this.fields.props).reduce((prev, current) => {
+    return Object.keys(this.codec.props).reduce((prev, current) => {
       return Object.assign({}, prev, { [current]: current });
     }, initialValue);
   }
