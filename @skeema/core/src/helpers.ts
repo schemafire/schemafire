@@ -1,5 +1,4 @@
 import { Change } from 'firebase-functions/lib/cloud-functions';
-import { FunctionsErrorCode, HttpsError } from 'firebase-functions/lib/providers/https';
 import { get, isEqual } from 'lodash';
 import generate from 'nanoid/generate';
 
@@ -29,25 +28,6 @@ export const removeUndefined = <T extends {}>(data: T) => {
     }),
     Cast<T>({}),
   );
-};
-
-export interface ErrorDetails {
-  [x: string]: string | object;
-}
-
-export interface ErrorParams {
-  status: FunctionsErrorCode;
-  message: string;
-  details?: ErrorDetails;
-}
-
-/**
- * Create and log an error
- */
-export const createError = ({ status, message, details }: ErrorParams) => {
-  const error = new HttpsError(status, message, details);
-  logError(error);
-  return error;
 };
 
 /**
