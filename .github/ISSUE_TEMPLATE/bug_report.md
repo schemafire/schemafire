@@ -26,7 +26,9 @@ about: Create a report to help us improve
 <!--- Provide a link to a live example, or an unambiguous set of steps to -->
 <!--- reproduce this bug. Include code to reproduce, if relevant -->
 
-1.  2.  3.  4.
+1. <!--- Replace -->
+2. <!--- With -->
+3. <!--- Steps 😋 -->
 
 ## Context
 
@@ -36,22 +38,8 @@ about: Create a report to help us improve
 
 <!--- Include as many relevant details about the environment you experienced the bug in -->
 
-**Server**
+**Server:**
 
-- Version used:
-- Environment name and version (e.g. Chrome 39, node.js 5.4):
+- Node version: <!--- 8 -->
 - Operating System and version (desktop or mobile):
-- Link to your project:
-
-**Web (please complete the following information):**
-
-- OS: [e.g. iOS]
-- Browser [e.g. chrome, safari]
-- Version [e.g. 22]
-
-**Native (please complete the following information):**
-
-- Device: [e.g. iPhone6]
-- OS: [e.g. iOS8.1]
-- Browser [e.g. stock browser, safari]
-- Version [e.g. 22]
+- Link to your project: <!--- Link (or sandbox) -->

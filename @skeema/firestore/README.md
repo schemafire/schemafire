@@ -32,7 +32,7 @@ Add these settings to your `tsconfig.json`.
 }
 ```
 
-Without this, you would need to write `import * as blah from 'blim'`, which isn't quite as pleasant.
+Without this, you would need to write `import * as adminWhat from 'firebase-admin'`, which isn't quite as pleasant.
 
 So with that we're all set to dive in.
 
@@ -301,13 +301,9 @@ Static methods are similar to instance methods except that:
 type StaticMethod = (ctx: Schema) => (...args: any[]) => any;
 ```
 
-Okay.
-
 <br>
 
-### Well done!
-
-You've just received an adequated introduction into `@skeema/firestore`. There's already a lot more functionality than what's been discussed, and I'll be adding more docs as I build this along with other projects.
+**Great work!** You've just completed an introduction into `@skeema/firestore`. There's already a lot more functionality than what's been discussed, and I'll be adding more docs as I build this, hopefully useful, library.
 
 <br>
 
@@ -315,31 +311,4 @@ You've just received an adequated introduction into `@skeema/firestore`. There's
 
 Remember this is still very much a work in progress. I'm building it for use in several projects, and the API is likely to change over the next few months.
 
-Below are some of the things that I'm currently working on.
-
-### Coming soon
-
-- [x] Create schema using using [`io-ts`](https://github.com/gcanti/io-ts/blob/master/README.md) codecs.
-- [x] Add instance methods and static methods to help manage data in the models.
-- [x] All updates are automatically wrapped in transactions
-- [x] Create getting started guide.
-- [ ] Support data validation with io-ts
-- [ ] Allow config option for automated data validation
-- [ ] Enable option for non transactional updates
-- [ ] Perform queries on multiple items of data ⬆
-- [ ] Add support for [references](https://stackoverflow.com/a/47673346)
-- [ ] Define an API and add support for data population and
-
-### Coming later
-
-- [ ] Support data migrations
-- [ ] Supported for mass data migrations from CLI
-- [ ] Fake data creation
-- [ ] Improved test coverage
-- [ ] Model relationships
-
-### Coming much later
-
-- [ ] Solve world hunger
-- [ ] Learn Objective-C
-- [ ] Complete Witcher 3
+You can follow this issue for a [**road to beta release breakdown**](https://github.com/ifiokjr/skeema/issues/4).
