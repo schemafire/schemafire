@@ -104,7 +104,7 @@ test('#validate', () => {
   expect(Base.validate(m)).toBeUndefined();
   expect(Base.validate(realData)).toBeUndefined();
   expect(Base.validate('failing string')!.message).toMatchInlineSnapshot(
-    `"Your validation was called with invalid data was that was not an object. Please check that you are passing through either an object or a valid model instance"`,
+    `"Your validation was called with invalid data was that isn't an object. Check that you are passing through either an object or a valid model instance"`,
   );
 });
 

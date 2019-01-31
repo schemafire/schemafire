@@ -8,7 +8,11 @@ import { SkeemaValidationError } from './validation';
  */
 export interface SchemaCacheRules<GKeys> {
   name: string;
+  /** */
   collection: string;
+  /**
+   * The fields to copy over to the mirrored document
+   */
   fields?: GKeys[];
   /**
    * By default mirroring assumes the id's are shared between both models. This allows for overriding the id field.

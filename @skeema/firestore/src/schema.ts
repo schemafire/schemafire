@@ -8,7 +8,6 @@ import {
   AnySchema,
   BaseInjectedDeps,
   FieldsOfProps,
-  FieldTypes,
   IModel,
   InstanceMethodConfig,
   IQuery,
@@ -39,28 +38,19 @@ export class Schema<
   GDependencies extends BaseInjectedDeps = BaseInjectedDeps,
   GStaticMethods extends StaticMethodConfig<ISchema<GProps, any, GDependencies, any>> = any
 > implements ISchema<GProps, GInstanceMethods, GDependencies, GStaticMethods> {
-  public static version: number = 0;
+  /**
+   * The default
+   */
   private static defaultConfig: SchemaConfig = {
     mirror: true,
     useTransactions: true,
     autoValidate: true,
   };
-
-  public static setDefaultConfig(config: SchemaConfig) {
-    Schema.defaultConfig = { ...Schema.defaultConfig, ...config };
-  }
-
-  public static create<
-    GProps extends t.Props,
-    GInstanceMethods extends InstanceMethodConfig<GProps, GDependencies>,
-    GDependencies extends BaseInjectedDeps = BaseInjectedDeps,
-    GStaticMethods extends StaticMethodConfig<ISchema<GProps, any, GDependencies, any>> = any
-  >(params: SchemaParams<GProps, GInstanceMethods, GDependencies, GStaticMethods>) {
-    return new Schema<GProps, GInstanceMethods, GDependencies, GStaticMethods>(params);
-  }
-
   private static instances: AnySchema[] = [];
 
+  /**
+   * Registers a schema to ensure collections are unique
+   */
   private static registerSchema(schema: AnySchema) {
     if (Schema.instances.some(instance => instance.collection === schema.collection)) {
       throw simpleError(
@@ -70,7 +60,22 @@ export class Schema<
     this.instances.push(schema);
   }
 
-  public static getInstance<Sch = any>(collection: string): Sch {
+  /**
+   * Readonly property which provides a version for the schema model currently being used.
+   * TODO implement version checking and migrations.
+   */
+  public static get version(): number {
+    return 0;
+  }
+  public static setDefaultConfig(config: SchemaConfig) {
+    Schema.defaultConfig = { ...Schema.defaultConfig, ...config };
+  }
+
+  /**
+   * Retrieve another collection by it's name.
+   * Types are not automatically available to you can pass them in as a generic property.
+   */
+  public static getInstance<Sch = AnySchema>(collection: string): Sch {
     const schema = Schema.instances.find(instance => instance.collection === collection);
     if (!schema) {
       throw simpleError('This schema has not been defined');
@@ -78,26 +83,65 @@ export class Schema<
     return schema as any;
   }
 
+  /**
+   * Holds a private reference to the instance methods for all models that this schema will generate.
+   */
   private instanceMethods: GInstanceMethods = Cast<GInstanceMethods>({});
-  public codec: FieldsOfProps<GProps>;
-  public field: FieldTypes<GProps>;
-  public collection: string;
+
+  /**
+   * The codec used to validate all models and provide typings for the models.
+   */
+  public readonly codec: FieldsOfProps<GProps>;
+
+  /**
+   * A unique collection string identifier.
+   */
+  public readonly collection: string;
+
+  /**
+   * Gives easy access to the collectionReference for all instance models.
+   */
   public get ref(): FirebaseFirestore.CollectionReference {
     return admin.firestore().collection(this.collection);
   }
+
+  /**
+   * Utility db reference.
+   */
   public get db(): FirebaseFirestore.Firestore {
     return admin.firestore();
   }
-  public Type: symbol;
-  public defaultData: t.TypeOfProps<GProps>;
-  public mirror?: SchemaCacheRules<keyof GProps>;
+
+  /**
+   * The default data for every model created with this schema.
+   * Ideally default data should be valid data that is always overwritten at creation time.
+   */
+  public readonly defaultData: t.TypeOfProps<GProps>;
+
+  /**
+   * Mirrors allow for data in one collection to automatically be copied over to another collection.
+   *
+   * This is useful if there is complex child data that has few writes but multiple reads. It can be mirrored to another collection where it
+   * it can be made available with one read.
+   *
+   * For example a user has profile data.
+   *
+   * The profile data needs to be public available to the world on the client side, but you don't want to make the user data also public. (Firebse doesn't allow for partial reads of data in firestore rules).
+   * To solve this problem we create a User collection and a Profile collection each one has the same ID (making lookups simpler).
+   *
+   * At instantiation the profile data would be copied over to the user. Any subsequent updates and deletes are copied over.
+   * While on the client side one read of the user gives us all the user profile data.
+   */
+  public readonly mirror?: SchemaCacheRules<keyof GProps>;
   public dependencies: GDependencies = Cast<GDependencies>({ initialized: false });
   public config: SchemaConfig;
   public methods: MappedStaticMethods<this, GStaticMethods> = Cast<
     MappedStaticMethods<this, GStaticMethods>
   >({});
 
-  public readonly version: number;
+  public get version(): number {
+    return Schema.version;
+  }
 
   /**
    * This class sets the structure and template for a collection within your firestore database.
@@ -142,7 +186,6 @@ export class Schema<
     this.codec = fields;
     this.defaultData = defaultData;
     this.collection = collection;
-    this.Type = Symbol(collection);
 
     this.mirror = mirror;
 
@@ -155,17 +198,8 @@ export class Schema<
     if (dependencies) {
       this.dependencies = dependencies;
     }
-    this.version = Schema.version;
     this.config = { ...Schema.defaultConfig, ...(config ? config : {}) };
     Schema.registerSchema(Cast<AnySchema>(this));
-    this.field = this.createFieldTypes();
-  }
-
-  private createFieldTypes() {
-    const initialValue = Cast<FieldTypes<GProps>>({});
-    return Object.keys(this.codec.props).reduce((prev, current) => {
-      return { ...prev, [current]: current };
-    }, initialValue);
   }
 
   /**
@@ -176,12 +210,12 @@ export class Schema<
     if (!methods) {
       return defaultMethods;
     }
-    return Object.entries(methods).reduce((p, [key, method]) => {
-      const mappedStaticMethods = { ...p, [key]: method(this) };
-      return Cast<MappedStaticMethods<this, GStaticMethods>>(mappedStaticMethods);
-    }, defaultMethods);
+    return staticMethodTransformer(methods, this, defaultMethods);
   }
 
+  /**
+   * Create a model instance which doesn't call any actions.
+   */
   public model(
     params?: Partial<ModelParams<GProps, GInstanceMethods, GDependencies>>,
   ): IModel<GProps, GInstanceMethods, GDependencies> {
@@ -192,8 +226,11 @@ export class Schema<
     });
   }
 
+  /**
+   * A model instance with the create action. When run is called this model will be created.
+   */
   public create(
-    data: Partial<t.TypeOfProps<GProps>>,
+    data: t.TypeOfProps<GProps>,
     id?: string,
   ): IModel<GProps, GInstanceMethods, GDependencies> {
     /* Potential options for a custom ID */
@@ -207,6 +244,9 @@ export class Schema<
     });
   }
 
+  /**
+   * Create a model and find an existing document if one exists.
+   */
   public findById(
     id: string,
     callback?: ModelCallback<IModel<GProps, GInstanceMethods, GDependencies>>,
@@ -220,6 +260,9 @@ export class Schema<
     });
   }
 
+  /**
+   * Tries to find a document but if not found one is created.
+   */
   public findOrCreate(
     id: string,
     data: Partial<t.TypeOfProps<GProps>>,
@@ -235,6 +278,12 @@ export class Schema<
     });
   }
 
+  /**
+   * Create a model from a document snapshot. This is useful when consuming code from other firestore libraries
+   * and also receiving data in cloud functions.
+   *
+   * This method doesn't add any actions to the mode.
+   */
   public fromSnap(
     snap: FirebaseFirestore.DocumentSnapshot,
   ): IModel<GProps, GInstanceMethods, GDependencies> {
@@ -247,6 +296,9 @@ export class Schema<
     });
   }
 
+  /**
+   * Similar to `fromSnap`. Create a model from a firestore document reference
+   */
   public fromDoc(
     doc: FirebaseFirestore.DocumentReference,
   ): IModel<GProps, GInstanceMethods, GDependencies> {
@@ -258,6 +310,13 @@ export class Schema<
     });
   }
 
+  /**
+   * Find a model by ID and delete it.
+   *
+   * ```ts
+   * await schema.deleteById(userId).run();
+   * ```
+   */
   public deleteById(id: string): IModel<GProps, GInstanceMethods, GDependencies> {
     return this.model({
       schema: this,
@@ -267,20 +326,9 @@ export class Schema<
     });
   }
 
-  public findWhere(clauses: QueryTuples<GProps>): IQuery<GProps, GInstanceMethods, GDependencies> {
-    if (!clauses || !clauses.length) {
-      throw simpleError('Must pass through query params');
-    }
-
-    return new Query({ schema: this, clauses });
-  }
-
-  public query(
-    params: QueryParams<GProps, GInstanceMethods, GDependencies>,
-  ): IQuery<GProps, GInstanceMethods, GDependencies> {
-    return new Query(params);
-  }
-
+  /**
+   * Find the first document matching the clauses passed.
+   */
   public find(
     clauses: QueryTuples<GProps>,
     callback?: ModelCallback<IModel<GProps, GInstanceMethods, GDependencies>>,
@@ -294,6 +342,14 @@ export class Schema<
     });
   }
 
+  /**
+   * @alias this.find
+   */
+  public findOne = this.find;
+
+  /**
+   * Validate a model or a model's data object.
+   */
   public validate(data: unknown) {
     if (data instanceof Model && data.schema === this) {
       return data.validate();
@@ -306,5 +362,41 @@ export class Schema<
     return SkeemaValidationError.create();
   }
 
-  public findOne = this.find;
+  /**
+   * Utility for creating plain queries.
+   */
+  public query(
+    params: QueryParams<GProps, GInstanceMethods, GDependencies>,
+  ): IQuery<GProps, GInstanceMethods, GDependencies> {
+    return new Query(params);
+  }
+
+  /**
+   * Creates a query object which can contain multiple models.
+   */
+  public findWhere(clauses: QueryTuples<GProps>): IQuery<GProps, GInstanceMethods, GDependencies> {
+    if (!clauses || !clauses.length) {
+      throw simpleError('Must pass through query params');
+    }
+
+    return this.query({ schema: this, clauses });
+  }
+}
+
+/**
+ * Converts static methods from configuration into callable functions that can exists on the
+ * schema instance.
+ */
+function staticMethodTransformer<
+  GSchema extends AnySchema,
+  GStaticMethods extends StaticMethodConfig<any>
+>(
+  methods: GStaticMethods,
+  schema: GSchema,
+  defaultMethods: MappedStaticMethods<GSchema, GStaticMethods>,
+) {
+  return Object.entries(methods).reduce((p, [key, method]) => {
+    const mappedStaticMethods = { ...p, [key]: method(schema) };
+    return Cast<MappedStaticMethods<GSchema, GStaticMethods>>(mappedStaticMethods);
+  }, defaultMethods);
 }

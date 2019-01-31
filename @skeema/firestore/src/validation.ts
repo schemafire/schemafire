@@ -24,9 +24,9 @@ export class SkeemaValidationError extends Error {
   public readonly keys: string[];
 
   constructor(errors?: Errors) {
-    if (!errors || !Array.isArray(errors)) {
+    if (!errors) {
       super(
-        'Your validation was called with invalid data was that was not an object. Please check that you are passing through either an object or a valid model instance',
+        "Your validation was called with invalid data was that isn't an object. Check that you are passing through either an object or a valid model instance",
       );
       this.errors = {};
       this.keys = [];
@@ -34,18 +34,8 @@ export class SkeemaValidationError extends Error {
     } else {
       const messages = createMessage(errors);
       super(messages.join('\n'));
-
       this.messages = messages;
-      this.errors = errors.reduce((prev, { message, context, value }) => {
-        const path = getContextPath(context, false);
-        return path
-          ? {
-              ...prev,
-              [path.split('.')[0]]: message || `Invalid value ${stringify(value)}`,
-            }
-          : prev;
-      }, {});
-
+      this.errors = createErrorMap(errors);
       this.keys = Object.keys(this.errors);
     }
 
@@ -74,4 +64,16 @@ function mapMessage(e: ValidationError): string {
 
 function createMessage(errors: Errors) {
   return errors.map(mapMessage);
+}
+
+function createErrorMap(errors: Errors) {
+  return errors.reduce((prev, { message, context, value }) => {
+    const path = getContextPath(context, false);
+    return path
+      ? {
+          ...prev,
+          [path.split('.')[0]]: message || `Invalid value ${stringify(value)}`,
+        }
+      : prev;
+  }, {});
 }
