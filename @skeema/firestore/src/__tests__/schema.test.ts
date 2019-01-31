@@ -3,6 +3,7 @@ import { generateId } from '@skeema/core';
 import admin from 'firebase-admin';
 import * as t from 'io-ts';
 import { pick } from 'lodash/fp';
+import { codec, defaultData, realData } from '../__fixtures__/shared.fixtures';
 import { Schema } from '../schema';
 import { AnyModel, TypeOfData, TypeOfModel } from '../types';
 import { getDocument } from '../utils';
@@ -11,20 +12,6 @@ jest.unmock('firebase-admin');
 
 initializeFirebase();
 
-const codec = t.interface({
-  name: t.string,
-  age: t.number,
-  data: t.object,
-});
-
-const defaultData = { name: '', data: {}, age: 20 };
-const realData = {
-  ...defaultData,
-  name: 'Real',
-  data: { real: 'stuff' },
-  age: 32,
-  custom: 'realness',
-};
 const checkableData = pick(['name', 'data', 'age'], realData);
 
 const collection = testCollection('base');
@@ -146,10 +133,10 @@ describe('#fromSnap', () => {
   it('can delete from snap', async () => {
     await model
       .create(realData)
-      .delete(['data'])
+      .delete(['custom'])
       .run();
     const record = await getDocument<t.TypeOf<typeof codec>>(id, collection);
-    expect(record.data).not.toHaveProperty('data');
+    expect(record.data).not.toHaveProperty('custom');
   });
 });
 
