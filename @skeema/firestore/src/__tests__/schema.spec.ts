@@ -96,16 +96,16 @@ describe('constructor', () => {
       `"Must pass through query params"`,
     );
   });
+});
 
-  it('support validation of data', () => {
-    const m = Base.create(realData);
-    expect(Base.validate({})).toBeInstanceOf(SkeemaValidationError);
-    expect(Base.validate(m)).toBeUndefined();
-    expect(Base.validate(realData)).toBeUndefined();
-    expect(Base.validate('failing string')!.message).toMatchInlineSnapshot(
-      `"Your validation was called with invalid data was that was not an object. Please check that you are passing through either an object or a valid model instance"`,
-    );
-  });
+test('#validate', () => {
+  const m = Base.create(realData);
+  expect(Base.validate({})).toBeInstanceOf(SkeemaValidationError);
+  expect(Base.validate(m)).toBeUndefined();
+  expect(Base.validate(realData)).toBeUndefined();
+  expect(Base.validate('failing string')!.message).toMatchInlineSnapshot(
+    `"Your validation was called with invalid data was that was not an object. Please check that you are passing through either an object or a valid model instance"`,
+  );
 });
 
 test('getInstance', () => {

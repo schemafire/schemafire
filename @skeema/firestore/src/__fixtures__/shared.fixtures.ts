@@ -15,8 +15,8 @@ export const codec = t.interface({
   // name: t.string,
   // age: t.number,
   // custom: t.string,
-  // data: utils.optional(t.object),
-  data: t.object,
+  // data: utils.optional(t.UnknownRecord),
+  data: t.UnknownRecord,
   name: utils.optional(t.string),
   age: utils.optional(t.number),
   custom: utils.optional(t.string),
@@ -59,7 +59,7 @@ export const advancedDefinition = t.interface({
   name: t.string,
   age: t.number,
   custom: t.string,
-  data: t.object,
+  data: t.UnknownRecord,
 });
 
 export const advancedDefaultData = {

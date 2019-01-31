@@ -652,12 +652,16 @@ export class Model<
   public validate = () => {
     const data = omitBaseFields(this.rawData);
     let report: IOValidation<any> = this.schema.codec.decode(data);
-    if (actionsContainCreate(this.actions) || actionsContainFindOrCreate(this.actions)) {
+    const isCreateAction =
+      actionsContainCreate(this.actions) || actionsContainFindOrCreate(this.actions);
+    if (isCreateAction) {
       // Fall through
     } else if (actionsContainUpdate(this.actions)) {
-      const updatedData = this.buildUpdatedData();
-      const codec = ioInterface(pick(Object.keys(updatedData), this.schema.codec.props));
-      report = codec.decode(updatedData);
+      const updatedData = this.buildUpdatedData(); // Get the data to be updated
+      const updatedKeys = Object.keys(updatedData); // Pick the keys for generating our codec and data to test
+      const codec = ioInterface(pick(updatedKeys, this.schema.codec.props));
+
+      report = codec.decode(pick(updatedKeys, data));
     }
     return report.fold(SkeemaValidationError.create, () => undefined);
   };
