@@ -1,7 +1,8 @@
-import { removeUndefined } from '@skeema/core';
+import { Cast, removeUndefined } from '@skeema/core';
 import admin from 'firebase-admin';
 import * as t from 'io-ts';
 import { overSome, pipe } from 'lodash/fp';
+import { baseProps } from './base';
 import {
   AnyModel,
   BaseDefinitionKeys,
@@ -62,7 +63,7 @@ export const isDeleteAction = <T, M extends AnyModel>(
 };
 
 export const isBaseProp = (prop: any): prop is BaseDefinitionKeys => {
-  return ['createdAt', 'updatedAt', 'schemaVersion'].includes(prop as string);
+  return baseProps.includes(Cast<BaseDefinitionKeys>(prop));
 };
 
 export const actionsContainDelete = <T, M extends AnyModel>(actions: Array<ModelAction<T, M>>) => {

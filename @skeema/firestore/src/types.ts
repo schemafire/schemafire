@@ -1,6 +1,7 @@
 import { Omit } from '@skeema/core';
 import * as t from 'io-ts';
-import { baseCodecObject, BaseDefinition } from './base';
+import { BaseDefinition } from './base';
+import { SkeemaValidationError } from './validation';
 
 /**
  * Determines where data should be copied to when an update happens in the model.
@@ -16,11 +17,9 @@ export interface SchemaCacheRules<GKeys> {
 }
 
 export type BaseDefinitionKeys = 'createdAt' | 'updatedAt' | 'schemaVersion';
-export type PropsWithBase<GProps extends t.Props> = GProps & Readonly<typeof baseCodecObject>;
-export type PropKeysWithBase<GProps extends t.Props> = keyof PropsWithBase<GProps>;
 export type FieldsOfProps<GProps extends t.AnyProps> = t.TypeC<GProps>;
 export type TypeOfProps<GProps extends t.AnyProps> = t.TypeOf<FieldsOfProps<GProps>>;
-export type TypeOfPropsWithBase<GProps extends t.AnyProps> = t.TypeOfProps<PropsWithBase<GProps>>;
+export type TypeOfPropsWithBase<GProps extends t.AnyProps> = t.TypeOfProps<GProps> & BaseDefinition;
 
 export interface ModelParams<
   GProps extends t.AnyProps,
@@ -211,6 +210,11 @@ export interface RunConfig {
    * This can be useful when creating data for the first time and we want to view the ServerTimestamp.
    */
   forceGet?: boolean;
+  /**
+   * Determines whether validation should happen on create and update.
+   * @default true
+   */
+  autoValidate?: boolean;
 }
 
 export interface SchemaConfig extends RunConfig {}
@@ -270,6 +274,8 @@ export interface IModel<
    * @param force if true will overwrite data if it exists defaults to `false`
    */
   create(data: TypeOfProps<GProps>, force?: boolean): this;
+
+  validate(): undefined | SkeemaValidationError;
 }
 
 export interface IQuery<

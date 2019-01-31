@@ -1,27 +1,12 @@
 import { initializeFirebase, testCollection } from '@live-test-helpers';
 import { ThrowReporter } from '@skeema/core';
 import admin from 'firebase-admin';
-import {
-  baseCodec,
-  collectionReference,
-  createDefaultBase,
-  documentReference,
-  timestamp,
-} from '../base';
+import { collectionReference, documentReference, timestamp } from '../base';
 
 jest.unmock('firebase-admin');
 
 initializeFirebase();
 const db = admin.firestore();
-
-test('baseDefinition', () => {
-  expect(() => ThrowReporter.report(baseCodec.decode(createDefaultBase()))).not.toThrowError();
-  expect(() => ThrowReporter.report(baseCodec.decode({ schemaVersion: 1 })))
-    .toThrowErrorMatchingInlineSnapshot(`
-"Invalid value undefined supplied to : Readonly<{ createdAt: Timestamp, updatedAt: Timestamp, schemaVersion: Integer }>/createdAt: Timestamp
-Invalid value undefined supplied to : Readonly<{ createdAt: Timestamp, updatedAt: Timestamp, schemaVersion: Integer }>/updatedAt: Timestamp"
-`);
-});
 
 test('collectionReference', () => {
   const collection = db.collection(testCollection('any'));

@@ -1,4 +1,4 @@
-import { Omit } from '@skeema/core';
+import { Omit, tuple } from '@skeema/core';
 import admin from 'firebase-admin';
 import * as t from 'io-ts';
 import { omit } from 'lodash/fp';
@@ -21,9 +21,15 @@ export const isDocumentReference = (u: unknown): u is FirebaseFirestore.Document
  * Checks if a value is a collection reference
  * @param u unknown value
  */
-
 export const isCollectionReference = (u: unknown): u is FirebaseFirestore.CollectionReference =>
   u instanceof admin.firestore.CollectionReference;
+
+/**
+ * Checks if a value is a firestore geo point
+ * @param u unknown value
+ */
+export const isGeoPoint = (u: unknown): u is FirebaseFirestore.GeoPoint =>
+  u instanceof admin.firestore.GeoPoint;
 
 /**
  * A timestamp type for Firestore data. Allows creating a validation
@@ -57,23 +63,29 @@ export const collectionReference = new t.Type<FirebaseFirestore.CollectionRefere
 );
 
 /**
+ * Codec for GeoPoints
+ */
+export const geoPoint = new t.Type<FirebaseFirestore.GeoPoint>(
+  'GeoPoint',
+  isGeoPoint,
+  (u, c) => (isGeoPoint(u) ? t.success(u) : t.failure(u, c)),
+  t.identity,
+);
+
+/**
  * The lowest level definition object
  */
-export const baseCodecObject = {
-  createdAt: timestamp,
-  updatedAt: timestamp,
-  schemaVersion: t.Integer,
-};
+export interface BaseDefinition {
+  readonly createdAt: FirebaseFirestore.Timestamp;
+  readonly updatedAt: FirebaseFirestore.Timestamp;
+  readonly schemaVersion: number;
+}
 
-export const baseCodec = t.readonly(t.interface(baseCodecObject));
-
-export type BaseDefinition = t.TypeOf<typeof baseCodec>;
-export type PropsWithBase<GProps extends t.Props> = GProps & typeof baseCodecObject;
-export type TypeOfPropsWithBase<GProps extends t.AnyProps> = t.TypeOfProps<PropsWithBase<GProps>>;
+export const baseProps = tuple('createdAt', 'updatedAt', 'schemaVersion');
 
 export const omitBaseFields: <T extends BaseDefinition>(
-  obj: T,
-) => Omit<T, keyof BaseDefinition> = omit(['createdAt', 'updatedAt', 'schemaVersion']);
+  obj: any,
+) => Omit<T, keyof BaseDefinition> = omit(baseProps);
 
 export const createDefaultBase = (base: Partial<BaseDefinition> = {}): BaseDefinition => ({
   createdAt: admin.firestore.Timestamp.now(),

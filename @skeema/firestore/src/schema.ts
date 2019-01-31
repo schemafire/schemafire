@@ -1,6 +1,7 @@
 import { Cast, simpleError } from '@skeema/core';
 import admin from 'firebase-admin';
 import * as t from 'io-ts';
+import { isPlainObject } from 'lodash';
 import { Model } from './model';
 import { Query } from './query';
 import {
@@ -24,6 +25,7 @@ import {
   StaticMethodConfig,
   TypeOfPropsWithBase,
 } from './types';
+import { SkeemaValidationError } from './validation';
 
 /**
  * Create schema for your Firestore collections
@@ -41,10 +43,20 @@ export class Schema<
   private static defaultConfig: SchemaConfig = {
     mirror: true,
     useTransactions: true,
+    autoValidate: true,
   };
 
   public static setDefaultConfig(config: SchemaConfig) {
     Schema.defaultConfig = { ...Schema.defaultConfig, ...config };
+  }
+
+  public static create<
+    GProps extends t.Props,
+    GInstanceMethods extends InstanceMethodConfig<GProps, GDependencies>,
+    GDependencies extends BaseInjectedDeps = BaseInjectedDeps,
+    GStaticMethods extends StaticMethodConfig<ISchema<GProps, any, GDependencies, any>> = any
+  >(params: SchemaParams<GProps, GInstanceMethods, GDependencies, GStaticMethods>) {
+    return new Schema<GProps, GInstanceMethods, GDependencies, GStaticMethods>(params);
   }
 
   private static instances: AnySchema[] = [];
@@ -152,7 +164,7 @@ export class Schema<
   private createFieldTypes() {
     const initialValue = Cast<FieldTypes<GProps>>({});
     return Object.keys(this.codec.props).reduce((prev, current) => {
-      return Object.assign({}, prev, { [current]: current });
+      return { ...prev, [current]: current };
     }, initialValue);
   }
 
@@ -165,9 +177,7 @@ export class Schema<
       return defaultMethods;
     }
     return Object.entries(methods).reduce((p, [key, method]) => {
-      const mappedStaticMethods = Object.assign({}, p, {
-        [key]: method(this),
-      });
+      const mappedStaticMethods = { ...p, [key]: method(this) };
       return Cast<MappedStaticMethods<this, GStaticMethods>>(mappedStaticMethods);
     }, defaultMethods);
   }
@@ -187,7 +197,7 @@ export class Schema<
     id?: string,
   ): IModel<GProps, GInstanceMethods, GDependencies> {
     /* Potential options for a custom ID */
-    const mergedData = Object.assign({}, this.defaultData, data);
+    const mergedData = { ...this.defaultData, ...data };
     return this.model({
       schema: this,
       methods: this.instanceMethods,
@@ -282,6 +292,18 @@ export class Schema<
       type: ModelActionType.Query,
       clauses,
     });
+  }
+
+  public validate(data: unknown) {
+    if (data instanceof Model && data.schema === this) {
+      return data.validate();
+    }
+
+    if (isPlainObject(data)) {
+      return this.codec.decode(data).fold(SkeemaValidationError.create, () => undefined);
+    }
+
+    return SkeemaValidationError.create();
   }
 
   public findOne = this.find;

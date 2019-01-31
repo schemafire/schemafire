@@ -1,8 +1,14 @@
 import { Cast, logError, removeUndefined, simpleError } from '@skeema/core';
 import admin from 'firebase-admin';
-import * as t from 'io-ts';
-import { get, isEmpty } from 'lodash/fp';
-import { BaseDefinition, createDefaultBase } from './base';
+import {
+  interface as ioInterface,
+  Props as IOProps,
+  TypeOf as IOTypeOf,
+  TypeOfProps as IOTypeOfProps,
+  Validation as IOValidation,
+} from 'io-ts';
+import { get, isEmpty, pick } from 'lodash/fp';
+import { BaseDefinition, createDefaultBase, omitBaseFields } from './base';
 import {
   AnyModel,
   AnySchema,
@@ -30,6 +36,7 @@ import {
   actionsContainDelete,
   actionsContainFind,
   actionsContainFindOrCreate,
+  actionsContainUpdate,
   buildQuery,
   findQueryAction,
   getRecord,
@@ -41,18 +48,20 @@ import {
   safeFirestoreUpdate,
   serverUpdateTimestamp,
 } from './utils';
+import { SkeemaValidationError } from './validation';
 
 const getIdField: (schema: AnySchema) => string = get(['mirror', 'idField']);
 
 export class Model<
-  GProps extends t.Props,
+  GProps extends IOProps,
   GInstanceMethods extends InstanceMethodConfig<GProps, GDependencies>,
   GDependencies extends BaseInjectedDeps
 > implements IModel<GProps, GInstanceMethods, GDependencies> {
   private actions: Array<
-    ModelAction<t.TypeOfProps<GProps>, IModel<GProps, GInstanceMethods, GDependencies>>
+    ModelAction<IOTypeOfProps<GProps>, IModel<GProps, GInstanceMethods, GDependencies>>
   > = [];
-  private rawData: t.TypeOf<any>;
+
+  private rawData: IOTypeOf<any>;
   private currentRunConfig: SchemaConfig;
   private errors: Error[] = [];
   private lastRunStatus?: 'force-created' | 'created' | 'updated' | 'deleted';
@@ -65,7 +74,7 @@ export class Model<
   public get data(): TypeOfPropsWithBase<GProps> {
     return this.dataProxy;
   }
-  public dataProxy: TypeOfPropsWithBase<GProps>;
+  private dataProxy: TypeOfPropsWithBase<GProps>;
   public doc: FirebaseFirestore.DocumentReference;
   public id: string;
   public snap?: FirebaseFirestore.DocumentSnapshot;
@@ -76,6 +85,11 @@ export class Model<
     return this.existsViaCreation || (this.snap ? this.snap.exists : false);
   }
 
+  /**
+   * Used to create models which are wrappers around firestore documents.
+   *
+   * Typically this isn't called directly in end user code but via a creation method of the schema.
+   */
   constructor({
     schema,
     data,
@@ -88,7 +102,7 @@ export class Model<
     methods,
   }: ModelParams<GProps, GInstanceMethods, GDependencies>) {
     this.schema = schema;
-    this.rawData = Object.assign({}, schema.defaultData, data);
+    this.rawData = { ...schema.defaultData, ...data };
     this.dataProxy = this.createProxy(this.rawData);
     this.snap = snap;
     this.doc = this.getDoc(doc, id);
@@ -102,6 +116,14 @@ export class Model<
     this.baseData = createDefaultBase({ schemaVersion: this.schema.version });
   }
 
+  /**
+   * Set up the initial actions based on the data that was passed in at model creation.
+   *
+   * @param type
+   * @param data
+   * @param callback
+   * @param clauses
+   */
   private setupInitialActions(
     type?: ModelActionType,
     data?: any,
@@ -136,6 +158,11 @@ export class Model<
     }
   }
 
+  /**
+   * Calls the instance methods defined on the schema constructor and prepares them to be used on the instance.
+   *
+   * @param methods
+   */
   private createMethods(
     methods: GInstanceMethods,
   ): MappedInstanceMethods<GProps, GInstanceMethods, GDependencies> {
@@ -144,14 +171,19 @@ export class Model<
       return defaultMethods;
     }
     return Object.entries(methods).reduce((p, [key, method]) => {
-      return Cast<MappedInstanceMethods<GProps, GInstanceMethods, GDependencies>>(
-        Object.assign({}, p, {
-          [key]: method(this, this.schema.dependencies),
-        }),
-      );
+      return Cast<MappedInstanceMethods<GProps, GInstanceMethods, GDependencies>>({
+        ...p,
+        [key]: method(this, this.schema.dependencies),
+      });
     }, defaultMethods);
   }
 
+  /**
+   * Retrieves or creates the document reference object for this model.
+   *
+   * @param doc
+   * @param id
+   */
   private getDoc(doc?: FirebaseFirestore.DocumentReference, id?: string) {
     if (doc) {
       return doc;
@@ -165,8 +197,16 @@ export class Model<
     return this.schema.ref.doc();
   }
 
-  private createProxy(data: t.TypeOfProps<GProps>) {
-    return new Proxy(data, {
+  /**
+   * Creates the proxy that is used when `model.data` is called.
+   *
+   * Blocks writes to base properties.
+   *
+   * @param data
+   */
+  private createProxy(data: IOTypeOfProps<GProps>) {
+    type PropsWithBase = TypeOfPropsWithBase<GProps>;
+    return new Proxy<PropsWithBase>(Cast<PropsWithBase>(data), {
       get: (_, prop: string) => {
         return this.rawData[prop] !== undefined
           ? this.rawData[prop]
@@ -180,7 +220,7 @@ export class Model<
         }
         if (prop in this.rawData) {
           this.actions.push({
-            data: Cast<Partial<t.TypeOfProps<GProps>>>({ [prop]: value }),
+            data: Cast<Partial<IOTypeOfProps<GProps>>>({ [prop]: value }),
             type: ModelActionType.Update,
           });
           this.rawData[prop] = value;
@@ -239,7 +279,7 @@ export class Model<
 
   private mirrorTransaction(
     transaction: FirebaseFirestore.Transaction,
-    allUpdates: t.TypeOfProps<GProps> | 'delete',
+    allUpdates: IOTypeOfProps<GProps> | 'delete',
   ) {
     if (!this.schema.mirror || !this.id || this.currentRunConfig.mirror === false) {
       return;
@@ -286,6 +326,7 @@ export class Model<
   }
 
   private createTransaction(transaction: FirebaseFirestore.Transaction, data: any) {
+    this.throwIfInvalid();
     transaction.create(this.doc, safeFirestoreCreateUpdate(data));
     this.mirrorTransaction(transaction, data);
     this.lastRunStatus = 'created';
@@ -293,6 +334,7 @@ export class Model<
   }
 
   private forceCreateTransaction(transaction: FirebaseFirestore.Transaction, data: any) {
+    this.throwIfInvalid();
     transaction.set(this.doc, safeFirestoreCreateUpdate(data));
     this.mirrorTransaction(transaction, data);
     this.lastRunStatus = 'force-created';
@@ -300,6 +342,7 @@ export class Model<
   }
 
   private updateTransaction(transaction: FirebaseFirestore.Transaction, data: any) {
+    this.throwIfInvalid();
     transaction.set(this.doc, safeFirestoreUpdate(data), { merge: true });
     this.mirrorTransaction(transaction, data);
     this.lastRunStatus = 'updated';
@@ -326,7 +369,7 @@ export class Model<
     try {
       const snap = await transaction.get(this.doc);
       this.syncData({
-        data: noData ? undefined : Cast<t.TypeOfProps<GProps>>(snap.data()),
+        data: noData ? undefined : Cast<IOTypeOfProps<GProps>>(snap.data()),
         snap,
         doc: this.doc,
       });
@@ -349,7 +392,7 @@ export class Model<
         return;
       }
       const snap = snaps.docs[0];
-      this.syncData({ data: Cast<t.TypeOfProps<GProps>>(snap.data()), snap, doc: snap.ref });
+      this.syncData({ data: Cast<IOTypeOfProps<GProps>>(snap.data()), snap, doc: snap.ref });
       this.actionsRun.get = true; // only set to true if the query succeeds and hence the model is updated to matche the retrieved document
       this.actionsRun.query = true;
       return true;
@@ -357,6 +400,24 @@ export class Model<
       this.errors.push(e);
       return false;
     }
+  }
+
+  private removeAllDataExceptMirrorIdField() {
+    const idField: string | undefined = getIdField(this.schema);
+    if (idField) {
+      return { [idField]: this.rawData[idField] };
+    }
+    return {};
+  }
+
+  /**
+   * Update the new data and create a new data proxy.
+   *
+   * @param newData
+   */
+  private resetRawData(newData: any) {
+    this.rawData = newData;
+    this.dataProxy = this.createProxy(this.rawData);
   }
 
   /**
@@ -371,7 +432,7 @@ export class Model<
     return this.schema.db.runTransaction(
       async transaction => {
         if (actionsContainDelete(this.actions)) {
-          const idField: string | undefined = getIdField(this.schema);
+          const idField = getIdField(this.schema);
           if (idField && !this.rawData[idField]) {
             await this.getTransaction(transaction);
             this.resetRawData(this.removeAllDataExceptMirrorIdField());
@@ -444,8 +505,18 @@ export class Model<
     });
   }
 
+  private throwIfInvalid() {
+    if (!this.currentRunConfig.autoValidate) {
+      return;
+    }
+    const error = this.validate();
+    if (error) {
+      throw error;
+    }
+  }
+
   private async getSnap() {
-    const record = await getRecord<t.TypeOfProps<GProps>>(this.doc);
+    const record = await getRecord<IOTypeOfProps<GProps>>(this.doc);
     this.syncData(record);
   }
 
@@ -456,7 +527,7 @@ export class Model<
   /**
    * Synchronize data after pulling down from FireStore.
    */
-  private syncData(record: FirestoreRecord<t.TypeOfProps<GProps>>) {
+  private syncData(record: FirestoreRecord<IOTypeOfProps<GProps>>) {
     this.resetRawData(record.data ? record.data : this.rawData);
     this.doc = record.doc;
     this.snap = record.snap;
@@ -519,14 +590,6 @@ export class Model<
     return this;
   };
 
-  private removeAllDataExceptMirrorIdField() {
-    const idField: string | undefined = getIdField(this.schema);
-    if (idField) {
-      return { [idField]: this.rawData[idField] };
-    }
-    return {};
-  }
-
   public delete = (keys?: Array<keyof GProps>) => {
     if (keys) {
       keys.forEach(key => {
@@ -542,18 +605,12 @@ export class Model<
         type: ModelActionType.Delete,
       });
       this.resetRawData(this.rawData);
-      // this.rawData = this.removeAllDataExceptMirrorIdField();
     }
     return this;
   };
 
-  private resetRawData(newData: any) {
-    this.rawData = newData;
-    this.dataProxy = this.createProxy(this.rawData);
-  }
-
-  public update = (data: t.TypeOfProps<GProps>) => {
-    type Data = Partial<t.TypeOfProps<GProps>>;
+  public update = (data: IOTypeOfProps<GProps>) => {
+    type Data = Partial<IOTypeOfProps<GProps>>;
     if (isEmpty(data)) {
       return this;
     }
@@ -564,19 +621,18 @@ export class Model<
         type: ModelActionType.Update,
       });
     });
-    this.resetRawData(Object.assign({}, this.rawData, data));
-    // this.rawData = Object.assign({}, this.rawData, data);
+    this.resetRawData({ ...this.rawData, ...data });
     return this;
   };
 
-  public create = (data: t.TypeOfProps<GProps>, force: boolean = true) => {
+  public create = (data: IOTypeOfProps<GProps>, force: boolean = true) => {
     this.actions.push({
       data,
       type: Cast<ModelActionType.Create>(
         force ? ModelActionType.Create : ModelActionType.FindOrCreate,
       ),
     });
-    this.resetRawData(Object.assign({}, this.rawData, data));
+    this.resetRawData({ ...this.rawData, ...data });
     return this;
   };
 
@@ -586,5 +642,23 @@ export class Model<
       callback,
     });
     return this;
+  };
+
+  /**
+   * Validates the data currently held in raw data.
+   *
+   * Returns an error if one is found otherwise return undefined.
+   */
+  public validate = () => {
+    const data = omitBaseFields(this.rawData);
+    let report: IOValidation<any> = this.schema.codec.decode(data);
+    if (actionsContainCreate(this.actions) || actionsContainFindOrCreate(this.actions)) {
+      // Fall through
+    } else if (actionsContainUpdate(this.actions)) {
+      const updatedData = this.buildUpdatedData();
+      const codec = ioInterface(pick(Object.keys(updatedData), this.schema.codec.props));
+      report = codec.decode(updatedData);
+    }
+    return report.fold(SkeemaValidationError.create, () => undefined);
   };
 }
