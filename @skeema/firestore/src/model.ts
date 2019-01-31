@@ -9,6 +9,7 @@ import {
 } from 'io-ts';
 import { get, isEmpty, pick } from 'lodash/fp';
 import { BaseDefinition, createDefaultBase, omitBaseFields } from './base';
+import { throwIfCreateTypeWithNoData, throwIfNoClauses } from './model.utils';
 import {
   AnyModel,
   AnySchema,
@@ -130,9 +131,18 @@ export class Model<
     callback?: ModelCallback<IModel<GProps, GInstanceMethods, GDependencies>>,
     clauses?: QueryTuples<GProps>,
   ) {
-    if (type && [ModelActionType.FindOrCreate, ModelActionType.Create].includes(type) && !data) {
-      throw simpleError(`Type '${type}' can only be defined with data`);
-    } else if (type === ModelActionType.Create) {
+    if (callback) {
+      this.attach(callback);
+    }
+
+    if (!type) {
+      return;
+    }
+
+    // Will throw if this is a FindOrCreate | Create action but no data was passed through
+    throwIfCreateTypeWithNoData(type, data);
+
+    if (type === ModelActionType.Create) {
       this.create(data);
     }
 
@@ -140,21 +150,17 @@ export class Model<
       this.delete();
     }
 
-    if (callback) {
-      this.attach(callback);
-    }
-
     if (type === ModelActionType.FindOrCreate) {
       this.create(data, false);
     }
+
     if (type === ModelActionType.Find) {
       this.actions.push({ type: ModelActionType.Find });
     }
+
     if (type === ModelActionType.Query) {
-      if (!clauses) {
-        throw simpleError(`Type '${type}' can only be defined with clauses`);
-      }
-      this.actions.push({ type: ModelActionType.Query, data: clauses });
+      throwIfNoClauses(clauses);
+      this.actions.push({ type: ModelActionType.Query, data: clauses! });
     }
   }
 
@@ -277,11 +283,25 @@ export class Model<
     }, {});
   }
 
+  /**
+   * Determines whether the Schema has set up mirroring correctly
+   */
+  private canMirror(): this is this & {
+    schema: ISchema<GProps, GInstanceMethods, GDependencies, any> & {
+      mirror: SchemaCacheRules<keyof GProps>;
+    };
+  } {
+    return Boolean(this.schema.mirror && this.id && this.currentRunConfig.mirror === true);
+  }
+
+  /**
+   * Performs the mirroring within a transaction.
+   */
   private mirrorTransaction(
     transaction: FirebaseFirestore.Transaction,
     allUpdates: IOTypeOfProps<GProps> | 'delete',
   ) {
-    if (!this.schema.mirror || !this.id || this.currentRunConfig.mirror === false) {
+    if (!this.canMirror()) {
       return;
     }
 
@@ -301,6 +321,7 @@ export class Model<
     }
 
     const doc = db.collection(this.schema.mirror.collection).doc(mirrorId);
+
     if (allUpdates === 'delete') {
       transaction.set(doc, serverUpdateTimestamp({ [key]: admin.firestore.FieldValue.delete() }), {
         merge: true,
@@ -325,20 +346,16 @@ export class Model<
     });
   }
 
-  private createTransaction(transaction: FirebaseFirestore.Transaction, data: any) {
+  private createTransaction(transaction: FirebaseFirestore.Transaction, data: any, force = false) {
     this.throwIfInvalid();
-    transaction.create(this.doc, safeFirestoreCreateUpdate(data));
+    if (force) {
+      transaction.set(this.doc, safeFirestoreCreateUpdate(data));
+    } else {
+      transaction.create(this.doc, safeFirestoreCreateUpdate(data));
+    }
     this.mirrorTransaction(transaction, data);
     this.lastRunStatus = 'created';
     this.actionsRun.create = true;
-  }
-
-  private forceCreateTransaction(transaction: FirebaseFirestore.Transaction, data: any) {
-    this.throwIfInvalid();
-    transaction.set(this.doc, safeFirestoreCreateUpdate(data));
-    this.mirrorTransaction(transaction, data);
-    this.lastRunStatus = 'force-created';
-    this.actionsRun.forceCreate = true;
   }
 
   private updateTransaction(transaction: FirebaseFirestore.Transaction, data: any) {
@@ -469,7 +486,7 @@ export class Model<
         }
 
         if (actionsContainCreate(this.actions)) {
-          this.forceCreateTransaction(transaction, dataWithoutDeletes);
+          this.createTransaction(transaction, dataWithoutDeletes, true);
           return;
         }
 

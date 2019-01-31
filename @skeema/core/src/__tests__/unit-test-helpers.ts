@@ -58,8 +58,6 @@ export const typeSafeMockImplementationOnce: (mock: any, fn: any) => jest.Mock =
   },
 );
 
-export const Any = <T = any>(data: any): T => data;
-
 export const typeSafeMockClear: (mock: any) => jest.Mock = jest.fn((mock: jest.Mock) => {
   mock.mockClear();
   return mock;

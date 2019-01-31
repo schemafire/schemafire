@@ -1,5 +1,5 @@
 import { testCollection } from '@live-test-helpers';
-import { numbers, removeUndefined, strings, utils } from '@skeema/core';
+import { Cast, numbers, removeUndefined, strings, utils } from '@skeema/core';
 import {
   collectionRef,
   doc,
@@ -8,7 +8,7 @@ import {
   get as docGetter,
   limit,
 } from '@skeema/jest-mocks/lib/firebase-admin';
-import { Any, typeSafeMockImplementation, typeSafeMockReturn } from '@unit-test-helpers';
+import { typeSafeMockImplementation, typeSafeMockReturn } from '@unit-test-helpers';
 import admin from 'firebase-admin';
 import * as t from 'io-ts';
 import {
@@ -32,7 +32,8 @@ beforeEach(() => {
   mockRunTransaction = typeSafeMockImplementation(
     admin.firestore().runTransaction,
     (fn: (cb: typeof mockTransaction) => Promise<void>) => {
-      // NOTE - this was a very difficult to identify bug that could only be fixed by returning the function call here. Find out why that is.
+      // ? This was a very difficult to identify bug that could only be fixed by returning the function call here.
+      // ? Find out why that is.
       return fn(mockTransaction);
     },
   );
@@ -42,10 +43,10 @@ describe('constructor', () => {
   const model = schema.model({ data: {} });
   schema.findById('').methods.simple();
   it('is created', () => {
-    const m1 = new Model({ schema: simpleSchema, methods: Any({}) });
+    const m1 = new Model({ schema: simpleSchema, methods: Cast({}) });
     expect(m1.id).toBe(docData.id);
     expect(omitBaseFields(m1.data)).toEqual(defaultData);
-    const m2 = new Model({ schema: simpleSchema, methods: Any({}), id: 'abc' });
+    const m2 = new Model({ schema: simpleSchema, methods: Cast({}), id: 'abc' });
     expect(m2.id).toBe('abc');
     expect(doc).toHaveBeenCalledWith('abc');
   });
@@ -53,7 +54,7 @@ describe('constructor', () => {
     const initialData = { ...model.data };
     delete model.data;
     expect(initialData).toEqual(model.data);
-    expect(() => (Any(model).data = undefined)).toThrowErrorMatchingInlineSnapshot(
+    expect(() => (Cast(model).data = undefined)).toThrowErrorMatchingInlineSnapshot(
       `"Cannot set property data of #<Model> which has only a getter"`,
     );
   });
@@ -93,7 +94,7 @@ describe('data', () => {
   it('can only be set when property exists on definition', () => {
     model.data.age = 200;
     expect(model.data.age).toBe(200);
-    expect(() => (Any(model.data).other = 100)).toThrowErrorMatchingInlineSnapshot(
+    expect(() => (Cast(model.data).other = 100)).toThrowErrorMatchingInlineSnapshot(
       `"The property other does not exist on [object Object]"`,
     );
     expect(
@@ -104,7 +105,7 @@ describe('data', () => {
   it('removes data when deleted for valid fields', () => {
     delete model.data.age;
     expect(model.data.age).toBeUndefined();
-    expect(() => delete Any(model.data).other).toThrowErrorMatchingInlineSnapshot(
+    expect(() => delete Cast(model.data).other).toThrowErrorMatchingInlineSnapshot(
       `"The property other does not exist on this model"`,
     );
     // @ts-ignore
@@ -535,13 +536,13 @@ describe('#run', () => {
       ),
     });
     const validData = { username: 'greatest', age: 25, me: { name: 'Tester' } };
-    const validSchema = Schema.create({
+    const validSchema = new Schema({
       codec: validationCodec,
       defaultData: { username: 'abcde', age: 20, me: undefined },
       collection: testCollection('valid'),
     });
 
-    const invalidSchema = Schema.create({
+    const invalidSchema = new Schema({
       codec: validationCodec,
       defaultData: { username: 'a', age: 50, me: undefined },
       collection: testCollection('invalid'),
