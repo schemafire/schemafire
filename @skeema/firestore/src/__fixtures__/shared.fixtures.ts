@@ -1,4 +1,5 @@
 import { testCollection } from '@live-test-helpers';
+import { utils } from '@skeema/core';
 import * as t from 'io-ts';
 import { Schema } from '../schema';
 
@@ -11,10 +12,14 @@ export const mockTransaction = {
 };
 
 export const codec = t.interface({
-  name: t.string,
-  age: t.number,
-  custom: t.string,
+  // name: t.string,
+  // age: t.number,
+  // custom: t.string,
+  // data: utils.optional(t.object),
   data: t.object,
+  name: utils.optional(t.string),
+  age: utils.optional(t.number),
+  custom: utils.optional(t.string),
 });
 export const defaultData = { name: '', data: {}, age: 20, custom: 'custom' };
 export const realData = {

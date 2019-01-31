@@ -1,16 +1,17 @@
 import { testCollection } from '@live-test-helpers';
+import { Cast } from '@skeema/core';
 import {
   collectionRef,
   docData,
   runTransaction,
   snapData,
 } from '@skeema/jest-mocks/lib/firebase-admin';
-import { Any } from '@unit-test-helpers';
 import admin from 'firebase-admin';
 import { codec, defaultData, realData } from '../__fixtures__/shared.fixtures';
 import { Model } from '../model';
 import { Query } from '../query';
 import { Schema } from '../schema';
+import { SkeemaValidationError } from '../validation';
 
 const collection = testCollection('base');
 const mock = jest.fn();
@@ -53,7 +54,7 @@ describe('constructor', () => {
 
   it('works with snapshots', () => {
     snapData.data.mockReturnValueOnce(realData);
-    const m = Base.fromSnap(Any(snapData));
+    const m = Base.fromSnap(Cast(snapData));
     expect(m.snap).toBe(snapData);
     expect(m.data).toEqual(expect.objectContaining(realData));
   });
@@ -74,7 +75,7 @@ describe('constructor', () => {
     expect(Base.ref).toEqual(collectionRef);
   });
   it('creates a model from a doc reference', () => {
-    const m = Base.fromDoc(Any(docData));
+    const m = Base.fromDoc(Cast(docData));
     expect(m).toBeInstanceOf(Model);
     expect(m.id).toBe(docData.id);
     expect(m.doc).toBe(docData);
@@ -89,10 +90,20 @@ describe('constructor', () => {
     expect(transaction.delete).toHaveBeenCalledWith(docData);
   });
   it('allows building a query', () => {
-    const clauses = Any([['set1', '==', 'check1']]);
+    const clauses = Cast([['set1', '==', 'check1']]);
     expect(Base.findWhere(clauses)).toBeInstanceOf(Query);
     expect(() => Base.findWhere([])).toThrowErrorMatchingInlineSnapshot(
       `"Must pass through query params"`,
+    );
+  });
+
+  it('support validation of data', () => {
+    const m = Base.create(realData);
+    expect(Base.validate({})).toBeInstanceOf(SkeemaValidationError);
+    expect(Base.validate(m)).toBeUndefined();
+    expect(Base.validate(realData)).toBeUndefined();
+    expect(Base.validate('failing string')!.message).toMatchInlineSnapshot(
+      `"Your validation was called with invalid data was that was not an object. Please check that you are passing through either an object or a valid model instance"`,
     );
   });
 });
@@ -106,8 +117,8 @@ test('getInstance', () => {
 });
 
 test('setDefaultConfig', () => {
-  const oldConfig = Any(Schema).defaultConfig;
-  const newConfig = { mirror: false, useTransactions: false };
+  const oldConfig = Cast(Schema).defaultConfig;
+  const newConfig = { ...oldConfig, mirror: false, useTransactions: false };
   expect(Base.config).toEqual(oldConfig);
   Schema.setDefaultConfig(newConfig);
   const configTest = new Schema({

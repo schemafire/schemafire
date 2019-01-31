@@ -1,14 +1,16 @@
-import { removeUndefined } from '@skeema/core';
+import { testCollection } from '@live-test-helpers';
+import { numbers, removeUndefined, strings, utils } from '@skeema/core';
 import {
   collectionRef,
   doc,
   docData,
+  firestore,
   get as docGetter,
   limit,
 } from '@skeema/jest-mocks/lib/firebase-admin';
-import { Any, typeSafeMockImplementation } from '@unit-test-helpers';
+import { Any, typeSafeMockImplementation, typeSafeMockReturn } from '@unit-test-helpers';
 import admin from 'firebase-admin';
-
+import * as t from 'io-ts';
 import {
   advancedSchema,
   defaultData,
@@ -20,7 +22,9 @@ import {
 } from '../__fixtures__/shared.fixtures';
 import { omitBaseFields } from '../base';
 import { Model } from '../model';
+import { Schema } from '../schema';
 import { ModelActionType, TypeOfModel } from '../types';
+import { SkeemaValidationError } from '../validation';
 
 let mockRunTransaction: jest.Mock<{}>;
 
@@ -167,11 +171,14 @@ describe('#attach', () => {
     expect(model.data).toEqual(realData);
   });
   it('can be chained', async () => {
+    const original = firestore.FieldValue.delete();
+    typeSafeMockReturn(firestore.FieldValue.delete, undefined);
     await model
       .attach(p => p.model.delete(['name']))
       .attach(p => p.model.update({ age: 21 }))
       .run();
     expect(model.data).toEqual({ age: 21, data: { real: 'stuff' }, custom: 'realness' });
+    typeSafeMockReturn(firestore.FieldValue.delete, original);
   });
   it('is not called if delete has already been called', async () => {
     const attachedMock = jest.fn();
@@ -503,10 +510,7 @@ describe('#run', () => {
     expect(() => schema.model({ type: ModelActionType.Delete })).not.toThrowError();
   });
   it('resets the updates when successful', async () => {
-    await testModel
-      .update(data)
-      .delete(['custom'])
-      .run();
+    await testModel.update(data).run();
     await testModel.run();
     await testModel.run();
     expect(mockRunTransaction).toHaveBeenCalledTimes(1);
@@ -517,6 +521,81 @@ describe('#run', () => {
     await testModel.run();
     expect(mockTransaction.set).toHaveBeenCalledWith(testModel.doc, expect.objectContaining(data), {
       merge: true,
+    });
+  });
+
+  describe('#validate', () => {
+    const validationCodec = t.interface({
+      username: strings.username({ minimum: 5, maximum: 10 }),
+      age: t.intersection([numbers.gte(18), numbers.lte(25)]),
+      me: utils.optional(
+        t.interface({
+          name: t.string,
+        }),
+      ),
+    });
+    const validData = { username: 'greatest', age: 25, me: { name: 'Tester' } };
+    const validSchema = Schema.create({
+      codec: validationCodec,
+      defaultData: { username: 'abcde', age: 20, me: undefined },
+      collection: testCollection('valid'),
+    });
+
+    const invalidSchema = Schema.create({
+      codec: validationCodec,
+      defaultData: { username: 'a', age: 50, me: undefined },
+      collection: testCollection('invalid'),
+    });
+
+    let validModel: TypeOfModel<typeof validSchema>;
+    let invalidModel: TypeOfModel<typeof validSchema>;
+
+    beforeEach(() => {
+      validModel = validSchema.model();
+      invalidModel = invalidSchema.model();
+    });
+    it('is valid when no actions taken and default data is valid', () => {
+      expect(validModel.validate()).toBeUndefined();
+    });
+
+    it('is invalid when no actions taken and default data is invalid', () => {
+      const expectedError = invalidModel.validate();
+      expect(expectedError).toBeInstanceOf(SkeemaValidationError);
+      expect(expectedError!.messages[0]).toMatchInlineSnapshot(
+        `"Invalid value \\"a\\" supplied to username: \`(min(5) & max(10) & start.with.letter & letters.numbers.underscores)\`.0: \`min(5)\`"`,
+      );
+    });
+
+    it('only returns an error when invalid data is pass in', () => {
+      validModel.create({ age: 50, username: 'abc', me: undefined });
+      const expectedError = validModel.validate();
+      expect(expectedError).toBeInstanceOf(SkeemaValidationError);
+      expect(expectedError!.errors).toContainAllKeys(['age', 'username']);
+      expect(expectedError!.keys).toContainValues(['age', 'username']);
+    });
+
+    it('should successfully pass for partially valid updates', () => {
+      invalidModel.update({ age: 21 });
+      expect(invalidModel.validate()).toBeUndefined();
+    });
+
+    it('should automatically be called when creating or updating data', async () => {
+      const validSpy = jest.spyOn(validModel, 'validate');
+      const invalidSpy = jest.spyOn(invalidModel, 'validate');
+      validModel.create(validData);
+      await expect(validModel.run()).resolves.toEqual(validModel);
+      expect(validSpy).toHaveBeenCalledTimes(1);
+
+      invalidModel.create({ ...validData, age: 100 });
+      await expect(invalidModel.run()).rejects.toThrowError(SkeemaValidationError);
+      expect(invalidSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should allow for configuration', async () => {
+      const invalidSpy = jest.spyOn(invalidModel, 'validate');
+      invalidModel.create({ ...validData, age: 100 });
+      await expect(invalidModel.run({ autoValidate: false })).resolves.toEqual(invalidModel);
+      expect(invalidSpy).not.toHaveBeenCalled();
     });
   });
 });
