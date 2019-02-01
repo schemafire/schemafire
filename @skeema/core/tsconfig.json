@@ -3,7 +3,7 @@
   "compilerOptions": {
     "lib": ["esnext"],
     "outDir": "lib",
-    "types": ["jest", "jest-extended"]
+    "types": ["jest", "jest-extended", "node"]
   },
   "include": ["src", "src/types.d.ts"]
 }
