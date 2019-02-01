@@ -34,9 +34,8 @@
     "validator": "10.11.0"
   },
   "peerDependencies": {
-    "@google-cloud/firestore": "^0.21.0 || ^1.0.0",
-    "firebase-admin": "^6.5.0 || ^7.0.0",
-    "firebase-functions": "^2.1.0"
+    "@google-cloud/firestore": "^1.0.0",
+    "firebase-admin": "^7.0.0"
   },
   "publishConfig": {
     "access": "public"
