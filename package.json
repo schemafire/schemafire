@@ -40,6 +40,10 @@
     "typecheck:config": "tsc -p config/tsconfig.json --noEmit ",
     "typecheck:modules": "lerna run typecheck"
   },
+  "engines": {
+    "node": ">=10",
+    "yarn": "^1.13.0"
+  },
   "husky": {
     "hooks": {
       "pre-commit": "lint-staged",
