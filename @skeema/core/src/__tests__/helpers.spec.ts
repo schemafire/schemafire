@@ -1,17 +1,7 @@
-import { Cast, pathExistsAndHasChanged } from '../helpers';
+import { removeUndefined } from '../helpers';
 
-test('pathExistsAndHasChanged', () => {
-  const snap = {
-    before: {
-      data: jest.fn(() => ({ name: 'John' })),
-      exists: true,
-    },
-    after: {
-      data: jest.fn(() => ({ name: 'John' })),
-      exists: true,
-    },
-  };
-  expect(pathExistsAndHasChanged(['name'], Cast(snap))).toBe(false);
-  snap.after.data.mockReturnValue({ name: 'Wonderful ' });
-  expect(pathExistsAndHasChanged(['name'], Cast(snap))).toBe(true);
+test('removeUndefined', () => {
+  const expected = { one: 1, two: null, three: '', four: false, five: NaN };
+  const data = { ...expected, another: undefined };
+  expect(removeUndefined(data)).toEqual(expected);
 });

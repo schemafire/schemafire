@@ -100,14 +100,18 @@ export const strings = {
 
 const nullable = <T extends t.Mixed>(type: T) => t.union([type, t.null]);
 const optional = <T extends t.Mixed>(type: T) => t.union([type, t.undefined]);
-const Dictionary: DictionaryType = new DictionaryType();
-const genericDictionary = <T, U extends string = string>(name: U) =>
-  new GenericDictionaryType<T, U>(name);
+const genericDictionary = <T, U extends string = string>(
+  name: U,
+  validation?: (u: unknown) => boolean,
+) => new GenericDictionaryType<T, U>(name, validation);
+const dictionary: DictionaryType = genericDictionary<{ [key: string]: any }, 'Dictionary'>(
+  'Dictionary',
+);
 
 export const utils = {
   nullable,
   optional,
-  Dictionary,
+  dictionary,
   genericDictionary,
 };
 

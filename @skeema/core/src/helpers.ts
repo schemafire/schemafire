@@ -1,5 +1,3 @@
-import { Change } from 'firebase-functions/lib/cloud-functions';
-import { get, isEqual } from 'lodash';
 import generate from 'nanoid/generate';
 
 /**
@@ -22,26 +20,12 @@ export const Cast = <GNewType = any>(arg: any): GNewType => arg;
  */
 export const removeUndefined = <T extends {}>(data: T) => {
   return Object.entries(data).reduce(
-    (accum, [key, val]) => ({
-      ...accum,
+    (current, [key, val]) => ({
+      ...current,
       ...(val !== undefined ? { [key]: val } : {}),
     }),
     Cast<T>({}),
   );
-};
-
-/**
- * Checks whether the path in question has changed via an update
- * @param path
- * @param snap
- */
-export const pathExistsAndHasChanged = (
-  path: string | string[],
-  snap: Change<FirebaseFirestore.DocumentSnapshot>,
-) => {
-  const before = get(snap.before.data(), path);
-  const after = get(snap.after.data(), path);
-  return after && !isEqual(before, after) ? true : false;
 };
 
 /**
