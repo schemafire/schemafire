@@ -42,7 +42,7 @@
     "typecheck:modules": "lerna run typecheck"
   },
   "engines": {
-    "node": ">=10",
+    "node": ">=8",
     "yarn": "^1.13.0"
   },
   "husky": {

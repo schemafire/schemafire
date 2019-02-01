@@ -9,7 +9,7 @@
   ],
   "timezone": "Europe/London",
   "lockFileMaintenance": {
-    "enabled": false
+    "enabled": true
   },
   "prConcurrentLimit": 3,
   "prHourlyLimit": 2,
