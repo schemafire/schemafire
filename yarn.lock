@@ -5004,7 +5004,14 @@ io-ts-types@0.4.2:
     monocle-ts "^1.0.0"
     newtype-ts "^0.2.1"
 
-io-ts@1.7.1, io-ts@^1.0.2, io-ts@^1.7.1:
+io-ts@1.8.0:
+  version "1.8.0"
+  resolved "https://registry.yarnpkg.com/io-ts/-/io-ts-1.8.0.tgz#bcb26098d71376bd3709fd7c8f140a308d157f46"
+  integrity sha512-DloaAVM6P2pncaJf7awwIV6XzHXtJz72+7R0BEWKFn8suAzpM4WTLqEd30YvUjWO6uE8Ise623jXsopJChUcNw==
+  dependencies:
+    fp-ts "^1.0.0"
+
+io-ts@^1.0.2, io-ts@^1.7.1:
   version "1.7.1"
   resolved "https://registry.yarnpkg.com/io-ts/-/io-ts-1.7.1.tgz#ae1fb02b21165d37affad376a1dbf58c5f949e00"
   integrity sha512-V+rO5TIYWTR/3x7v5D0r4MzTzJ6VA0EBCnn4zW2atK8mDiMXqApDLIIMEwiEPWoFWhpVRS9KPwNSI4Qu8iq7GA==
