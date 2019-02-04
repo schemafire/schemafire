@@ -1,6 +1,6 @@
 # Skeema
 
-[![Build Status](https://travis-ci.org/ifiokjr/skeema.svg?branch=master)](https://travis-ci.org/ifiokjr/skeema) [![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lernajs.io/) [![Maintainability](https://api.codeclimate.com/v1/badges/bde2fc9e3dec543a875a/maintainability)](https://codeclimate.com/github/ifiokjr/skeema/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/bde2fc9e3dec543a875a/test_coverage)](https://codeclimate.com/github/ifiokjr/skeema/test_coverage)
+[![Build Status](https://travis-ci.com/ifiokjr/skeema.svg?branch=master)](https://travis-ci.org/ifiokjr/skeema) [![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lernajs.io/) [![Maintainability](https://api.codeclimate.com/v1/badges/bde2fc9e3dec543a875a/maintainability)](https://codeclimate.com/github/ifiokjr/skeema/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/bde2fc9e3dec543a875a/test_coverage)](https://codeclimate.com/github/ifiokjr/skeema/test_coverage)
 
 Manage your firebase data with pre-defined schema and built in type checking.
 
