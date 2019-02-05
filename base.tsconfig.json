@@ -5,7 +5,8 @@
       "@unit-test-helpers": ["@skeema/core/src/__tests__/unit-test-helpers.ts"],
       "@live-test-helpers": ["@skeema/firestore/src/__tests__/live-test-helpers.ts"],
       "@skeema/jest-mocks/lib/*": ["@skeema/jest-mocks/src/*"],
-      "@skeema/core": ["@skeema/core/src/index.ts"]
+      "@skeema/core": ["@skeema/core/src/index.ts"],
+      "*": ["support/types/*"]
     },
     "module": "commonjs",
     "target": "es5",

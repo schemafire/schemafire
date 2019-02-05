@@ -1,8 +1,14 @@
+import chalk from 'chalk';
+import { TestEmulator } from './test-emulator';
+
 const { runChecks } = require('../scripts/pretest');
 const { isLiveTest } = require('../utils');
-const chalk = require('chalk');
 
 module.exports = async () => {
+  global.TestEmulator = TestEmulator;
+
+  await TestEmulator.startFirestore();
+
   if (!isLiveTest()) {
     return;
   }

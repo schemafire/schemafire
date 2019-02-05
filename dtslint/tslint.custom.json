@@ -1,6 +1,6 @@
 {
-  "extends": "@kj/tslint-rules/main",
+  "extends": "dtslint",
   "rules": {
-    "custom-expect": true
+    "expect": true
   }
 }
