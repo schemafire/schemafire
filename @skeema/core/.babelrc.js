@@ -1,5 +1,1 @@
-const defaultConfig = require('../../config/base.babel');
-
-module.exports = {
-  ...defaultConfig,
-};
+module.exports = require('../../support/babel/base.babel');

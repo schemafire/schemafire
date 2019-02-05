@@ -7,7 +7,6 @@
       [
         "@skeema/jest-mocks",
         "@google-cloud/firestore",
-        "firebase-functions-test",
         "@live-test-helpers",
         "@unit-test-helpers",
         "firebase-tools",

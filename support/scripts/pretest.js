@@ -1,4 +1,4 @@
-const { configDir } = require('../utils');
+const { supportDir } = require('../utils');
 const execa = require('execa');
 const chalk = require('chalk');
 const fs = require('mz/fs');
@@ -11,7 +11,7 @@ const REQ_YARN_VERSION = '1.0.0';
  * Developer has not yet specified a valid test project
  */
 function checkTestConfigExists() {
-  if (!fs.existsSync(configDir('test', 'db.json'))) {
+  if (!fs.existsSync(supportDir('secrets', 'db.json'))) {
     throw chalk`
 {red You have not yet specified a Firebase project to use for testing.}
 To create a test project, please visit {underline https://console.firebase.google.com/}.
@@ -22,8 +22,11 @@ $ yarn test:setup
   }
 }
 
+/**
+ * This is required for live tests which hit the real database.
+ */
 function checkServerKeyExists() {
-  if (!fs.existsSync(configDir('test', 'key.json'))) {
+  if (!fs.existsSync(supportDir('secrets', 'key.json'))) {
     throw chalk`
 {red The live test suite requires a Firebase service account JSON key file testing.}
 Create a new project in the Firebase console ({underline https://console.firebase.google.com}) if you do not already have one.
@@ -36,7 +39,7 @@ page of the project, and copy it to {green \`config/test/key.json\` }
 }
 
 /**
- * Potential Problem #2:
+ * Potential Problem #3:
  * Developer is not using a valid version of `yarn`
  */
 async function validateCompatibleYarnVersion() {
@@ -53,7 +56,7 @@ for upgrade/installation instructions
 }
 
 /**
- * Potential Problem #3:
+ * Potential Problem #4:
  * Developers yarn setup was misconfigured
  */
 async function validateYarnInstall() {
