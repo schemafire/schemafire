@@ -1,11 +1,10 @@
 const { argv } = require('yargs');
-const { configDir } = require('../utils');
-const { homedir } = require('os');
+const { supportDir, userFirebaseConfig } = require('../utils');
 const firebaseTools = require('firebase-tools');
 const inquirer = require('inquirer');
 const fs = require('mz/fs');
-const { resolve } = require('path');
 const Listr = require('listr');
+const chalk = require('chalk');
 
 // Command Line Arguments
 const userToken = argv.token;
@@ -14,9 +13,13 @@ const projectId = argv.projectId;
 let cachedToken;
 
 try {
-  const config = require(resolve(homedir(), '.config/configstore/firebase-tools.json'));
+  const config = require(userFirebaseConfig);
   cachedToken = config.tokens.refresh_token;
-} catch (err) {}
+} catch (err) {
+  console.log(
+    chalk`{bold.red Something went wrong when trying to retrieve your authentication details}`,
+  );
+}
 
 Promise.resolve(userToken || cachedToken)
   // Log in to firebase-tools
@@ -62,16 +65,16 @@ Promise.resolve(userToken || cachedToken)
           firebaseTools.setup
             .web({ project, token })
             .then(config =>
-              fs.writeFile(configDir('test', 'db.json'), JSON.stringify(config, null, 2)),
+              fs.writeFile(supportDir('secrets', 'db.json'), JSON.stringify(config, null, 2)),
             ),
       },
       {
-        title: `Deploying RealtimeDB and Firestore rules`,
+        title: `Deploying RealTime DB and Firestore rules`,
         task: () =>
           firebaseTools.deploy({
             project,
             token,
-            cwd: configDir(),
+            cwd: supportDir('firebase'),
           }),
       },
     ]);

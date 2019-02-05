@@ -1,5 +1,5 @@
 {
-  "packages": ["@skeema/*", "dependencies/*"],
+  "packages": ["@skeema/*", "internal/*"],
   "publish": {},
   "command": {
     "publish": {

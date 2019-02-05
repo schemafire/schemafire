@@ -1,4 +1,4 @@
-const { configDir, isLiveTest, createDBPrefix } = require('./config/utils');
+const { supportDir, isLiveTest, createDBPrefix } = require('./support/utils');
 
 const coverage = {
   coverageThreshold: {
@@ -23,6 +23,6 @@ module.exports = {
   projects: ['<rootDir>/@skeema/*/'],
   watchPlugins: ['jest-watch-typeahead/filename', 'jest-watch-typeahead/testname'],
   ...(isLiveTest() ? coverage : {}),
-  globalTeardown: configDir('jest.teardown.ts'),
-  globalSetup: configDir('jest.setup.ts'),
+  globalTeardown: supportDir('jest/jest.teardown.ts'),
+  globalSetup: supportDir('jest/jest.setup.ts'),
 };

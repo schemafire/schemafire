@@ -1,7 +1,7 @@
 import firebaseTools from 'firebase-tools';
 import { GlobalConfig } from 'jest-cli';
 
-const { isLiveTest, userFirebaseConfig } = require('./utils');
+const { isLiveTest, userFirebaseConfig } = require('../utils');
 
 module.exports = async (_: GlobalConfig) => {
   if (!isLiveTest()) {
@@ -12,7 +12,7 @@ module.exports = async (_: GlobalConfig) => {
     ? process.env.FIREBASE_TOKEN!
     : require(userFirebaseConfig()).tokens.refresh_token;
 
-  const { projectId: project } = require('./test/db.json');
+  const { projectId: project } = require('../secrets/db.json');
   const params = {
     project,
     token,

@@ -1,4 +1,4 @@
-const { configDir, isLiveTest, baseDir } = require('./utils');
+const { supportDir, isLiveTest, baseDir } = require('../utils');
 
 const testRegex = isLiveTest()
   ? '/__tests__/.*\\.(spec|test)\\.tsx?$'
@@ -27,11 +27,11 @@ module.exports = {
   moduleDirectories: ['node_modules'],
   testPathIgnorePatterns: ['<rootDir>/lib/', '<rootDir>/node_modules/'],
   testRegex,
-  setupFilesAfterEnv: [configDir('jest.framework.ts')],
+  setupFilesAfterEnv: [supportDir('jest/jest.framework.ts')],
   cacheDirectory: baseDir('.jest/cache'),
   testEnvironment: 'node',
   transform: {
-    '^.+\\.(js|jsx|ts|tsx)$': configDir('jest.transformer.js'),
+    '^.+\\.(js|jsx|ts|tsx)$': supportDir('jest/jest.transformer.js'),
   },
   moduleNameMapper: {
     '@skeema/core$': baseDir('@skeema', 'core', 'src'),

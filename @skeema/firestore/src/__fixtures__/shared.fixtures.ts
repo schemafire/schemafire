@@ -12,10 +12,6 @@ export const mockTransaction = {
 };
 
 export const codec = t.interface({
-  // name: t.string,
-  // age: t.number,
-  // custom: t.string,
-  // data: utils.optional(t.UnknownRecord),
   data: t.UnknownRecord,
   name: utils.optional(t.string),
   age: utils.optional(t.number),
