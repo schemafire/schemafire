@@ -4,7 +4,18 @@
     "no-implicit-dependencies": [
       true,
       "dev",
-      ["@skeema/jest-mocks", "@google-cloud/firestore", "@live-test-helpers", "@unit-test-helpers"]
+      [
+        "jest-extended",
+        "firebase-tools",
+        "jest-cli",
+        "chalk",
+        "ps-tree",
+        "lodash",
+        "debug",
+        "execa",
+        "wait-on",
+        "listr"
+      ]
     ],
     "no-any": false,
     "max-classes-per-file": false,

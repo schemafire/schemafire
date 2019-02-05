@@ -18,20 +18,23 @@
     "clean:lerna": "lerna clean --yes",
     "clean:modules": "lerna run --parallel clean",
     "clean:root": "rimraf node_modules .jest coverage",
+    "dependencies:setup": "node support/scripts/dependencies.js",
     "dev": "lerna run dev --parallel",
-    "fix": "run-s fix:*",
-    "fix:config": "tslint --project support/tsconfig.json --config tslint.json --fix",
-    "fix:lint": "lerna run lint --parallel -- --fix",
+    "fix": "run-s fix:lint:* fix:*",
+    "fix:lint:js": "eslint support *.js @skeema --fix",
+    "fix:lint:support": "tslint --project support/tsconfig.json --config support/tslint.json --fix",
+    "fix:lint:ts": "lerna run lint --parallel -- --fix",
     "fix:prettier": "prettier --write \"**/*.{json,yml,yaml,md}\"",
     "postinstall": "node support/scripts/postinstall.js",
     "integrity": "yarn check --integrity",
     "lint": "run-s lint:*",
-    "lint:config": "tslint --project support/tsconfig.json --config tslint.json",
     "lint:dts": "tslint -p dtslint/tsconfig.custom.json -c dtslint/tslint.custom.json dtslint/*.dts.ts",
+    "lint:js": "eslint support *.js @skeema",
+    "lint:support": "tslint --project support/tsconfig.json --config support/tslint.json",
     "lint:ts": "lerna run lint --parallel",
     "prepublish:alpha": "run-s ci:checks",
     "publish:alpha": "lerna publish prerelease --preid=alpha --exact --dist-tag=alpha",
-    "setup": "run-s test:setup",
+    "setup": "run-s test:setup dependencies:setup",
     "test": "jest",
     "test:ci": "cross-env TEST_ENV=live jest",
     "test:live": "cross-env TEST_ENV=live FIREBASE_CONFIG={} jest",
@@ -39,8 +42,8 @@
     "test:watch": "jest  --watch --verbose=false",
     "test:watch:live": "cross-env TEST_ENV=live FIREBASE_CONFIG={} jest  --watch --verbose=false --coverage=false",
     "typecheck": "run-s typecheck:*",
-    "typecheck:config": "tsc -p support/tsconfig.json --noEmit ",
-    "typecheck:modules": "lerna run typecheck"
+    "typecheck:modules": "lerna run typecheck",
+    "typecheck:support": "tsc -p support/tsconfig.json --noEmit "
   },
   "engines": {
     "node": ">=8",
@@ -61,7 +64,11 @@
     "@skeema/!(jest-mocks)?*/src/**/!(unit-test-helpers)?*.!(test.)?{ts,tsx}": [
       "jest --coverage=false --bail --findRelatedTests"
     ],
-    "*.js": [
+    "**/*.js": [
+      "eslint --fix",
+      "git add"
+    ],
+    "**/.babelrc.js": [
       "eslint --fix",
       "git add"
     ],

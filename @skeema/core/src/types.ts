@@ -82,10 +82,10 @@ export type ValueOfStringArray<GType> = Include<GType[Key<GType>], string>;
 export type Literal = string | number | boolean | undefined | null | void | {};
 
 /**
- * Pick the Nth Param for any function with the first param marked by 0.
- * Zero-indexed.
+ * Pick the Nth Param for any function with the first parameter marked by the 0 index.
  */
 export type NthParam<GFunction extends AnyFunction, GIndex extends number> = GFunction extends (
+  // tslint:disable-next-line:no-unused
   ...args: infer GArgs
 ) => any
   ? GArgs[GIndex]

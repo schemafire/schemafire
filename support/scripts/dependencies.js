@@ -4,34 +4,57 @@ const { startCase } = require('lodash');
 const Listr = require('listr');
 const inquirer = require('inquirer');
 
+const Timeout = Symbol('timeout');
+
+const timeout = (ms = 1000) =>
+  new Promise(resolve => {
+    setTimeout(() => resolve(Timeout), timeout);
+  });
+
+const checkEmulator = ({ only, errorMessage = 'Emulator not found', ms = 1000 }) =>
+  Promise.race([firebaseTools.serve({ only }), timeout(ms)]).then(result => {
+    if (result === Timeout) {
+      return;
+    }
+    throw new Error(errorMessage);
+  });
+
 const installFirestoreEmulator = () => firebaseTools.setup.emulators.firestore();
-const checkFirestoreEmulator = () => firebaseTools.serve({ only: 'firestore' });
+const checkFirestoreEmulator = () =>
+  checkEmulator({ only: 'firestore', ms: 1000, errorMessage: 'Firestore emulator not found' });
+
+const installDatabaseEmulator = () => firebaseTools.setup.emulators.database();
+const checkDatabaseEmulator = () =>
+  checkEmulator({ only: 'database', ms: 1000, errorMessage: 'Database emulator not found' });
 
 const dependencies = {
   'firestore:emulator': [
     checkFirestoreEmulator,
     installFirestoreEmulator,
-    'In order to setup tests you will need to install the firestore emulator',
+    'Would you like to install the firestore emulator, which is required for running tests?',
+  ],
+  'firebase:emualator': [
+    checkDatabaseEmulator,
+    installDatabaseEmulator,
+    'Would you like to setup the database emulator which is required for running tests?',
   ],
 };
 
-const failed = new Set();
-
-const createTaskList = () => {
+const createTaskList = (failed = new Set()) => {
   return Object.entries(dependencies).reduce((current, [name, [check]]) => {
     const task = {
       title: chalk`Checking for dependency: {bold.blue ${startCase(name)}}`,
       task: () =>
         check().catch(e => {
           failed.add(name);
-          throw new Error('Emulator not found');
+          throw e;
         }),
     };
     return [...current, task];
   }, []);
 };
 
-const createResolutionList = results => {
+const createResolutionList = (results, failed = new Set()) => {
   return Object.entries(results).reduce((current, [name, resolver]) => {
     const task = {
       title: chalk`Resolving dependency: {bold.blue ${startCase(name)}}`,
@@ -50,8 +73,9 @@ const transformResult = result =>
     return outcome ? { ...current, [name]: dependencies[name][1] } : current;
   }, {});
 
-const run = async () => {
-  const list = createTaskList();
+const checkDependencies = (exports.checkDependencies = async () => {
+  const failedChecks = new Set();
+  const list = createTaskList(failedChecks);
   const tasks = new Listr(list);
   try {
     await tasks.run();
@@ -61,9 +85,9 @@ const run = async () => {
     console.log(chalk`{yellow 'Some of the dependencies need to be resolved'}`);
   }
 
-  if (failed.size <= 0) return;
+  if (failedChecks.size <= 0) return;
 
-  const values = Array.from(failed.values()).map(name => ({
+  const values = Array.from(failedChecks.values()).map(name => ({
     type: 'confirm',
     message: dependencies[name][2],
     name,
@@ -71,17 +95,18 @@ const run = async () => {
 
   const result = await inquirer.prompt(values);
   const actions = transformResult(result);
-  const resolutionTasks = new Listr(createResolutionList(actions));
+
+  const failedResolutions = new Set();
+  const resolutionTasks = new Listr(createResolutionList(actions, failedResolutions));
   try {
     await resolutionTasks.run();
-    console.log(chalk`{green 'Great! You're ready to get started 😋}`);
-    process.exit();
+    console.log(chalk`{green 'Great! You're ready to get started 😋 }`);
   } catch (e) {
     console.error(e);
-    process.exit(1);
+    throw e;
   }
-};
+});
 
-// (async () => {
-run();
-// })();
+if (!module.parent) {
+  checkDependencies().catch(e => process.exit(1));
+}
