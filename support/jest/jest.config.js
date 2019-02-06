@@ -34,10 +34,16 @@ module.exports = {
     '^.+\\.(js|jsx|ts|tsx)$': supportDir('jest/jest.transformer.js'),
   },
   moduleNameMapper: {
-    '@skeema/core$': baseDir('@skeema', 'core', 'src'),
-    '@unit-test-helpers$': baseDir('@skeema', 'core', 'src', '__tests__', 'unit-test-helpers.ts'),
+    '@schemafire/core$': baseDir('@schemafire', 'core', 'src'),
+    '@unit-test-helpers$': baseDir(
+      '@schemafire',
+      'core',
+      'src',
+      '__tests__',
+      'unit-test-helpers.ts',
+    ),
     '@live-test-helpers$': baseDir(
-      '@skeema',
+      '@schemafire',
       'firestore',
       'src',
       '__tests__',

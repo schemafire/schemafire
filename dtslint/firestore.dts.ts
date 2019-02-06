@@ -1,5 +1,5 @@
 import * as t from 'io-ts';
-import { Schema } from '@skeema/firestore';
+import { Schema } from '@schemafire/firestore';
 
 const codec = t.interface({
   name: t.string,

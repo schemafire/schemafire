@@ -17,6 +17,6 @@ about: Suggest an idea for this project
 
 <!--- Delete as applicable -->
 
-- `@skeema/core`
-- `@skeema/firestore`
-- `@skeema/realtime-db`
+- `@schemafire/core`
+- `@schemafire/firestore`
+- `@schemafire/realtime-db`
