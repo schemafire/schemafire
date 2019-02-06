@@ -37,9 +37,7 @@ export type MakeReadonly<GType, GKeys extends keyof GType> = Omit<GType, GKeys> 
 /**
  * Get all property names from an interface which are functions.
  */
-export type FunctionPropertyNames<T> = {
-  [K in keyof T]: T[K] extends AnyFunction ? K : never
-}[keyof T];
+export type FunctionPropertyNames<T> = { [K in keyof T]: T[K] extends AnyFunction ? K : never }[keyof T];
 
 /**
  * Pick an interface composed entirely of the function properties.
@@ -49,9 +47,7 @@ export type FunctionProperties<T> = Pick<T, FunctionPropertyNames<T>>;
 /**
  * Get all property names from an interface which are not functions.
  */
-export type NonFunctionPropertyNames<T> = {
-  [K in keyof T]: T[K] extends AnyFunction ? never : K
-}[keyof T];
+export type NonFunctionPropertyNames<T> = { [K in keyof T]: T[K] extends AnyFunction ? never : K }[keyof T];
 
 /**
  * Pick an interface composed entirely of the non function properties.
@@ -107,9 +103,7 @@ export const tuple = <GType extends Literal[]>(...args: GType) => args;
 /**
  * A useful helper for conditional types
  */
-export type FilterFlags<GBase, GCondition> = {
-  [P in keyof GBase]: GBase[P] extends GCondition ? P : never
-};
+export type FilterFlags<GBase, GCondition> = { [P in keyof GBase]: GBase[P] extends GCondition ? P : never };
 
 export type AnyFunction = (...args: any[]) => any;
 

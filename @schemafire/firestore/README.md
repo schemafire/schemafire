@@ -107,10 +107,9 @@ const UserSchema = new Schema({
 
   // Instance methods are available on each instance of the model.
   instanceMethods: {
-    assignWinningLotteryTicket: (
-      model /* A model instance */,
-      deps /* injected dependencies */,
-    ) => async (winningTicket: string /* value method is called with */) => {
+    assignWinningLotteryTicket: (model /* A model instance */, deps /* injected dependencies */) => async (
+      winningTicket: string /* value method is called with */,
+    ) => {
       model.data.ticket = winningTicket; // updates the instance value
       await model.run(); // Assigns the win to this user.
     },
@@ -175,9 +174,7 @@ type InstanceMethod = (model: Model, deps: Dependencies) => (...args: any[]) => 
 The instance method we created was defined as:
 
 ```ts
-const assignWinningLotteryTicket = (model: Model, deps: Dependencies) => async (
-  winningTicket: string,
-) => {
+const assignWinningLotteryTicket = (model: Model, deps: Dependencies) => async (winningTicket: string) => {
   model.data.ticket = winningTicket; // updates the instance value
   return model.run(); // Assigns the win to this user and returns the output of run
 };

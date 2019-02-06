@@ -25,9 +25,7 @@ export const isUpdateAction = <T, M extends AnyModel>(
 ): action is UpdateModelAction<T> => {
   return action.type === ModelActionType.Update;
 };
-export const isFindAction = <T, M extends AnyModel>(
-  action: ModelAction<T, M>,
-): action is FindModelAction => {
+export const isFindAction = <T, M extends AnyModel>(action: ModelAction<T, M>): action is FindModelAction => {
   return action.type === ModelActionType.Find;
 };
 export const isQueryAction = <T, M extends AnyModel>(
@@ -70,9 +68,7 @@ export const actionsContainDelete = <T, M extends AnyModel>(actions: Array<Model
   return actions.some(isDeleteAction);
 };
 
-export const actionsContainFindOrCreate = <T, M extends AnyModel>(
-  actions: Array<ModelAction<T, M>>,
-) => {
+export const actionsContainFindOrCreate = <T, M extends AnyModel>(actions: Array<ModelAction<T, M>>) => {
   return actions.some(isFindOrCreateAction);
 };
 
@@ -88,9 +84,7 @@ export const findQueryAction = <T, M extends AnyModel>(actions: Array<ModelActio
   return actions.find(isQueryAction);
 };
 
-export const actionsContainCallback = <T, M extends AnyModel>(
-  actions: Array<ModelAction<T, M>>,
-) => {
+export const actionsContainCallback = <T, M extends AnyModel>(actions: Array<ModelAction<T, M>>) => {
   return actions.some(isCallbackAction);
 };
 
@@ -98,9 +92,7 @@ export const actionsContainUpdate = <T, M extends AnyModel>(actions: Array<Model
   return actions.some(isUpdateAction);
 };
 
-export const actionsContainDeleteField = <T, M extends AnyModel>(
-  actions: Array<ModelAction<T, M>>,
-) => {
+export const actionsContainDeleteField = <T, M extends AnyModel>(actions: Array<ModelAction<T, M>>) => {
   return actions.some(isDeleteFieldAction);
 };
 

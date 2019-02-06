@@ -56,16 +56,12 @@ export const regexMap = {
 
 const uppercase = t.refinement(t.string, val => val.toUpperCase() === val, 'UpperCase');
 const lowercase = t.refinement(t.string, val => val.toLowerCase() === val, 'LowerCase');
-const min = (minimum: number) =>
-  t.refinement(t.string, val => val.length >= minimum, `min(${minimum})`);
-const max = (maximum: number) =>
-  t.refinement(t.string, val => val.length <= maximum, `max(${maximum})`);
+const min = (minimum: number) => t.refinement(t.string, val => val.length >= minimum, `min(${minimum})`);
+const max = (maximum: number) => t.refinement(t.string, val => val.length <= maximum, `max(${maximum})`);
 const length = (len: number) => t.refinement(t.string, val => val.length === len, `len(${len})`);
 
-const regex = (mapper: RegexValidation) =>
-  t.refinement(t.string, val => mapper.regex.test(val), mapper.code);
-const reverseRegex = (obj: RegexValidation) =>
-  t.refinement(t.string, val => !obj.regex.test(val), obj.code);
+const regex = (mapper: RegexValidation) => t.refinement(t.string, val => mapper.regex.test(val), mapper.code);
+const reverseRegex = (obj: RegexValidation) => t.refinement(t.string, val => !obj.regex.test(val), obj.code);
 
 interface UsernameParams {
   minimum?: number;
@@ -100,13 +96,9 @@ export const strings = {
 
 const nullable = <T extends t.Mixed>(type: T) => t.union([type, t.null]);
 const optional = <T extends t.Mixed>(type: T) => t.union([type, t.undefined]);
-const genericDictionary = <T, U extends string = string>(
-  name: U,
-  validation?: (u: unknown) => boolean,
-) => new GenericDictionaryType<T, U>(name, validation);
-const dictionary: DictionaryType = genericDictionary<{ [key: string]: any }, 'Dictionary'>(
-  'Dictionary',
-);
+const genericDictionary = <T, U extends string = string>(name: U, validation?: (u: unknown) => boolean) =>
+  new GenericDictionaryType<T, U>(name, validation);
+const dictionary: DictionaryType = genericDictionary<{ [key: string]: any }, 'Dictionary'>('Dictionary');
 
 export const utils = {
   nullable,

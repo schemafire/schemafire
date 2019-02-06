@@ -83,9 +83,9 @@ export interface BaseDefinition {
 
 export const baseProps = tuple('createdAt', 'updatedAt', 'schemaVersion');
 
-export const omitBaseFields: <T extends BaseDefinition>(
-  obj: any,
-) => Omit<T, keyof BaseDefinition> = omit(baseProps);
+export const omitBaseFields: <T extends BaseDefinition>(obj: any) => Omit<T, keyof BaseDefinition> = omit(
+  baseProps,
+);
 
 export const createDefaultBase = (base: Partial<BaseDefinition> = {}): BaseDefinition => ({
   createdAt: admin.firestore.Timestamp.now(),

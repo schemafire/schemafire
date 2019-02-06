@@ -253,9 +253,7 @@ export class Model<
 
   private buildUpdatedData(withoutDeletes: boolean = false) {
     const initialValue =
-      actionsContainCreate(this.actions) || actionsContainFindOrCreate(this.actions)
-        ? this.rawData
-        : {};
+      actionsContainCreate(this.actions) || actionsContainFindOrCreate(this.actions) ? this.rawData : {};
 
     return this.actions.reduce((accumulated, current) => {
       if (isUpdateAction(current)) {
@@ -376,10 +374,7 @@ export class Model<
   /**
    * Run a get within a transaction for the current model.
    */
-  private async getTransaction(
-    transaction: FirebaseFirestore.Transaction,
-    noData: boolean = false,
-  ) {
+  private async getTransaction(transaction: FirebaseFirestore.Transaction, noData: boolean = false) {
     if (this.actionsRun.get) {
       return;
     }
@@ -399,10 +394,7 @@ export class Model<
     }
   }
 
-  private async queryTransaction(
-    transaction: FirebaseFirestore.Transaction,
-    query: FirebaseFirestore.Query,
-  ) {
+  private async queryTransaction(transaction: FirebaseFirestore.Transaction, query: FirebaseFirestore.Query) {
     try {
       const snaps = await transaction.get(query.limit(1));
       if (snaps.size === 0) {
@@ -645,9 +637,7 @@ export class Model<
   public create = (data: IOTypeOfProps<GProps>, force: boolean = true) => {
     this.actions.push({
       data,
-      type: Cast<ModelActionType.Create>(
-        force ? ModelActionType.Create : ModelActionType.FindOrCreate,
-      ),
+      type: Cast<ModelActionType.Create>(force ? ModelActionType.Create : ModelActionType.FindOrCreate),
     });
     this.resetRawData({ ...this.rawData, ...data });
     return this;
@@ -669,8 +659,7 @@ export class Model<
   public validate = () => {
     const data = omitBaseFields(this.rawData);
     let report: IOValidation<any> = this.schema.codec.decode(data);
-    const isCreateAction =
-      actionsContainCreate(this.actions) || actionsContainFindOrCreate(this.actions);
+    const isCreateAction = actionsContainCreate(this.actions) || actionsContainFindOrCreate(this.actions);
     if (isCreateAction) {
       // Fall through
     } else if (actionsContainUpdate(this.actions)) {

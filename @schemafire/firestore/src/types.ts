@@ -154,17 +154,13 @@ export interface ISchema<
    * Creates a model from the provided snapshot.
    * @param snap
    */
-  fromSnap(
-    snap: FirebaseFirestore.DocumentSnapshot,
-  ): IModel<GProps, GInstanceMethods, GDependencies>;
+  fromSnap(snap: FirebaseFirestore.DocumentSnapshot): IModel<GProps, GInstanceMethods, GDependencies>;
 
   /**
    * Creates a model from the provided `DocumentReference`
    * @param doc
    */
-  fromDoc(
-    doc: FirebaseFirestore.DocumentReference,
-  ): IModel<GProps, GInstanceMethods, GDependencies>;
+  fromDoc(doc: FirebaseFirestore.DocumentReference): IModel<GProps, GInstanceMethods, GDependencies>;
 
   /**
    * Finds an instance of the model with the provided clauses.
@@ -402,10 +398,7 @@ export type TypeOfData<GSchema extends AnySchema> = TypeOfModel<GSchema>['data']
 /**
  * Type of data without any of the base props.
  */
-export type TypeOfCreateData<GSchema extends AnySchema> = Omit<
-  TypeOfData<GSchema>,
-  BaseDefinitionKeys
->;
+export type TypeOfCreateData<GSchema extends AnySchema> = Omit<TypeOfData<GSchema>, BaseDefinitionKeys>;
 
 export type PickPropertiesFromModel<GModel extends AnyModel> = Pick<
   GModel,
@@ -434,10 +427,9 @@ export interface StaticMethodConfig<GSchema extends AnySchema> {
   [method: string]: StaticMethod<GSchema>;
 }
 
-export type MappedStaticMethods<
-  GSchema extends AnySchema,
-  S extends StaticMethodConfig<GSchema> = any
-> = { [P in keyof S]: ReturnType<S[P]> };
+export type MappedStaticMethods<GSchema extends AnySchema, S extends StaticMethodConfig<GSchema> = any> = {
+  [P in keyof S]: ReturnType<S[P]>
+};
 
 /* Instance Methods */
 

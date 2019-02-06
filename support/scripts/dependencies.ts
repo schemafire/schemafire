@@ -156,10 +156,7 @@ const createTaskList = (failed = new Set()) => {
  * @param results
  * @param failed
  */
-const createResolverList = (
-  results: Record<string, () => Promise<void>>,
-  failed = new Set<string>(),
-) => {
+const createResolverList = (results: Record<string, () => Promise<void>>, failed = new Set<string>()) => {
   const initialTasks: ListrTask[] = [];
   return Object.entries(results).reduce((current, [name, resolver]) => {
     const task = () =>
