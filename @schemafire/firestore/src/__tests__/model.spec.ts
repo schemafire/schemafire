@@ -376,11 +376,9 @@ describe('#run', () => {
       .run();
 
     // Ignore the mirroring
-    expect(mockTransaction.set).not.toHaveBeenCalledWith(
-      mm.doc,
-      expect.objectContaining({ realData }),
-      { merge: true },
-    );
+    expect(mockTransaction.set).not.toHaveBeenCalledWith(mm.doc, expect.objectContaining({ realData }), {
+      merge: true,
+    });
     expect(mockTransaction.get).toHaveBeenCalled();
     expect(mockTransaction.create).toHaveBeenCalledWith(
       mm.doc,
@@ -443,10 +441,7 @@ describe('#run', () => {
     });
     await mm.run();
     expect(mm.data.age).toBe(realData.age);
-    expect(mockTransaction.set).toHaveBeenCalledWith(
-      mm.doc,
-      expect.objectContaining({ age: realData.age }),
-    );
+    expect(mockTransaction.set).toHaveBeenCalledWith(mm.doc, expect.objectContaining({ age: realData.age }));
   });
   it('handles Find with a callback containing a non-forced create', async () => {
     mockTransaction.get.mockResolvedValueOnce({ exists: false, data: jest.fn() });
@@ -505,9 +500,9 @@ describe('#run', () => {
     expect(() => schema.model({ type: ModelActionType.Create })).toThrowErrorMatchingInlineSnapshot(
       `"Type 'Create' can only be defined with data"`,
     );
-    expect(() =>
-      schema.model({ type: ModelActionType.FindOrCreate }),
-    ).toThrowErrorMatchingInlineSnapshot(`"Type 'FindOrCreate' can only be defined with data"`);
+    expect(() => schema.model({ type: ModelActionType.FindOrCreate })).toThrowErrorMatchingInlineSnapshot(
+      `"Type 'FindOrCreate' can only be defined with data"`,
+    );
     expect(() => schema.model({ type: ModelActionType.Delete })).not.toThrowError();
   });
   it('resets the updates when successful', async () => {

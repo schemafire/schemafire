@@ -65,7 +65,10 @@ Promise.resolve(userToken || cachedToken)
           firebaseTools.setup
             .web({ project, token })
             .then(config =>
-              fs.writeFile(supportDir('secrets', 'db.json'), JSON.stringify(config, null, 2)),
+              fs.writeFile(
+                supportDir('secrets', 'db.json'),
+                JSON.stringify(config, null, 2),
+              ),
             ),
       },
       {

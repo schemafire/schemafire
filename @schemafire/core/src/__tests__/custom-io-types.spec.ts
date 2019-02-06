@@ -85,19 +85,14 @@ describe('strings', () => {
     ).toThrowErrorMatchingInlineSnapshot(
       `"Invalid value \\"should fail\\" supplied to : (min(3) & max(15) & start.with.letter & letters.numbers.underscores)/3: letters.numbers.underscores"`,
     );
-    expect(() =>
-      ThrowReporter.report(strings.username().decode('123')),
-    ).toThrowErrorMatchingInlineSnapshot(
+    expect(() => ThrowReporter.report(strings.username().decode('123'))).toThrowErrorMatchingInlineSnapshot(
       `"Invalid value \\"123\\" supplied to : (min(3) & max(15) & start.with.letter & letters.numbers.underscores)/2: start.with.letter"`,
     );
-    expect(() => ThrowReporter.report(strings.username().decode('_')))
-      .toThrowErrorMatchingInlineSnapshot(`
+    expect(() => ThrowReporter.report(strings.username().decode('_'))).toThrowErrorMatchingInlineSnapshot(`
 "Invalid value \\"_\\" supplied to : (min(3) & max(15) & start.with.letter & letters.numbers.underscores)/0: min(3)
 Invalid value \\"_\\" supplied to : (min(3) & max(15) & start.with.letter & letters.numbers.underscores)/2: start.with.letter"
 `);
-    expect(() =>
-      ThrowReporter.report(strings.username().decode('_abc')),
-    ).toThrowErrorMatchingInlineSnapshot(
+    expect(() => ThrowReporter.report(strings.username().decode('_abc'))).toThrowErrorMatchingInlineSnapshot(
       `"Invalid value \\"_abc\\" supplied to : (min(3) & max(15) & start.with.letter & letters.numbers.underscores)/2: start.with.letter"`,
     );
     expect(() =>
@@ -113,9 +108,7 @@ test('#validateUnionType', () => {
   expect(validateUnionType(strings.username(), 'valid')).toEqual([]);
   const errors = validateUnionType(strings.username(), '_invalid');
   expect(errors).toHaveLength(1);
-  expect(errors[0]).toMatchInlineSnapshot(
-    `"Expecting start.with.letter but instead got: \\"_invalid\\"."`,
-  );
+  expect(errors[0]).toMatchInlineSnapshot(`"Expecting start.with.letter but instead got: \\"_invalid\\"."`);
 });
 
 describe('utils', () => {
@@ -141,23 +134,19 @@ Invalid value null supplied to : (string | undefined)/1: undefined"
     expect(() =>
       ThrowReporter.report(utils.dictionary.decode({ a: undefined, can: 'be', anything: NaN })),
     ).not.toThrow();
-    expect(() =>
-      ThrowReporter.report(utils.dictionary.decode(null)),
-    ).toThrowErrorMatchingInlineSnapshot(`"Invalid value null supplied to : Dictionary"`);
+    expect(() => ThrowReporter.report(utils.dictionary.decode(null))).toThrowErrorMatchingInlineSnapshot(
+      `"Invalid value null supplied to : Dictionary"`,
+    );
   });
 
   test('#genericDictionary', () => {
     const guard = (u: unknown) =>
       typeof u === 'object' && isEqual(Object.keys(Cast(u)), ['always']) && Cast(u).always === true;
     const codec = utils.genericDictionary<{ always: true }, 'AlwaysTrue'>('AlwaysTrue', guard);
-    expect(() =>
-      ThrowReporter.report(codec.decode({ not: true })),
-    ).toThrowErrorMatchingInlineSnapshot(
+    expect(() => ThrowReporter.report(codec.decode({ not: true }))).toThrowErrorMatchingInlineSnapshot(
       `"Invalid value {\\"not\\":true} supplied to : AlwaysTrue"`,
     );
-    expect(() =>
-      ThrowReporter.report(codec.decode({ always: false })),
-    ).toThrowErrorMatchingInlineSnapshot(
+    expect(() => ThrowReporter.report(codec.decode({ always: false }))).toThrowErrorMatchingInlineSnapshot(
       `"Invalid value {\\"always\\":false} supplied to : AlwaysTrue"`,
     );
     expect(() => ThrowReporter.report(codec.decode({ always: true }))).not.toThrow();

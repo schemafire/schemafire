@@ -1,12 +1,5 @@
 import * as t from 'io-ts';
-import {
-  BaseInjectedDeps,
-  IModel,
-  InstanceMethodConfig,
-  IQuery,
-  ISchema,
-  QueryParams,
-} from './types';
+import { BaseInjectedDeps, IModel, InstanceMethodConfig, IQuery, ISchema, QueryParams } from './types';
 import { buildQuery } from './utils';
 
 export class Query<

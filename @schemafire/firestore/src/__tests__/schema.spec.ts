@@ -1,11 +1,6 @@
 import { testCollection } from '@live-test-helpers';
 import { Cast } from '@schemafire/core';
-import {
-  collectionRef,
-  docData,
-  runTransaction,
-  snapData,
-} from '@schemafire/jest-mocks/lib/firebase-admin';
+import { collectionRef, docData, runTransaction, snapData } from '@schemafire/jest-mocks/lib/firebase-admin';
 import admin from 'firebase-admin';
 import { codec, defaultData, realData } from '../__fixtures__/shared.fixtures';
 import { Model } from '../model';
@@ -92,9 +87,7 @@ describe('constructor', () => {
   it('allows building a query', () => {
     const clauses = Cast([['set1', '==', 'check1']]);
     expect(Base.findWhere(clauses)).toBeInstanceOf(Query);
-    expect(() => Base.findWhere([])).toThrowErrorMatchingInlineSnapshot(
-      `"Must pass through query params"`,
-    );
+    expect(() => Base.findWhere([])).toThrowErrorMatchingInlineSnapshot(`"Must pass through query params"`);
   });
 });
 

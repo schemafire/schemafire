@@ -53,9 +53,7 @@ export class Schema<
    */
   private static registerSchema(schema: AnySchema) {
     if (Schema.instances.some(instance => instance.collection === schema.collection)) {
-      throw simpleError(
-        'An identical schema has already been registered with this collection reference',
-      );
+      throw simpleError('An identical schema has already been registered with this collection reference');
     }
     this.instances.push(schema);
   }
@@ -135,9 +133,9 @@ export class Schema<
   public readonly mirror?: SchemaCacheRules<keyof GProps>;
   public dependencies: GDependencies = Cast<GDependencies>({ initialized: false });
   public config: SchemaConfig;
-  public methods: MappedStaticMethods<this, GStaticMethods> = Cast<
-    MappedStaticMethods<this, GStaticMethods>
-  >({});
+  public methods: MappedStaticMethods<this, GStaticMethods> = Cast<MappedStaticMethods<this, GStaticMethods>>(
+    {},
+  );
 
   public get version(): number {
     return Schema.version;
@@ -229,10 +227,7 @@ export class Schema<
   /**
    * A model instance with the create action. When run is called this model will be created.
    */
-  public create(
-    data: t.TypeOfProps<GProps>,
-    id?: string,
-  ): IModel<GProps, GInstanceMethods, GDependencies> {
+  public create(data: t.TypeOfProps<GProps>, id?: string): IModel<GProps, GInstanceMethods, GDependencies> {
     /* Potential options for a custom ID */
     const mergedData = { ...this.defaultData, ...data };
     return this.model({
@@ -284,9 +279,7 @@ export class Schema<
    *
    * This method doesn't add any actions to the mode.
    */
-  public fromSnap(
-    snap: FirebaseFirestore.DocumentSnapshot,
-  ): IModel<GProps, GInstanceMethods, GDependencies> {
+  public fromSnap(snap: FirebaseFirestore.DocumentSnapshot): IModel<GProps, GInstanceMethods, GDependencies> {
     return this.model({
       schema: this,
       methods: this.instanceMethods,
@@ -299,9 +292,7 @@ export class Schema<
   /**
    * Similar to `fromSnap`. Create a model from a firestore document reference
    */
-  public fromDoc(
-    doc: FirebaseFirestore.DocumentReference,
-  ): IModel<GProps, GInstanceMethods, GDependencies> {
+  public fromDoc(doc: FirebaseFirestore.DocumentReference): IModel<GProps, GInstanceMethods, GDependencies> {
     return this.model({
       schema: this,
       methods: this.instanceMethods,
@@ -387,10 +378,7 @@ export class Schema<
  * Converts static methods from configuration into callable functions that can exists on the
  * schema instance.
  */
-function staticMethodTransformer<
-  GSchema extends AnySchema,
-  GStaticMethods extends StaticMethodConfig<any>
->(
+function staticMethodTransformer<GSchema extends AnySchema, GStaticMethods extends StaticMethodConfig<any>>(
   methods: GStaticMethods,
   schema: GSchema,
   defaultMethods: MappedStaticMethods<GSchema, GStaticMethods>,

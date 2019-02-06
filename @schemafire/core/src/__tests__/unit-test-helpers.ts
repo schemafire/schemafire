@@ -14,11 +14,9 @@ export const typeSafeMockRejectsOnce: (mock: any, value: any) => jest.Mock = jes
   },
 );
 
-export const typeSafeMockRejects: (mock: any, value: any) => jest.Mock = jest.fn(
-  (mock: jest.Mock, value) => {
-    return mock.mockRejectedValue(value);
-  },
-);
+export const typeSafeMockRejects: (mock: any, value: any) => jest.Mock = jest.fn((mock: jest.Mock, value) => {
+  return mock.mockRejectedValue(value);
+});
 
 export const typeSafeMockResolvesOnce: (mock: any, value: any) => jest.Mock = jest.fn(
   (mock: jest.Mock, value) => {
@@ -34,11 +32,9 @@ export const typeSafeMockResolves: (mock: any, value: any) => jest.Mock = jest.f
   },
 );
 
-export const typeSafeMockReturn: (mock: any, value: any) => jest.Mock = jest.fn(
-  (mock: jest.Mock, value) => {
-    return mock.mockReturnValue(value);
-  },
-);
+export const typeSafeMockReturn: (mock: any, value: any) => jest.Mock = jest.fn((mock: jest.Mock, value) => {
+  return mock.mockReturnValue(value);
+});
 
 export const typeSafeMockReturnOnce: (mock: any, value: any) => jest.Mock = jest.fn(
   (mock: jest.Mock, value) => {

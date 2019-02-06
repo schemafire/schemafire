@@ -12,6 +12,9 @@ if (!process.env.CI) {
       process.exit();
     })
     .catch(e => {
-      console.log(chalk`{red.bold Something went wrong while building the jest mocks}`, e);
+      console.log(
+        chalk`{red.bold Something went wrong while building the jest mocks}`,
+        e,
+      );
     });
 }
