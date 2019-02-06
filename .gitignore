@@ -78,7 +78,7 @@ jspm_packages/
 # End of https://www.gitignore.io/api/Node
 
 dist
-lib
+@skeema/**/lib
 
 # We are using yarn
 package-lock.json

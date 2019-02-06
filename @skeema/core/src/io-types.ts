@@ -1,6 +1,6 @@
 import * as t from 'io-ts';
 import { reporter } from 'io-ts-reporters';
-import { isEmail } from 'validator';
+import isEmail from 'validator/lib/isEmail';
 import { DictionaryType, GenericDictionaryType } from './class-types';
 
 /**
@@ -15,7 +15,7 @@ const gte = (minimum: number) => t.refinement(t.number, val => val >= minimum, '
  *
  * @param minimum
  */
-const gt = (minimum: number) => t.brand(t.number, val => val > minimum, 'MinNumber');
+const gt = (minimum: number) => t.refinement(t.number, val => val > minimum, 'MinNumber');
 
 /**
  * Ensures that a number is less than or equal to the passed in value

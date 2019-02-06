@@ -113,7 +113,9 @@ test('#validateUnionType', () => {
   expect(validateUnionType(strings.username(), 'valid')).toEqual([]);
   const errors = validateUnionType(strings.username(), '_invalid');
   expect(errors).toHaveLength(1);
-  expect(errors[0]).toContain('start.with.letter');
+  expect(errors[0]).toMatchInlineSnapshot(
+    `"Expecting start.with.letter but instead got: \\"_invalid\\"."`,
+  );
 });
 
 describe('utils', () => {

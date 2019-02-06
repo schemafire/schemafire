@@ -13,7 +13,7 @@ const projectId = argv.projectId;
 let cachedToken;
 
 try {
-  const config = require(userFirebaseConfig);
+  const config = require(userFirebaseConfig());
   cachedToken = config.tokens.refresh_token;
 } catch (err) {
   console.log(

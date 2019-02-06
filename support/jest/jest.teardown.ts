@@ -5,12 +5,10 @@ import { TestEmulator } from './test-emulator';
 const { isLiveTest, userFirebaseConfig } = require('../utils');
 
 module.exports = async (_: GlobalConfig) => {
-  console.log('Imports and globals are preserved', TestEmulator === global.TestEmulator);
-  await TestEmulator.stopFirestore();
-
   if (!isLiveTest()) {
     return;
   }
+  await TestEmulator.stop('firestore');
 
   const token = process.env.CI
     ? process.env.FIREBASE_TOKEN!
