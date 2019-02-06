@@ -24,9 +24,21 @@ export class Query<
     return this;
   }
 
-  public deleteAll(): this {}
+  public deleteAll(): this {
+    return this;
+  }
 
-  public updateAll(): this {}
-  public attachAll(): this {}
-  public overwriteAll(): this {}
+  public updateAll(): this {
+    return this;
+  }
+
+  /**
+   * Attaches a callback to each
+   */
+  public attachAll(): this {
+    return this;
+  }
+  public overwriteAll(): this {
+    return this;
+  }
 }

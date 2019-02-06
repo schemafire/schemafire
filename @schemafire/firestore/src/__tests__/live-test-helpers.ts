@@ -32,6 +32,8 @@ export const setupFirebaseTesting = async () => {
   return db;
 };
 
-export const teardownFirebase = async () => {
+export type FirestoreTesting = firebaseTesting.firestore.Firestore;
+
+export const teardownFirebaseTesting = async () => {
   await Promise.all(firebaseTesting.apps().map(app => app.delete()));
 };

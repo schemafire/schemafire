@@ -2,11 +2,11 @@
 
 [![Build Status](https://travis-ci.com/ifiokjr/schemafire.svg?branch=master)](https://travis-ci.org/ifiokjr/schemafire) [![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lernajs.io/) [![Maintainability](https://api.codeclimate.com/v1/badges/bde2fc9e3dec543a875a/maintainability)](https://codeclimate.com/github/ifiokjr/schemafire/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/bde2fc9e3dec543a875a/test_coverage)](https://codeclimate.com/github/ifiokjr/schemafire/test_coverage)
 
-Manage your firebase data with pre-defined schema and built in type checking.
+Manage your schema with built in run-time type checking.
 
 ## Getting started
 
-Navigate to the [`@schemafire/firestore`](./@schemafire/firestore/README.md) to learn how to use this library in your project.
+Navigate to the [`@schemafire/firestore`](./@schemafire/firestore/README.md) to learn how to use this library with firestore in your project.
 
 ## Contributing
 
@@ -14,7 +14,7 @@ The following are some pointers to getting started with contributing to the code
 
 ### Initial Setup
 
-Run the following commands from the command line to get your local environment set up:
+Open up a terminal and run the following commands from the command line to get your local environment set up:
 
 ```bash
 git clone https://github.com/ifiokjr/schemafire

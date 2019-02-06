@@ -23,11 +23,13 @@ export const docData = {
 export const doc = jest.fn(() => docData);
 export const limit = jest.fn();
 
+export const collectionGet: any = jest.fn();
 export const where: any = jest.fn(() => ({ doc, where, limit }));
 export const collectionRef = {
   doc,
   where,
   limit,
+  get: collectionGet,
 };
 
 export const collection: any = jest.fn(() => collectionRef);

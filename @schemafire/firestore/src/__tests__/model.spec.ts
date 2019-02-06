@@ -327,7 +327,7 @@ describe('#run', () => {
       const createData = { ...realData, age: 101 };
       const expectedSnap = { exists: true, data: jest.fn(() => createData) };
       mockTransaction.set.mockImplementationOnce(() => {
-        docGetter.mockResolvedValueOnce(expectedSnap);
+        docGetter.mockResolvedValueOnce(Cast(expectedSnap));
       });
       const mm = schema.create(createData);
       const initialSnap = mm.snap;
