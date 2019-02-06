@@ -11,13 +11,12 @@
     "build": "lerna run build",
     "checks": "run-s integrity lint typecheck test",
     "checks:parallel": "run-p integrity lint typecheck test",
+    "ci": "yarn clean; yarn frozen;",
     "ci:checks": "run-s integrity lint typecheck build test:ci",
     "ci:coverage": "codeclimate-test-reporter < coverage/lcov.info",
     "ci:setup": "node support/scripts/ci-setup.js",
-    "clean": "run-s clean:lerna clean:modules clean:root",
-    "clean:lerna": "lerna clean --yes",
-    "clean:modules": "lerna run --parallel clean",
-    "clean:root": "rimraf node_modules .jest coverage",
+    "clean": "git clean -fdx",
+    "clean:modules": "git clean -fdx @schemafire internal",
     "dependencies:setup": "ts-node -P support/tsconfig.json -T support/scripts/dependencies.ts",
     "dev": "lerna run dev --parallel",
     "fix": "run-s fix:lint:* fix:*",
@@ -25,6 +24,7 @@
     "fix:lint:support": "tslint --project support/tsconfig.json --config support/tslint.json --fix",
     "fix:lint:ts": "lerna run lint --parallel -- --fix",
     "fix:prettier": "prettier --write \"**/*.{json,yml,yaml,md}\"",
+    "frozen": "yarn --frozen-lockfile install",
     "postinstall": "node support/scripts/postinstall.js",
     "integrity": "yarn check --integrity",
     "lint": "run-s lint:*",
@@ -86,7 +86,6 @@
     ]
   },
   "resolutions": {
-    "@google-cloud/firestore": "1.0.1",
-    "@babel/parser": "7.3.1"
+    "@google-cloud/firestore": "1.0.1"
   }
 }
