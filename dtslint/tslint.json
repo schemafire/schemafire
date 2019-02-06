@@ -1,6 +1,8 @@
 {
   "extends": "dtslint/dtslint.json",
   "rules": {
-    "no-useless-files": false
+    "no-useless-files": false,
+    "ordered-imports": false,
+    "no-shadowed-variable": false
   }
 }

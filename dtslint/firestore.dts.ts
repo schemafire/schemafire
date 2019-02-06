@@ -1,11 +1,11 @@
 import * as t from 'io-ts';
-import { Schema } from '../@skeema/firestore/src';
+import { Schema } from '@skeema/firestore';
 
 const codec = t.interface({
   name: t.string,
   age: t.number,
   custom: t.string,
-  data: t.object,
+  data: t.UnknownRecord,
 });
 
 const defaultData = { name: '', data: {}, age: 20, custom: 'custom' };

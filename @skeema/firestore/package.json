@@ -27,12 +27,11 @@
   "dependencies": {
     "@google-cloud/firestore": "1.0.1",
     "@skeema/core": "0.0.1-alpha.3",
-    "io-ts": "1.8.0",
-    "io-ts-types": "0.4.2",
     "lodash": "4.17.11",
     "stringify-object": "3.3.0"
   },
   "peerDependencies": {
+    "io-ts": "^1.8.1",
     "firebase-admin": "^7.0.0"
   },
   "publishConfig": {

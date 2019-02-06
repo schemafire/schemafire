@@ -14,7 +14,8 @@
         "debug",
         "execa",
         "wait-on",
-        "listr"
+        "listr",
+        "inquirer"
       ]
     ],
     "no-any": false,

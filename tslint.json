@@ -4,7 +4,13 @@
     "no-implicit-dependencies": [
       true,
       "dev",
-      ["@skeema/jest-mocks", "@google-cloud/firestore", "@live-test-helpers", "@unit-test-helpers"]
+      [
+        "@skeema/jest-mocks",
+        "@google-cloud/firestore",
+        "@live-test-helpers",
+        "@unit-test-helpers",
+        "@firebase/testing"
+      ]
     ],
     "no-any": false,
     "max-classes-per-file": false,
