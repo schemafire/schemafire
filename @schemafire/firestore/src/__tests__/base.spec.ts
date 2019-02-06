@@ -1,11 +1,11 @@
-import { initializeFirebase, testCollection } from '@live-test-helpers';
+import { initializeFirebaseWithoutConfig, testCollection } from '@live-test-helpers';
 import { ThrowReporter } from '@schemafire/core';
 import admin from 'firebase-admin';
 import { collectionReference, documentReference, timestamp } from '../base';
 
 jest.unmock('firebase-admin');
 
-initializeFirebase();
+initializeFirebaseWithoutConfig();
 const db = admin.firestore();
 
 test('collectionReference', () => {

@@ -24,17 +24,9 @@ export class Query<
     return this;
   }
 
-  public deleteAll(): this {
-    throw new Error('Method not implemented.');
-  }
+  public deleteAll(): this {}
 
-  public updateAll(): this {
-    throw new Error('Method not implemented.');
-  }
-  public attachAll(): this {
-    throw new Error('Method not implemented.');
-  }
-  public overwriteAll(): this {
-    throw new Error('Method not implemented.');
-  }
+  public updateAll(): this {}
+  public attachAll(): this {}
+  public overwriteAll(): this {}
 }
