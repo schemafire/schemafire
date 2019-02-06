@@ -7,8 +7,6 @@ import Listr, { ListrTask } from 'listr';
 import { startCase } from 'lodash';
 import psTree from 'ps-tree';
 
-// const debug = dbg('@skeema:scripts');
-
 const Timeout = Symbol('timeout');
 
 const timeout = (ms = 1500) =>
@@ -73,11 +71,11 @@ const killProcessChildren = (child: psTree.PS) => {
 export const killEmulator = async (emulator: execa.ExecaChildProcess) => {
   const children = await psTreePromise(emulator.pid);
   children.forEach(killProcessChildren);
-  return emulator.kill();
+  emulator.kill();
 };
 
 export const checkEmulatorInstalled = async ({
-  type: type,
+  type,
   errorMessage = `${startCase(type)} emulator not found`,
   ms = 2000,
   alwaysKill = true,
@@ -85,9 +83,9 @@ export const checkEmulatorInstalled = async ({
 }: CheckEmulatorOptions) => {
   let killed = false;
 
-  const kill = () => {
+  const kill = async () => {
     if (!killed) {
-      killEmulator(emulator);
+      await killEmulator(emulator);
       killed = true;
     }
   };
@@ -100,11 +98,11 @@ export const checkEmulatorInstalled = async ({
       return;
     }
   } catch {
-    kill();
+    await kill();
     throw new Error(errorMessage);
   } finally {
     if (alwaysKill) {
-      kill();
+      await kill();
     }
   }
 };
