@@ -5,7 +5,7 @@
       true,
       "dev",
       [
-        "@skeema/jest-mocks",
+        "@schemafire/jest-mocks",
         "@google-cloud/firestore",
         "@live-test-helpers",
         "@unit-test-helpers",

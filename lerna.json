@@ -1,5 +1,5 @@
 {
-  "packages": ["@skeema/*", "internal/*"],
+  "packages": ["@schemafire/*", "internal/*"],
   "publish": {},
   "command": {
     "publish": {

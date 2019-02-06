@@ -20,7 +20,7 @@ global.__DB_PREFIX__ = createDBPrefix();
 module.exports = {
   cacheDirectory: '<rootDir>/.jest',
   collectCoverage: isLiveTest(),
-  projects: ['<rootDir>/@skeema/*/'],
+  projects: ['<rootDir>/@schemafire/*/'],
   watchPlugins: ['jest-watch-typeahead/filename', 'jest-watch-typeahead/testname'],
   ...(isLiveTest() ? coverage : {}),
   globalTeardown: supportDir('jest/jest.teardown.ts'),

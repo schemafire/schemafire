@@ -3,7 +3,7 @@
   "name": "root",
   "workspaces": {
     "packages": [
-      "@skeema/*",
+      "@schemafire/*",
       "internal/*"
     ]
   },
@@ -21,7 +21,7 @@
     "dependencies:setup": "ts-node -P support/tsconfig.json -T support/scripts/dependencies.ts",
     "dev": "lerna run dev --parallel",
     "fix": "run-s fix:lint:* fix:*",
-    "fix:lint:js": "eslint support *.js @skeema --fix",
+    "fix:lint:js": "eslint support *.js @schemafire --fix",
     "fix:lint:support": "tslint --project support/tsconfig.json --config support/tslint.json --fix",
     "fix:lint:ts": "lerna run lint --parallel -- --fix",
     "fix:prettier": "prettier --write \"**/*.{json,yml,yaml,md}\"",
@@ -29,7 +29,7 @@
     "integrity": "yarn check --integrity",
     "lint": "run-s lint:*",
     "lint:dts": "tslint -p dtslint/tsconfig.custom.json -c dtslint/tslint.custom.json dtslint/*.dts.ts",
-    "lint:js": "eslint support *.js @skeema",
+    "lint:js": "eslint support *.js @schemafire",
     "lint:support": "tslint --project support/tsconfig.json --config support/tslint.json",
     "lint:ts": "lerna run lint --parallel",
     "prepublish:alpha": "run-s ci:checks",
@@ -57,11 +57,11 @@
     }
   },
   "lint-staged": {
-    "@skeema/*/src/**/*.{ts,tsx}": [
+    "@schemafire/*/src/**/*.{ts,tsx}": [
       "tslint --fix",
       "git add"
     ],
-    "@skeema/!(jest-mocks)?*/src/**/!(unit-test-helpers)?*.!(test.)?{ts,tsx}": [
+    "@schemafire/!(jest-mocks)?*/src/**/!(unit-test-helpers)?*.!(test.)?{ts,tsx}": [
       "jest --coverage=false --bail --findRelatedTests"
     ],
     "**/*.js": [
@@ -80,7 +80,7 @@
       "prettier-package-json --write",
       "git add"
     ],
-    "@skeema/*/package.json": [
+    "@schemafire/*/package.json": [
       "prettier-package-json --write",
       "git add"
     ]
