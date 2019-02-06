@@ -1,4 +1,4 @@
-import { initializeFirebase, testCollection } from '@live-test-helpers';
+import { initializeLiveFirebase, testCollection } from '@live-test-helpers';
 import { generateId } from '@schemafire/core';
 import admin from 'firebase-admin';
 import * as t from 'io-ts';
@@ -10,7 +10,7 @@ import { getDocument } from '../utils';
 
 jest.unmock('firebase-admin');
 
-initializeFirebase();
+initializeLiveFirebase();
 
 const checkableData = pick(['name', 'data', 'age'], realData);
 

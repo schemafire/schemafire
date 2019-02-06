@@ -3,13 +3,14 @@ import admin from 'firebase-admin';
 
 export const testCollection = (name: string) => `${global.__DB_PREFIX__}/${name}`;
 
-const TEST_PROJECT_CONFIG = require('../../../../support/secrets/db.json');
-
 /**
  * Initialized firebase admin and return the instance of firestore.
+ *
+ * This uses a live instance firebase and must be setup in advance
  */
-export const initializeFirebase = () => {
+export const initializeLiveFirebase = () => {
   const serviceAccountKey = require('../../../../support/secrets/key.json');
+  const TEST_PROJECT_CONFIG = require('../../../../support/secrets/db.json');
 
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccountKey),
