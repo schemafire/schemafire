@@ -1,1 +1,1 @@
-export const STATUS = 'not yet implemented';
+export * from './generator';

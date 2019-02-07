@@ -9,9 +9,9 @@ export const generateId = (val: number = 24) => generate('abcdefghijklmnopqrstuv
  * Type cast an argument. If not type is provided it defaults to any
  * Provides A sneaky way to step around tricky TypeScript bugs 😅
  *
- * @param arg
+ * @param target
  */
-export const Cast = <GNewType = any>(arg: any): GNewType => arg;
+export const Cast = <GNewType = any>(target: any): GNewType => target;
 
 /**
  * Removes all undefined values from an object. Neither Firestore nor the RealtimeDB allow `undefined` as a value.
