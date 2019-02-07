@@ -19,6 +19,7 @@ before_install:
   - cc-test-reporter before-build
   - curl -o- -L https://yarnpkg.com/install.sh | bash
   - export PATH=$HOME/.yarn/bin:$HOME/bin:$PATH
+  - yarn global add ts-node firebase
 install:
   - yarn ci
   - yarn ci:setup
