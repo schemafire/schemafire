@@ -1,4 +1,5 @@
 {
+  "private": true,
   "name": "@schemafire/jest-mocks",
   "description": "A collection of mocks used throughout schemafire packages",
   "author": "Ifiok Jr. <ifiokotung@gmail.com>",

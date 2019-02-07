@@ -1,23 +1,7 @@
 {
   "extends": ["@kj/tslint-rules/base"],
   "rules": {
-    "no-implicit-dependencies": [
-      true,
-      "dev",
-      [
-        "jest-extended",
-        "firebase-tools",
-        "jest-cli",
-        "chalk",
-        "ps-tree",
-        "lodash",
-        "debug",
-        "execa",
-        "wait-on",
-        "listr",
-        "inquirer"
-      ]
-    ],
+    "no-implicit-dependencies": false,
     "no-any": false,
     "max-classes-per-file": false,
     "no-empty-interface": false,

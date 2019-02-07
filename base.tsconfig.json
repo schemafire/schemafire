@@ -4,7 +4,7 @@
     "paths": {
       "@unit-test-helpers": ["@schemafire/core/src/__tests__/unit-test-helpers.ts"],
       "@live-test-helpers": ["@schemafire/firestore/src/__tests__/live-test-helpers.ts"],
-      "@schemafire/jest-mocks/lib/*": ["@schemafire/jest-mocks/src/*"],
+      "@schemafire/jest-mocks/lib/*": ["support/jest-mocks/src/*"],
       "@schemafire/core": ["@schemafire/core/src/index.ts"],
       "@schemafire/firestore": ["@schemafire/firestore/src/index.ts"],
       "*": ["support/types/*"]
