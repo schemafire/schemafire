@@ -3,5 +3,5 @@ const config = require('../../support/jest/jest.config');
 module.exports = {
   ...config,
   name: require('./package.json').name,
-  displayName: 'RealtimeDB Schema',
+  displayName: 'Realtime Database Schema',
 };
