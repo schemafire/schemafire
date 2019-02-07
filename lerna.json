@@ -1,5 +1,5 @@
 {
-  "packages": ["@schemafire/*", "internal/*"],
+  "packages": ["@schemafire/*", "support/dependencies"],
   "publish": {},
   "command": {
     "publish": {

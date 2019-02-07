@@ -1,14 +1,22 @@
 import chalk from 'chalk';
-// import dbg from 'debug';
 import execa from 'execa';
 import firebaseTools from 'firebase-tools';
 import inquirer from 'inquirer';
 import Listr, { ListrTask } from 'listr';
 import { startCase } from 'lodash';
 import psTree from 'ps-tree';
+import { argv } from 'yargs';
 
 const Timeout = Symbol('timeout');
 
+/**
+ * Determine whether prompts should be show when installing dependencies
+ */
+export const disablePrompt = () => Boolean(process.env.CI || argv.y);
+
+/**
+ * Set timeouts with promises
+ */
 const timeout = (ms = 1500) =>
   new Promise<symbol>(resolve => {
     setTimeout(() => {
@@ -47,6 +55,10 @@ const psTreePromise = (pid: number) =>
     });
   });
 
+/**
+ * Starts an emulator
+ * @param type the emulator type
+ */
 export const startEmulator = (type: EmulatorType) =>
   execa('firebase', ['serve', '--only', type], { stdio: 'ignore' });
 
@@ -170,10 +182,27 @@ const createResolverList = (results: Record<string, () => Promise<void>>, failed
   }, initialTasks);
 };
 
-const transformResult = (result: Record<string, boolean>) =>
-  Object.entries(result).reduce((current, [name, outcome]) => {
+const transformResult = (result: Record<string, boolean>) => {
+  const initialActions: Record<string, () => Promise<void>> = {};
+  return Object.entries(result).reduce((current, [name, outcome]) => {
     return outcome ? { ...current, [name]: dependencies[name].resolve } : current;
-  }, {});
+  }, initialActions);
+};
+
+interface FailedChecks {
+  type: string;
+  message: string;
+  name: any;
+}
+
+/**
+ * Used when the prompt has been disabled to auto select to run all actions.
+ * This is mainly used in a CI environment.
+ */
+const generateResult = (failedChecks: FailedChecks[]) => {
+  const initialResult: Record<string, boolean> = {};
+  return failedChecks.reduce((p, c) => ({ ...p, [c.name]: true }), initialResult);
+};
 
 export const checkDependencies = async () => {
   const failedChecks = new Set();
@@ -188,7 +217,7 @@ export const checkDependencies = async () => {
     console.log(chalk`\n{yellow Some dependencies are missing }\n`);
   }
 
-  if (failedChecks.size <= 0) {
+  if (failedChecks.size === 0) {
     return;
   }
 
@@ -198,7 +227,10 @@ export const checkDependencies = async () => {
     name,
   }));
 
-  const result = await inquirer.prompt<Record<string, boolean>>(values);
+  const result: Record<string, boolean> = disablePrompt()
+    ? generateResult(values)
+    : await inquirer.prompt<Record<string, boolean>>(values);
+
   const actions = transformResult(result);
   const skipped = Object.entries(result)
     .filter(([, val]) => !val)

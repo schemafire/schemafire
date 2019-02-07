@@ -4,10 +4,11 @@
   "workspaces": {
     "packages": [
       "@schemafire/*",
-      "internal/*"
+      "support/dependencies"
     ]
   },
   "scripts": {
+    "t": "ts-node -T -P support/tsconfig.json",
     "build": "lerna run build",
     "checks": "run-s integrity lint typecheck test",
     "checks:parallel": "run-p integrity lint typecheck test",
@@ -15,9 +16,9 @@
     "ci:checks": "run-s integrity lint typecheck build test:ci",
     "ci:coverage": "codeclimate-test-reporter < coverage/lcov.info",
     "ci:setup": "node support/scripts/ci-setup.js",
-    "clean": "git clean -fdx",
-    "clean:modules": "git clean -fdx @schemafire internal",
-    "dependencies:setup": "ts-node -P support/tsconfig.json -T support/scripts/dependencies.ts",
+    "clean": "git clean -fdx --exclude=support/secrets",
+    "clean:modules": "git clean -fdx @schemafire support/dependencies",
+    "dependencies:setup": "yarn t support/scripts/dependencies.ts",
     "dev": "lerna run dev --parallel",
     "fix": "run-s fix:lint:* fix:*",
     "fix:lint:js": "eslint support *.js @schemafire --fix",

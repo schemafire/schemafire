@@ -2,13 +2,18 @@ language: node_js
 cache:
   yarn: true
   directories:
-    - node_modules
+    - ~/.cache # Keeps a reference to the firebase emulators
+  override:
+    - yarn ci
+    - yarn ci:setup
+    - yarn dependencies:setup -v
+
 git:
   depth: 5
+
 node_js:
   - '8'
   - '10'
-  - '11'
 env:
   global:
     - PATH=$HOME/.yarn/bin:$HOME/bin:$PATH
@@ -18,9 +23,6 @@ before_install:
   - cc-test-reporter before-build
   - curl -o- -L https://yarnpkg.com/install.sh | bash
   - export PATH=$HOME/.yarn/bin:$HOME/bin:$PATH
-install:
-  - yarn install
-  - yarn ci:setup
 script:
   - yarn ci:checks
 after_script:
