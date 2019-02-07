@@ -686,7 +686,7 @@ export class Model<
     const initialData: JSONifyProps<GProps> = Cast({ id: this.id });
     const keys = uniq([...this.schema.keys, ...baseProps]);
     return keys.reduce((prev, curr) => {
-      const originalValue: TypeOfPropsWithBase<GProps>[T] = this.data[curr];
+      const originalValue: TypeOfPropsWithBase<GProps>[typeof curr] = this.data[curr];
       let value: unknown;
       if (isFirestoreAdminTimestamp(originalValue)) {
         value = createJSONRepresentation('timestamp', originalValue.toDate().toJSON());

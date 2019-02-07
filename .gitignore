@@ -79,7 +79,7 @@ jspm_packages/
 
 dist
 @schemafire/**/lib
-@support/jest-mocks/lib
+support/jest-mocks/lib
 
 # We are using yarn
 package-lock.json
