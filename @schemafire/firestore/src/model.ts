@@ -7,9 +7,18 @@ import {
   TypeOfProps as IOTypeOfProps,
   Validation as IOValidation,
 } from 'io-ts';
-import { get, isEmpty, pick } from 'lodash/fp';
-import { BaseDefinition, createDefaultBase, omitBaseFields } from './base';
-import { throwIfCreateTypeWithNoData, throwIfNoClauses } from './model.utils';
+import { get, isEmpty, pick, uniq } from 'lodash/fp';
+import {
+  BaseDefinition,
+  baseProps,
+  createDefaultBase,
+  isCollectionReference,
+  isDocumentReference,
+  isFirestoreAdminTimestamp,
+  isGeoPoint,
+  omitBaseFields,
+} from './base';
+import { createJSONRepresentation, throwIfCreateTypeWithNoData, throwIfNoClauses } from './model.utils';
 import {
   AnyModel,
   AnySchema,
@@ -19,6 +28,7 @@ import {
   IModel,
   InstanceMethodConfig,
   ISchema,
+  JSONifyProps,
   MappedInstanceMethods,
   ModelAction,
   ModelActions,
@@ -671,4 +681,29 @@ export class Model<
     }
     return report.fold(SchemaFireValidationError.create, () => undefined);
   };
+
+  public toJSON(): JSONifyProps<GProps> {
+    const initialData: JSONifyProps<GProps> = Cast({ id: this.id });
+    const keys = uniq([...this.schema.keys, ...baseProps]);
+    return keys.reduce((prev, curr) => {
+      const originalValue: TypeOfPropsWithBase<GProps>[T] = this.data[curr];
+      let value: unknown;
+      if (isFirestoreAdminTimestamp(originalValue)) {
+        value = createJSONRepresentation('timestamp', originalValue.toDate().toJSON());
+      } else if (isCollectionReference(originalValue)) {
+        value = createJSONRepresentation('coll', originalValue.path);
+      } else if (isDocumentReference(originalValue)) {
+        value = createJSONRepresentation('doc', originalValue.path);
+      } else if (isGeoPoint(originalValue)) {
+        value = createJSONRepresentation('geo', {
+          latitude: originalValue.latitude,
+          longitude: originalValue.longitude,
+        });
+      } else {
+        value = originalValue;
+      }
+
+      return { ...prev, [curr]: value };
+    }, initialData);
+  }
 }

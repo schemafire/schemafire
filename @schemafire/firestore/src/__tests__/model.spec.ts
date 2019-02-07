@@ -23,7 +23,7 @@ import {
 import { omitBaseFields } from '../base';
 import { Model } from '../model';
 import { Schema } from '../schema';
-import { ModelActionType, TypeOfModel } from '../types';
+import { ModelActionType, ModelTypeOfSchema } from '../types';
 import { SchemaFireValidationError } from '../validation';
 
 let mockRunTransaction: jest.Mock<{}>;
@@ -41,7 +41,6 @@ beforeEach(() => {
 
 describe('constructor', () => {
   const model = schema.model({ data: {} });
-  schema.findById('').methods.simple();
   it('is created', () => {
     const m1 = new Model({ schema: simpleSchema, methods: Cast({}) });
     expect(m1.id).toBe(docData.id);
@@ -87,7 +86,7 @@ describe('constructor', () => {
 });
 
 describe('data', () => {
-  let model: TypeOfModel<typeof advancedSchema>;
+  let model: ModelTypeOfSchema<typeof advancedSchema>;
   beforeEach(() => {
     model = advancedSchema.model({});
   });
@@ -120,7 +119,7 @@ describe('data', () => {
 });
 
 describe('#update', () => {
-  let model: TypeOfModel<typeof schema>;
+  let model: ModelTypeOfSchema<typeof schema>;
   beforeEach(() => {
     model = schema.model({ data: {} });
   });
@@ -138,7 +137,7 @@ describe('#update', () => {
 
 // Add a callback which is run after getting the latest data
 describe('#attach', () => {
-  let model: TypeOfModel<typeof schema>;
+  let model: ModelTypeOfSchema<typeof schema>;
   mockTransaction.get.mockResolvedValue({ exists: true, data: () => realData });
   beforeEach(() => {
     model = schema.model({ schema });
@@ -200,7 +199,7 @@ describe('#attach', () => {
 });
 
 describe('#create', () => {
-  let model: TypeOfModel<typeof schema>;
+  let model: ModelTypeOfSchema<typeof schema>;
   beforeEach(() => {
     model = schema.model({ schema });
     model.create({ name: 'Raj', data: { custom: 'data' }, age: 21, custom: 'custom' });
@@ -216,7 +215,7 @@ describe('#create', () => {
 });
 
 describe('#delete', () => {
-  let model: TypeOfModel<typeof schema>;
+  let model: ModelTypeOfSchema<typeof schema>;
   beforeEach(() => {
     model = schema.model({ schema });
   });
@@ -270,7 +269,7 @@ describe('#delete', () => {
 // The reason for an actions queue is to allow updates to only update the relevant field. If not then updates would push up all the default data and override stuff.
 // Actions Delete | Update | Create | FindOrCreate
 describe('#run', () => {
-  let testModel: TypeOfModel<typeof schema>;
+  let testModel: ModelTypeOfSchema<typeof schema>;
   const data = { age: 32 };
   beforeEach(() => {
     testModel = schema.model({ schema });
@@ -339,10 +338,7 @@ describe('#run', () => {
       expect(mm.data).toEqual(expect.objectContaining(createData));
     });
 
-    // it.skip('enables running outside of a transaction', async () => {
-    //   await testModel.update({ age: 100 }).run({ useTransactions: false });
-    //   expect(mockRunTransaction).not.toHaveBeenCalled();
-    // });
+    it.todo('enables running outside of a transaction');
 
     it('can be run without mirroring', async () => {
       const mm = schema.model({ data: realData, type: ModelActionType.Create });
@@ -519,79 +515,79 @@ describe('#run', () => {
       merge: true,
     });
   });
+});
 
-  describe('#validate', () => {
-    const validationCodec = t.interface({
-      username: strings.username({ minimum: 5, maximum: 10 }),
-      age: t.intersection([numbers.gte(18), numbers.lte(25)]),
-      me: utils.optional(
-        t.interface({
-          name: t.string,
-        }),
-      ),
-    });
-    const validData = { username: 'greatest', age: 25, me: { name: 'Tester' } };
-    const validSchema = new Schema({
-      codec: validationCodec,
-      defaultData: { username: 'abcde', age: 20, me: undefined },
-      collection: testCollection('valid'),
-    });
+describe('#validate', () => {
+  const validationCodec = t.interface({
+    username: strings.username({ minimum: 5, maximum: 10 }),
+    age: t.intersection([numbers.gte(18), numbers.lte(25)]),
+    me: utils.optional(
+      t.interface({
+        name: t.string,
+      }),
+    ),
+  });
+  const validData = { username: 'greatest', age: 25, me: { name: 'Tester' } };
+  const validSchema = new Schema({
+    codec: validationCodec,
+    defaultData: { username: 'abcde', age: 20, me: undefined },
+    collection: testCollection('valid'),
+  });
 
-    const invalidSchema = new Schema({
-      codec: validationCodec,
-      defaultData: { username: 'a', age: 50, me: undefined },
-      collection: testCollection('invalid'),
-    });
+  const invalidSchema = new Schema({
+    codec: validationCodec,
+    defaultData: { username: 'a', age: 50, me: undefined },
+    collection: testCollection('invalid'),
+  });
 
-    let validModel: TypeOfModel<typeof validSchema>;
-    let invalidModel: TypeOfModel<typeof validSchema>;
+  let validModel: ModelTypeOfSchema<typeof validSchema>;
+  let invalidModel: ModelTypeOfSchema<typeof validSchema>;
 
-    beforeEach(() => {
-      validModel = validSchema.model();
-      invalidModel = invalidSchema.model();
-    });
-    it('is valid when no actions taken and default data is valid', () => {
-      expect(validModel.validate()).toBeUndefined();
-    });
+  beforeEach(() => {
+    validModel = validSchema.model();
+    invalidModel = invalidSchema.model();
+  });
+  it('is valid when no actions taken and default data is valid', () => {
+    expect(validModel.validate()).toBeUndefined();
+  });
 
-    it('is invalid when no actions taken and default data is invalid', () => {
-      const expectedError = invalidModel.validate();
-      expect(expectedError).toBeInstanceOf(SchemaFireValidationError);
-      expect(expectedError!.messages[0]).toMatchInlineSnapshot(
-        `"Invalid value \\"a\\" supplied to username: \`(min(5) & max(10) & start.with.letter & letters.numbers.underscores)\`.0: \`min(5)\`"`,
-      );
-    });
+  it('is invalid when no actions taken and default data is invalid', () => {
+    const expectedError = invalidModel.validate();
+    expect(expectedError).toBeInstanceOf(SchemaFireValidationError);
+    expect(expectedError!.messages[0]).toMatchInlineSnapshot(
+      `"Invalid value \\"a\\" supplied to username: \`(min(5) & max(10) & start.with.letter & letters.numbers.underscores)\`.0: \`min(5)\`"`,
+    );
+  });
 
-    it('only returns an error when invalid data is pass in', () => {
-      validModel.create({ age: 50, username: 'abc', me: undefined });
-      const expectedError = validModel.validate();
-      expect(expectedError).toBeInstanceOf(SchemaFireValidationError);
-      expect(expectedError!.errors).toContainAllKeys(['age', 'username']);
-      expect(expectedError!.keys).toContainValues(['age', 'username']);
-    });
+  it('only returns an error when invalid data is pass in', () => {
+    validModel.create({ age: 50, username: 'abc', me: undefined });
+    const expectedError = validModel.validate();
+    expect(expectedError).toBeInstanceOf(SchemaFireValidationError);
+    expect(expectedError!.errors).toContainAllKeys(['age', 'username']);
+    expect(expectedError!.keys).toContainValues(['age', 'username']);
+  });
 
-    it('should successfully pass for partially valid updates', () => {
-      invalidModel.update({ age: 21 });
-      expect(invalidModel.validate()).toBeUndefined();
-    });
+  it('should successfully pass for partially valid updates', () => {
+    invalidModel.update({ age: 21 });
+    expect(invalidModel.validate()).toBeUndefined();
+  });
 
-    it('should automatically be called when creating or updating data', async () => {
-      const validSpy = jest.spyOn(validModel, 'validate');
-      const invalidSpy = jest.spyOn(invalidModel, 'validate');
-      validModel.create(validData);
-      await expect(validModel.run()).resolves.toEqual(validModel);
-      expect(validSpy).toHaveBeenCalledTimes(1);
+  it('should automatically be called when creating or updating data', async () => {
+    const validSpy = jest.spyOn(validModel, 'validate');
+    const invalidSpy = jest.spyOn(invalidModel, 'validate');
+    validModel.create(validData);
+    await expect(validModel.run()).resolves.toEqual(validModel);
+    expect(validSpy).toHaveBeenCalledTimes(1);
 
-      invalidModel.create({ ...validData, age: 100 });
-      await expect(invalidModel.run()).rejects.toThrowError(SchemaFireValidationError);
-      expect(invalidSpy).toHaveBeenCalledTimes(1);
-    });
+    invalidModel.create({ ...validData, age: 100 });
+    await expect(invalidModel.run()).rejects.toThrowError(SchemaFireValidationError);
+    expect(invalidSpy).toHaveBeenCalledTimes(1);
+  });
 
-    it('should allow for configuration', async () => {
-      const invalidSpy = jest.spyOn(invalidModel, 'validate');
-      invalidModel.create({ ...validData, age: 100 });
-      await expect(invalidModel.run({ autoValidate: false })).resolves.toEqual(invalidModel);
-      expect(invalidSpy).not.toHaveBeenCalled();
-    });
+  it('should allow for configuration', async () => {
+    const invalidSpy = jest.spyOn(invalidModel, 'validate');
+    invalidModel.create({ ...validData, age: 100 });
+    await expect(invalidModel.run({ autoValidate: false })).resolves.toEqual(invalidModel);
+    expect(invalidSpy).not.toHaveBeenCalled();
   });
 });

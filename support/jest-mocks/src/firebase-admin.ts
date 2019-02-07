@@ -48,6 +48,14 @@ firestore.FieldValue = {
   delete: jest.fn().mockReturnValue({ VALUE: true }),
 };
 
+firestore.CollectionReference = jest.fn(() => {
+  return {};
+});
+
+firestore.DocumentReference = jest.fn(() => {
+  return {};
+});
+
 firestore.Timestamp = jest.fn(() => {
   return {
     toDate: jest.fn(() => new Date()),

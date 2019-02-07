@@ -5,7 +5,7 @@ import * as t from 'io-ts';
 import { pick } from 'lodash/fp';
 import { codec, defaultData, realData } from '../__fixtures__/shared.fixtures';
 import { Schema } from '../schema';
-import { AnyModel, TypeOfData, TypeOfModel } from '../types';
+import { AnyModel, ModelTypeOfSchema, TypeOfData } from '../types';
 import { getDocument } from '../utils';
 
 jest.unmock('firebase-admin');
@@ -81,7 +81,7 @@ describe('#findOrCreate', () => {
 
 describe('#deleteById', () => {
   const id: string = generateId();
-  let model: TypeOfModel<typeof Base>;
+  let model: ModelTypeOfSchema<typeof Base>;
   beforeEach(async () => {
     model = Base.create(realData, id);
     await model.run();

@@ -1,4 +1,4 @@
-import { Omit } from '@schemafire/core';
+import { Key, Omit } from '@schemafire/core';
 import * as t from 'io-ts';
 import { BaseDefinition } from './base';
 import { SchemaFireValidationError } from './validation';
@@ -20,10 +20,64 @@ export interface SchemaCacheRules<GKeys> {
   idField?: GKeys;
 }
 
+/**
+ * The definition keys attached to every model (not validated and readonly).
+ */
 export type BaseDefinitionKeys = 'createdAt' | 'updatedAt' | 'schemaVersion';
+
+export type JSONRepresentationType = 'timestamp' | 'geo' | 'doc' | 'coll';
+export interface JSONRepresentation<GData> {
+  type: JSONRepresentationType;
+  data: GData;
+}
+
+/**
+ * The date in JSON format
+ * The same as calling `(new Date()).toJSON()`
+ */
+export interface JSONTimestamp extends JSONRepresentation<string> {
+  type: 'timestamp';
+}
+
+export interface JSONGeoPoint extends JSONRepresentation<{ longitude: number; latitude: number }> {
+  type: 'geo';
+}
+
+/**
+ * The data is the full path of the document reference
+ */
+export interface JSONDocumentReference extends JSONRepresentation<string> {
+  type: 'doc';
+}
+
+/**
+ * The data is a full path of the collection reference
+ */
+export interface JSONCollectionReference extends JSONRepresentation<string> {
+  type: 'coll';
+}
+
+export type PrimitiveKeys<GType extends {}> = {
+  [P in Key<GType>]: GType[P] extends FirebaseFirestore.Timestamp
+    ? JSONTimestamp
+    : GType[P] extends FirebaseFirestore.GeoPoint
+    ? JSONGeoPoint
+    : GType[P] extends FirebaseFirestore.DocumentReference
+    ? JSONDocumentReference
+    : GType[P] extends FirebaseFirestore.CollectionReference
+    ? JSONCollectionReference
+    : GType[P]
+};
+
+/**
+ * Reconstruct the original TypeC passed in from the prop object type.
+ */
 export type FieldsOfProps<GProps extends t.AnyProps> = t.TypeC<GProps>;
 export type TypeOfProps<GProps extends t.AnyProps> = t.TypeOf<FieldsOfProps<GProps>>;
 export type TypeOfPropsWithBase<GProps extends t.AnyProps> = t.TypeOfProps<GProps> & BaseDefinition;
+export type JSONifyProps<GProps extends t.AnyProps> = PrimitiveKeys<TypeOfPropsWithBase<GProps>> & {
+  id: string;
+};
 
 export interface ModelParams<
   GProps extends t.AnyProps,
@@ -96,6 +150,11 @@ export interface ISchema<
   config: SchemaConfig;
   ref: FirebaseFirestore.CollectionReference;
   db: FirebaseFirestore.Firestore;
+
+  /**
+   * The top level field keys of this schema
+   */
+  keys: Array<StringKeys<GProps>>;
 
   /**
    * A utility method for creating the model with full control.
@@ -276,6 +335,11 @@ export interface IModel<
   create(data: TypeOfProps<GProps>, force?: boolean): this;
 
   validate(): undefined | SchemaFireValidationError;
+
+  /**
+   * Returns a valid JSON representation of this model
+   */
+  toJSON(): JSONifyProps<GProps>;
 }
 
 export interface IQuery<
@@ -388,12 +452,22 @@ export type AnyModel = IModel<any, any, any>;
 /**
  * Extract the type of a model from a given schema
  */
-export type TypeOfModel<GSchema extends AnySchema> = ReturnType<GSchema['model']>;
+export type ModelTypeOfSchema<GSchema extends AnySchema> = ReturnType<GSchema['model']>;
+
+/**
+ * Extract the props from any schema
+ */
+export type PropsOfSchema<GSchema extends AnySchema> = GSchema['codec']['props'];
+
+/**
+ * Extract the field keys from any schema
+ */
+export type FieldKeysOfSchema<GSchema extends AnySchema> = Key<PropsOfSchema<GSchema>>;
 
 /**
  * Extract the type of data including the BaseProps `createdAt` | `updatedAt` | `schemaVersion`.
  */
-export type TypeOfData<GSchema extends AnySchema> = TypeOfModel<GSchema>['data'];
+export type TypeOfData<GSchema extends AnySchema> = ModelTypeOfSchema<GSchema>['data'];
 
 /**
  * Type of data without any of the base props.

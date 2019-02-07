@@ -34,20 +34,12 @@ module.exports = {
     '^.+\\.(js|jsx|ts|tsx)$': supportDir('jest/jest.transformer.js'),
   },
   moduleNameMapper: {
-    '@schemafire/core$': baseDir('@schemafire', 'core', 'src'),
-    '@unit-test-helpers$': baseDir(
-      '@schemafire',
-      'core',
-      'src',
-      '__tests__',
-      'unit-test-helpers.ts',
-    ),
+    '@schemafire/core$': baseDir('@schemafire/core/src'),
+    '@schemafire/firestore$': baseDir('@schemafire/firestore/src'),
+    '@schemafire/jest-mocks/lib(.*)$': baseDir('support/jest-mocks/src') + '$1',
+    '@unit-test-helpers$': baseDir('@schemafire/core/src/__tests__/unit-test-helpers.ts'),
     '@live-test-helpers$': baseDir(
-      '@schemafire',
-      'firestore',
-      'src',
-      '__tests__',
-      'live-test-helpers.ts',
+      '@schemafire/firestore/src/__tests__/live-test-helpers.ts',
     ),
   },
 };

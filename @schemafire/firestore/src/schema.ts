@@ -22,6 +22,7 @@ import {
   SchemaConfig,
   SchemaParams,
   StaticMethodConfig,
+  StringKeys,
   TypeOfPropsWithBase,
 } from './types';
 import { SchemaFireValidationError } from './validation';
@@ -90,6 +91,11 @@ export class Schema<
    * The codec used to validate all models and provide typings for the models.
    */
   public readonly codec: FieldsOfProps<GProps>;
+
+  /**
+   * The top level field keys of this schema
+   */
+  public readonly keys: Array<StringKeys<GProps>>;
 
   /**
    * A unique collection string identifier.
@@ -197,6 +203,7 @@ export class Schema<
       this.dependencies = dependencies;
     }
     this.config = { ...Schema.defaultConfig, ...(config ? config : {}) };
+    this.keys = Cast<Array<StringKeys<GProps>>>(Object.keys(this.codec.props));
     Schema.registerSchema(Cast<AnySchema>(this));
   }
 

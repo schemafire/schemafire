@@ -1,6 +1,6 @@
 import { simpleError } from '@schemafire/core';
 import { AnyProps } from 'io-ts';
-import { ModelActionType, QueryTuples } from './types';
+import { JSONRepresentation, JSONRepresentationType, ModelActionType, QueryTuples } from './types';
 
 export function throwIfCreateTypeWithNoData(type: ModelActionType, data: any) {
   if ([ModelActionType.FindOrCreate, ModelActionType.Create].includes(type) && !data) {
@@ -14,3 +14,19 @@ export function throwIfNoClauses<GProps extends AnyProps>(clauses?: QueryTuples<
   }
   return true;
 }
+
+/**
+ * Creates a JSON Representation of a complex type
+ *
+ * @param type
+ * @param data
+ */
+export const createJSONRepresentation = <GData>(
+  type: JSONRepresentationType,
+  data: GData,
+): JSONRepresentation<GData> => {
+  return {
+    type,
+    data,
+  };
+};
