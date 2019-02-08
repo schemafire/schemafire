@@ -3,6 +3,7 @@ import faker from 'faker';
 import * as t from 'io-ts';
 import { times } from 'lodash';
 
+const DEFAULT_COUNT = 3;
 type FakerJS = typeof faker;
 export type ConfigMethod<GValue = unknown> = (faker: FakerJS, rawValue: GValue) => GValue;
 export type ConfigMethodObject<GProps extends t.AnyProps> = { [P in keyof GProps]: ConfigMethod<GProps[P]> };
@@ -14,19 +15,31 @@ export type GenerateDataConfig = AnySchema | [AnySchema, number];
 // | { schema: GSchema; count?: number; config?: PropsOfSchema<AnySchema> };
 
 type ModelCreator = (id: string, data: any) => AnyModel;
-interface CollectionFakerParams {
+interface NormalizedModelParams {
   createModel: ModelCreator;
   codec: t.TypeC<t.AnyProps>;
   count: number;
 }
 
+const createModelData = (codec: t.TypeC<t.AnyProps>) => {
+  const initialModelData: Record<string, any> = {};
+  return Object.entries(codec.props).reduce((prev, [key, prop]) => {
+    let value: unknown;
+    value = prop === t.string ? faker.internet.userName() : 'unknown';
+    return { ...prev, [key]: value };
+  }, initialModelData);
+};
+
 /**
- * Takes a configuration of schema, counts and overrides and generates a set of fake models.
+ * Normalize the models passed in.
+ *
+ * @param config
+ * @param count
  */
-export const generateModels = (config: GenerateDataConfig[], count = 3) => {
-  const initialModels: Record<string, CollectionFakerParams> = {};
-  const normalizedGenerator = config.reduce((prev, current) => {
-    let val: CollectionFakerParams;
+const normalizeModels = (config: GenerateDataConfig[], count: number) => {
+  const initialModels: Record<string, NormalizedModelParams> = {};
+  return config.reduce((prev, current) => {
+    let val: NormalizedModelParams;
     let key: string;
     if (Array.isArray(current)) {
       const [schema, num] = current;
@@ -38,30 +51,23 @@ export const generateModels = (config: GenerateDataConfig[], count = 3) => {
     }
     return { ...prev, [key]: val };
   }, initialModels);
+};
 
-  const initialData: Record<string, Record<string, any>> = {};
-  Object.entries(normalizedGenerator).reduce((prev, [collection, { codec, count, createModel }]) => {
-    const data = times(count, () => null)
-      .map(() => {
-        const id = faker.random.alphaNumeric(10);
-        // const createdAt = faker.date.past();
-        // const updatedAt = faker.date.between(createdAt, new Date());
-        // const schemaVersion = 0;
-        const modelData = Object.entries(codec.props).reduce((prev, [key, prop]) => {
-          let value: unknown;
-          if (prop === t.string) {
-            value = faker.internet.userName;
-          } else {
-            value = faker.internet.userName;
-          }
+/**
+ * Takes a configuration of schema, counts and overrides and generates a set of fake models.
+ */
+export const generateModels = (config: GenerateDataConfig[], count = DEFAULT_COUNT) => {
+  const normalizedGenerator = normalizeModels(config, count);
 
-          return { ...prev, [key]: value };
-        }, {});
-        return createModel(id, modelData).toJSON();
-      })
-      .reduce();
-    return { ...prev, [collection]: data };
-  }, initialData);
+  const initialData: Record<string, AnyModel[]> = {};
+  return Object.entries(normalizedGenerator).reduce(
+    (prev, [collection, { codec, count: num, createModel }]) => {
+      const id = faker.random.alphaNumeric(10);
+      const value = times(num, () => createModel(id, createModelData(codec)));
+      return { ...prev, [collection]: value };
+    },
+    initialData,
+  );
 };
 
 export const isSchema = (val: unknown): val is AnySchema => val instanceof Schema;
