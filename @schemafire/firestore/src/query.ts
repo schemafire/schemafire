@@ -1,9 +1,9 @@
-import * as t from 'io-ts';
+import { AnyProps } from 'io-ts';
 import { BaseInjectedDeps, IModel, InstanceMethodConfig, IQuery, ISchema, QueryParams } from './types';
 import { buildQuery } from './utils';
 
 export class Query<
-  GProps extends t.Props,
+  GProps extends AnyProps,
   GInstanceMethods extends InstanceMethodConfig<GProps, GDependencies>,
   GDependencies extends BaseInjectedDeps
 > implements IQuery<GProps, GInstanceMethods, GDependencies> {

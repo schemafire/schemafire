@@ -5,6 +5,7 @@ import * as t from 'io-ts';
  */
 export class DictionaryType extends t.Type<{ [key: string]: any }> {
   public readonly _tag: 'DictionaryType' = 'DictionaryType';
+
   constructor() {
     super(
       'Dictionary',
@@ -21,6 +22,7 @@ export class DictionaryType extends t.Type<{ [key: string]: any }> {
  */
 export class GenericDictionaryType<T, U extends string> extends t.Type<T> {
   public readonly _tag: 'DictionaryType' = 'DictionaryType';
+
   constructor(name: U, validation = (_: unknown) => true) {
     super(
       name as U,

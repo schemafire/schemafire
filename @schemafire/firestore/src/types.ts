@@ -259,7 +259,7 @@ export interface RunConfig {
    * Whether to run the actions inside a transaction
    * @default true
    */
-  useTransactions?: boolean;
+  // useTransactions?: boolean;
   /**
    * Number of attempts the transaction should take before failing
    */
@@ -538,4 +538,14 @@ export interface FirestoreRecord<GData> {
   doc: FirebaseFirestore.DocumentReference;
   snap: FirebaseFirestore.DocumentSnapshot;
   data?: GData;
+}
+
+export type LastRunStatus = 'force-created' | 'created' | 'updated' | 'deleted';
+
+export interface TransactionState<GProps extends t.AnyProps> {
+  lastRunStatus?: LastRunStatus;
+  actionsRun: ModelActions;
+  syncData?: FirestoreRecord<TypeOfProps<GProps>>;
+  errors: Error[];
+  rawData: any;
 }

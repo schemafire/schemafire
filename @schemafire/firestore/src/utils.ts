@@ -102,6 +102,9 @@ export const hasUpdateActions = overSome<any>([
   actionsContainUpdate,
 ]);
 
+/**
+ * Builds a query which can be used to obtain data
+ */
 export const buildQuery = <GProps extends t.Props>(
   ref: FirebaseFirestore.CollectionReference | FirebaseFirestore.Query,
   clauses: QueryTuples<GProps>,
@@ -117,6 +120,11 @@ export const buildQuery = <GProps extends t.Props>(
   return query;
 };
 
+/**
+ * A method for creating a Firestore Record
+ *
+ * @param doc
+ */
 export const getRecord = async <T extends {}>(
   doc: FirebaseFirestore.DocumentReference,
 ): Promise<FirestoreRecord<T>> => {
@@ -130,15 +138,15 @@ export const getRecord = async <T extends {}>(
  * Retrieve any document from any firestore collection.
  *
  * @param documentId
- * @param coll
+ * @param collection
  */
 export const getDocument = async <T extends {}>(
   documentId: string,
-  coll: string,
+  collection: string,
 ): Promise<FirestoreRecord<T>> => {
   const doc = admin
     .firestore()
-    .collection(coll)
+    .collection(collection)
     .doc(documentId);
   const snap = await doc.get();
   const data = snap.exists ? (snap.data() as T) : undefined;

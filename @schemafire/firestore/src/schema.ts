@@ -105,14 +105,14 @@ export class Schema<
   /**
    * Gives easy access to the collectionReference for all instance models.
    */
-  public get ref(): FirebaseFirestore.CollectionReference {
+  get ref(): FirebaseFirestore.CollectionReference {
     return admin.firestore().collection(this.collection);
   }
 
   /**
    * Utility db reference.
    */
-  public get db(): FirebaseFirestore.Firestore {
+  get db(): FirebaseFirestore.Firestore {
     return admin.firestore();
   }
 
@@ -143,7 +143,7 @@ export class Schema<
     {},
   );
 
-  public get version(): number {
+  get version(): number {
     return Schema.version;
   }
 

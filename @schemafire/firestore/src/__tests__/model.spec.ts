@@ -22,6 +22,7 @@ import {
 } from '../__fixtures__/shared.fixtures';
 import { omitBaseFields } from '../base';
 import { Model } from '../model';
+import { pickModelProperties } from '../model.utils';
 import { Schema } from '../schema';
 import { ModelActionType, ModelTypeOfSchema } from '../types';
 import { SchemaFireValidationError } from '../validation';
@@ -41,7 +42,7 @@ beforeEach(() => {
 
 describe('constructor', () => {
   const model = schema.model({ data: {} });
-  it('is created', () => {
+  it('can be created', () => {
     const m1 = new Model({ schema: simpleSchema, methods: Cast({}) });
     expect(m1.id).toBe(docData.id);
     expect(omitBaseFields(m1.data)).toEqual(defaultData);
@@ -113,9 +114,7 @@ describe('data', () => {
     );
   });
 
-  // Todo un-comment  this test after allowing customizable baseProps
-  // it.skip('does not allow setting or deleting base props', () => {
-  // });
+  it.todo('does not allow setting or deleting base props');
 });
 
 describe('#update', () => {
@@ -142,11 +141,11 @@ describe('#attach', () => {
   beforeEach(() => {
     model = schema.model({ schema });
   });
-  it('passed the correct arguments', async () => {
+  it('receives the correct parameter object', async () => {
     const attachedMock = jest.fn();
     await model.attach(attachedMock).run();
     expect(attachedMock).toHaveBeenCalledWith({
-      model,
+      model: pickModelProperties(model),
       exists: true,
       data: realData,
       get: mockTransaction.get,
@@ -471,7 +470,7 @@ describe('#run', () => {
   });
   it('throws when no query clauses provided', () => {
     expect(() => schema.model({ type: ModelActionType.Query })).toThrowErrorMatchingInlineSnapshot(
-      `"Type 'Query' can only be defined with clauses"`,
+      `"Type 'Query' must be defined with clauses"`,
     );
   });
   it('only runs transaction.get() once', async () => {
@@ -494,10 +493,10 @@ describe('#run', () => {
   });
   it('throws when no data is passed in with creation type', async () => {
     expect(() => schema.model({ type: ModelActionType.Create })).toThrowErrorMatchingInlineSnapshot(
-      `"Type 'Create' can only be defined with data"`,
+      `"The creation type 'Create' must define data"`,
     );
     expect(() => schema.model({ type: ModelActionType.FindOrCreate })).toThrowErrorMatchingInlineSnapshot(
-      `"Type 'FindOrCreate' can only be defined with data"`,
+      `"The creation type 'FindOrCreate' must define data"`,
     );
     expect(() => schema.model({ type: ModelActionType.Delete })).not.toThrowError();
   });

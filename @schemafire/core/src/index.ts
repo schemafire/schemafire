@@ -3,7 +3,7 @@ export * from './types';
 export * from './io-types';
 export * from './io-reporters';
 export * from './class-types';
-
+export { default as invariant } from 'invariant';
 /*
 TODO Figure out how to gain repo-wide access to these types without polluting the namespace of consumers
 */
