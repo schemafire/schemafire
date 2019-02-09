@@ -288,7 +288,7 @@ export interface IModel<
   GDependencies extends BaseInjectedDeps
 > {
   data: TypeOfPropsWithBase<GProps>;
-  doc?: FirebaseFirestore.DocumentReference;
+  doc: FirebaseFirestore.DocumentReference;
   id: string;
   snap?: FirebaseFirestore.DocumentSnapshot;
   exists: boolean;
@@ -375,17 +375,46 @@ export interface IQuery<
   overwriteAll(data: TypeOfProps<GProps>, force?: boolean): this;
 }
 
-export interface FindCallbackParams<T extends AnyModel> {
-  model: PickPropertiesFromModel<T>;
+export interface ModelCallbackParams<GModel extends AnyModel> {
+  /**
+   * Whether or not a snapshot exists for the model.
+   */
   exists: boolean;
-  data: T['data'];
-  get: FirebaseFirestore.Transaction['get'];
+  /**
+   * The data that can be edited directly.
+   * `data.name = 'Simply Best';`
+   * `delete data.subscriptionId`;
+   */
+  data: GModel['data'];
+  doc: FirebaseFirestore.DocumentReference;
+  /**
+   * The id of this model
+   */
+  id: string;
+  snap?: FirebaseFirestore.DocumentSnapshot;
+  /**
+   * Delete keys (can't delete the whole model though at this point)
+   * @param keys
+   */
+  delete(keys: Array<keyof GModel['schema']['defaultData']>): void;
+
+  /**
+   * Updates data in the current run loop
+   * @param data
+   */
+  update(data: Partial<GModel['schema']['defaultData']>): void;
+
+  /**
+   * Force creates data for the model
+   * @param data
+   */
+  create(data: GModel['schema']['defaultData']): void;
 }
 
 /**
  * Receives the latest data and allows for a variety of synchronous actions.
  */
-export type ModelCallback<GModel extends AnyModel> = (params: FindCallbackParams<GModel>) => void;
+export type ModelCallback<GModel extends AnyModel> = (params: ModelCallbackParams<GModel>) => void;
 
 export enum ModelActionType {
   FindOrCreate = 'FindOrCreate',
@@ -436,6 +465,9 @@ export interface FindOrCreateModelAction<GData> {
   data: GData;
 }
 
+/**
+ * Model actions are added to the model and determine the updates sent to the firestore database.
+ */
 export type ModelAction<GData, GModel extends AnyModel> =
   | CreateModelAction<GData>
   | UpdateModelAction<GData>
@@ -445,6 +477,8 @@ export type ModelAction<GData, GModel extends AnyModel> =
   | FindModelAction
   | QueryModelAction
   | CallbackModelAction<GModel>;
+
+export type AnyModelAction = ModelAction<any, any>;
 
 export type AnySchema = ISchema<any, any, any>;
 export type AnyModel = IModel<any, any, any>;
@@ -542,10 +576,16 @@ export interface FirestoreRecord<GData> {
 
 export type LastRunStatus = 'force-created' | 'created' | 'updated' | 'deleted';
 
-export interface TransactionState<GProps extends t.AnyProps> {
+export interface TransactionState<
+  GProps extends t.AnyProps,
+  GModel extends AnyModel,
+  GActions = Array<ModelAction<TypeOfProps<GProps>, GModel>>,
+  GRecord = FirestoreRecord<TypeOfProps<GProps>>
+> {
   lastRunStatus?: LastRunStatus;
   actionsRun: ModelActions;
-  syncData?: FirestoreRecord<TypeOfProps<GProps>>;
+  syncData?: GRecord;
   errors: Error[];
   rawData: any;
+  actions: GActions;
 }

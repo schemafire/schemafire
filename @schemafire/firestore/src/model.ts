@@ -20,6 +20,7 @@ import {
 } from './base';
 import {
   buildMirrorData,
+  buildUpdatedData,
   createJSONRepresentation,
   createMethods,
   createTransaction,
@@ -28,15 +29,14 @@ import {
   deleteTransaction,
   getIdFieldFromSchema,
   getTransaction,
-  pickModelProperties,
   queryTransaction,
+  runCallbacks,
   snapshotExists,
   updateTransaction,
 } from './model.utils';
+import { createDataProxy } from './proxy';
 import {
-  AnyModel,
   BaseInjectedDeps,
-  CallbackModelAction,
   FirestoreRecord,
   IModel,
   InstanceMethodConfig,
@@ -67,9 +67,6 @@ import {
   findQueryAction,
   getRecord,
   isBaseProp,
-  isCallbackAction,
-  isDeleteFieldAction,
-  isUpdateAction,
   serverUpdateTimestamp,
 } from './utils';
 import { SchemaFireValidationError } from './validation';
@@ -79,6 +76,11 @@ export class Model<
   GInstanceMethods extends InstanceMethodConfig<GProps, GDependencies>,
   GDependencies extends BaseInjectedDeps
 > implements IModel<GProps, GInstanceMethods, GDependencies> {
+  /**
+   * All actions which are queued for this model that haven't yet been synced with the database.
+   *
+   * @private
+   */
   private actions: Array<
     ModelAction<TypeOfProps<GProps>, IModel<GProps, GInstanceMethods, GDependencies>>
   > = [];
@@ -92,11 +94,11 @@ export class Model<
   private baseData: BaseDefinition;
   // After any successful run this is set to true. At this point we no longer provide mock values for any of the base data
   private hasRunSuccessfully = false;
+  private dataProxy: TypeOfPropsWithBase<GProps>;
 
   get data(): TypeOfPropsWithBase<GProps> {
     return this.dataProxy;
   }
-  private dataProxy: TypeOfPropsWithBase<GProps>;
   public doc: FirebaseFirestore.DocumentReference;
   public id: string;
   public snap?: FirebaseFirestore.DocumentSnapshot;
@@ -125,7 +127,15 @@ export class Model<
   }: ModelParams<GProps, GInstanceMethods, GDependencies>) {
     this.schema = schema;
     this.rawData = { ...schema.defaultData, ...data };
-    this.dataProxy = this.createProxy(this.rawData);
+    this.baseData = createDefaultBase({ schemaVersion: this.schema.version });
+
+    this.dataProxy = createDataProxy({
+      actions: this.actions,
+      baseData: this.baseData,
+      fallbackToBaseData: () => !this.hasRunSuccessfully,
+      target: this.rawData,
+    });
+
     this.snap = snap;
     this.doc = this.getDoc(doc, id);
     this.id = id || this.doc.id;
@@ -133,16 +143,15 @@ export class Model<
     this.methods = createMethods(methods, this);
     this.setupInitialActions(type, data, callback, clauses);
     this.currentRunConfig = this.schema.config;
-    this.baseData = createDefaultBase({ schemaVersion: this.schema.version });
   }
 
   /**
    * Set up the initial actions based on the data that was passed in at model creation.
    *
-   * @param type
-   * @param data
-   * @param callback
-   * @param clauses
+   * @param type a type of model action
+   * @param data the data provided at instantiation
+   * @param callback a callback run when the run is called (provides access to a getter)
+   * @param clauses clauses for setting a query
    */
   private setupInitialActions(
     type?: ModelActionType,
@@ -186,8 +195,8 @@ export class Model<
   /**
    * Retrieves or creates the document reference object for this model.
    *
-   * @param doc
-   * @param id
+   * @param doc a firebase document reference
+   * @param id the fallback id
    */
   private getDoc(doc?: FirebaseFirestore.DocumentReference, id?: string) {
     if (doc) {
@@ -200,82 +209,6 @@ export class Model<
       return this.schema.ref.doc(id);
     }
     return this.schema.ref.doc();
-  }
-
-  /**
-   * Creates the proxy that is used when `model.data` is called.
-   *
-   * Blocks writes to base properties.
-   *
-   * @param data
-   */
-  private createProxy(data: TypeOfProps<GProps>) {
-    type PropsWithBase = TypeOfPropsWithBase<GProps>;
-    return new Proxy<PropsWithBase>(Cast<PropsWithBase>(data), {
-      get: (_, prop: string) => {
-        return this.rawData[prop] !== undefined
-          ? this.rawData[prop]
-          : isBaseProp(prop) && !this.hasRunSuccessfully
-          ? this.baseData[prop]
-          : undefined;
-      },
-      set: (_, prop: keyof GProps, value) => {
-        if (isBaseProp(prop)) {
-          throw new TypeError(`The property ${prop} is readonly and cannot be set`);
-        }
-        if (prop in this.rawData) {
-          this.actions.push({
-            data: Cast<Partial<TypeOfProps<GProps>>>({ [prop]: value }),
-            type: ModelActionType.Update,
-          });
-          this.rawData[prop] = value;
-          return true;
-        }
-        throw new TypeError(`The property ${prop} does not exist on ${this.rawData}`);
-      },
-      deleteProperty: (_, prop: keyof GProps) => {
-        if (isBaseProp(prop)) {
-          throw new TypeError(`The property ${prop} cannot be deleted`);
-        }
-        if (prop in this.rawData) {
-          this.actions.push({
-            data: Cast(prop),
-            type: ModelActionType.DeleteField,
-          });
-          this.rawData[prop] = Cast(undefined); // Set to undefined rather than delete so that we still dot access it later without throwing an error
-          return true;
-        }
-        throw new TypeError(`The property ${prop} does not exist on this model`);
-      },
-    });
-  }
-
-  /**
-   * Builds the updated data object so that updates only include data that was touched.
-   *
-   * This is needed because all models are created with default data and we don't want default data
-   * overwriting any actual data. This checks for the intended updates and returns a data object composed
-   * entirely of these.
-   *
-   * @param withoutDeletes
-   */
-  private buildUpdatedData(withoutDeletes: boolean = false) {
-    const initialValue =
-      actionsContainCreate(this.actions) || actionsContainFindOrCreate(this.actions) ? this.rawData : {};
-
-    return this.actions.reduce((accumulated, current) => {
-      if (isUpdateAction(current)) {
-        return { ...accumulated, ...current.data };
-      }
-      if (withoutDeletes) {
-        return accumulated;
-      }
-      if (isDeleteFieldAction(current)) {
-        const del = { ...accumulated, [current.data]: admin.firestore.FieldValue.delete() };
-        return del;
-      }
-      return accumulated;
-    }, initialValue);
   }
 
   /**
@@ -352,11 +285,16 @@ export class Model<
   /**
    * Update the new data and create a new data proxy.
    *
-   * @param newData
+   * @param newData the data to be updated
    */
   private resetRawData(newData: any) {
     this.rawData = newData;
-    this.dataProxy = this.createProxy(this.rawData);
+    this.dataProxy = createDataProxy({
+      actions: this.actions,
+      baseData: this.baseData,
+      fallbackToBaseData: () => !this.hasRunSuccessfully,
+      target: this.rawData,
+    });
   }
 
   /**
@@ -372,7 +310,7 @@ export class Model<
     return this.schema.db.runTransaction(
       async transaction => {
         /* Create the state that will be passed out of this transaction if successful */
-        let state = createTransactionState<GProps>(this.rawData);
+        let state = createTransactionState<GProps, this>({ rawData: this.rawData });
 
         if (actionsContainDelete(this.actions)) {
           const idField = getIdFieldFromSchema(this.schema);
@@ -395,14 +333,25 @@ export class Model<
 
         if (actionsContainCallback(this.actions)) {
           state = await getTransaction({ transaction, state, doc });
-          this.runCallbacks(transaction, state);
+          runCallbacks({ state, ctx: this });
         }
 
+        const actions = [...this.actions, ...state.actions];
+
         // Callbacks can add create actions so we need to check again.
-        const data = this.buildUpdatedData();
+
+        const data = buildUpdatedData({
+          rawData: state.rawData,
+          actions,
+        });
 
         // This allows us to ignore deleted fields when creating new data.
-        const dataWithoutDeletes = this.buildUpdatedData(true);
+
+        const dataWithoutDeletes = buildUpdatedData({
+          withoutDeletes: true,
+          rawData: state.rawData,
+          actions,
+        });
 
         if (actionsContainFind(this.actions)) {
           state = await getTransaction({ transaction, doc, state });
@@ -452,24 +401,6 @@ export class Model<
   }
 
   /**
-   * Runs all the queued callbacks
-   * ! This is incredibly dangerous and needs to be refactored. Any update or create called in the callback ... will lead to side effects
-   * ! If runTransaction ran multiple times there would be no way of knowing what happens
-   */
-  private runCallbacks(transaction: FirebaseFirestore.Transaction, state: TransactionState<GProps>) {
-    this.actions.filter<CallbackModelAction<AnyModel>>(isCallbackAction).forEach(value => {
-      const data = this.rawData;
-      const exists = this.exists;
-      const model = pickModelProperties(this);
-      try {
-        value.callback({ model, exists, data, get: transaction.get });
-      } catch (e) {
-        this.errors.push(e);
-      }
-    });
-  }
-
-  /**
    * Will throw an error if data is invalid.
    */
   private throwIfInvalid() {
@@ -485,10 +416,6 @@ export class Model<
   private async getSnap() {
     const record = await getRecord<TypeOfProps<GProps>>(this.doc);
     this.syncData(record);
-  }
-
-  private async buildUpdater(): Promise<void> {
-    throw simpleError('Not yet implemented');
   }
 
   /**
@@ -522,7 +449,7 @@ export class Model<
     }
   }
 
-  private updateModelWithTransactionState(state: TransactionState<GProps>) {
+  private updateModelWithTransactionState(state: TransactionState<GProps, this>) {
     this.actionsRun = state.actionsRun;
     this.errors = state.errors;
     this.lastRunStatus = state.lastRunStatus;
@@ -592,6 +519,9 @@ export class Model<
     return this;
   };
 
+  /**
+   * Update multiple fields at one time
+   */
   public update = (data: TypeOfProps<GProps>) => {
     type Data = Partial<TypeOfProps<GProps>>;
     if (isEmpty(data)) {
@@ -603,8 +533,8 @@ export class Model<
         data: Cast<Data>({ [key]: val }),
         type: ModelActionType.Update,
       });
+      this.data[key] = val;
     });
-    this.resetRawData({ ...this.rawData, ...data });
     return this;
   };
 
@@ -619,7 +549,7 @@ export class Model<
 
   /**
    * Attach a callback for when data is next received within a transaction
-   * @param callback
+   * @param callback the callback to use when
    */
   public attach = (callback: ModelCallback<IModel<GProps, GInstanceMethods, GDependencies>>) => {
     this.actions.push({
@@ -641,7 +571,7 @@ export class Model<
     if (isCreateAction) {
       // Fall through
     } else if (actionsContainUpdate(this.actions)) {
-      const updatedData = this.buildUpdatedData(); // Get the data to be updated
+      const updatedData = buildUpdatedData({ actions: this.actions, rawData: this.rawData }); // Get the data to be updated
       const updatedKeys = Object.keys(updatedData); // Pick the keys for generating our codec and data to test
       const codec = ioInterface(pick(updatedKeys, this.schema.codec.props));
 

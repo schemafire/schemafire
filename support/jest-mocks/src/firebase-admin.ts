@@ -62,6 +62,7 @@ firestore.Timestamp = jest.fn(() => {
     toMillis: jest.fn(() => Date.now()),
   };
 });
+
 class Timestamp {}
 const timestamp = new Timestamp();
 

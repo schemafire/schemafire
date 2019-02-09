@@ -81,3 +81,10 @@ model.methods.extraArgs('', 10);
 
 // $ExpectType "extraArg" | "extraArgs" | "simple" | "withReturnValue"
 type A = keyof typeof model.methods;
+
+model.attach(params => {
+  params.update({ age: 1, custom: '', data: {}, name: '' });
+  params.data.createdAt = new Date(); // $ExpectError
+  params.data.updatedAt = new Date(); // $ExpectError
+  params.data.schemaVersion = new Date(); // $ExpectError
+});
