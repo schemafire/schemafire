@@ -2,8 +2,8 @@ import { Cast } from '@schemafire/core';
 import admin from 'firebase-admin';
 import { AnyProps } from 'io-ts';
 import { get } from 'lodash/fp';
-import { BaseDefinition } from './base';
-import { createDataProxy } from './proxy';
+import { BaseDefinition } from '../base';
+import { createDataProxy } from '../proxy';
 import {
   AnyModel,
   AnyModelAction,
@@ -21,7 +21,7 @@ import {
   TransactionState,
   TypeOfProps,
   TypeOfPropsWithBase,
-} from './types';
+} from '../types';
 import {
   actionsContainCreate,
   actionsContainFindOrCreate,
@@ -31,7 +31,7 @@ import {
   isUpdateAction,
   safeFirestoreCreateUpdate,
   safeFirestoreUpdate,
-} from './utils';
+} from '../utils';
 
 export const getIdFieldFromSchema: (schema: AnySchema) => string = get(['mirror', 'idField']);
 
@@ -275,7 +275,7 @@ export const getTransaction = async <GProps extends AnyProps, GModel extends Any
         doc,
       },
       actionsRun,
-      rawData: noData || !snap.exists ? state.rawData : snap.data(),
+      rawData: noData || !snap.exists ? state.rawData : Cast<TypeOfProps<GProps>>(snap.data()),
     });
   } catch (error) {
     return updateTransactionState(state, { actionsRun, errors: [error] });
@@ -406,7 +406,7 @@ export const runCallbacks = <GProps extends AnyProps, GModel extends AnyModel>({
       create,
     };
     try {
-      return value.callback(params);
+      value.callback(params);
     } catch (e) {
       state.errors.push(e);
     }
@@ -445,9 +445,9 @@ const createMethodFactory = <GProps extends AnyProps, GModel extends AnyModel>({
 }: MethodFactoryParams<GProps, GModel>) => (data: TypeOfProps<GProps>) => {
   Object.entries(data).forEach(([key, val]) => {
     proxy[Cast(key)] = val;
-    state.actions.push({
-      data,
-      type: ModelActionType.Create,
-    });
+  });
+  state.actions.push({
+    data,
+    type: ModelActionType.Create,
   });
 };

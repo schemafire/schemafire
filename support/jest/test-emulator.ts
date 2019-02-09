@@ -4,13 +4,13 @@ import execa from 'execa';
 import Listr from 'listr';
 import { startCase } from 'lodash';
 import waitOn from 'wait-on';
-import { checkEmulatorInstalled, EmulatorType, killEmulator } from '../scripts/dependencies';
+import { EmulatorType, findEmulatorPath, killEmulator } from '../scripts/dependencies';
 
 const log = debug('test:emulator');
 
-const URLS: Record<EmulatorType, string> = {
-  database: 'tcp:8080',
-  firestore: 'tcp:8080',
+const PORTS: Record<EmulatorType, string> = {
+  database: '8084',
+  firestore: '8085',
 };
 
 interface ProcessData {
@@ -34,9 +34,12 @@ export class TestEmulator {
     firestore: { stopped: true },
   };
 
-  private static serve(name: EmulatorType) {
-    log(`${startCase(name)}: Starting server`);
-    return execa('firebase', ['serve', '--only', name], { stdio: 'ignore' });
+  private static serve(path: string, type: EmulatorType) {
+    console.log('serving');
+    log(`${startCase(type)}: Starting server`);
+    return execa('java', ['-jar', path, '--host', '127.0.0.1', '--port', PORTS[type]], {
+      stdio: 'ignore',
+    });
   }
 
   /**
@@ -48,26 +51,29 @@ export class TestEmulator {
       return;
     }
     log(`Starting ${type} emulator`);
-    const emulator = TestEmulator.serve(type);
-    TestEmulator.data[type] = {
-      emulator,
-      stopped: false,
-    };
 
     const tasks = new Listr([
       {
         title: `Checking for ${type} emulator`,
         task: ctx =>
-          checkEmulatorInstalled({ type, alwaysKill: false, emulator })
-            .then(() => {
+          findEmulatorPath(type)
+            .then(path => {
+              if (!path) {
+                throw new Error('No path');
+              }
+              const emulator = TestEmulator.serve(path, type);
+              TestEmulator.data[type] = {
+                emulator,
+                stopped: false,
+              };
               ctx.start = true;
               TestEmulator.emulatorInstalled[type] = true;
               return 'Success';
             })
-            .catch(() => {
+            .catch(e => {
               ctx.start = false;
               TestEmulator.emulatorInstalled[type] = false;
-              throw new Error('The emulator has not been set up properly');
+              throw new Error('The emulator has not been set up properly: ' + e.message);
             }),
       },
       {
@@ -132,7 +138,7 @@ export class TestEmulator {
 
   private static createWaitPromise(name: EmulatorType) {
     const data = TestEmulator.data[name];
-    const url = URLS[name];
+    const url = `tcp:${PORTS[name]}`;
     if (!data.emulator) {
       return Promise.resolve();
     }

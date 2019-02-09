@@ -3,7 +3,7 @@ import { Cast } from '@schemafire/core';
 import { collectionRef, docData, runTransaction, snapData } from '@schemafire/jest-mocks/lib/firebase-admin';
 import admin from 'firebase-admin';
 import { codec, defaultData, realData } from '../__fixtures__/shared.fixtures';
-import { Model } from '../model';
+import { Model } from '../model/model';
 import { Query } from '../query';
 import { Schema } from '../schema';
 import { SchemaFireValidationError } from '../validation';

@@ -4,10 +4,14 @@ import firebaseTools from 'firebase-tools';
 import inquirer from 'inquirer';
 import Listr, { ListrTask } from 'listr';
 import { startCase } from 'lodash';
+import { readdir } from 'mz/fs';
+import { homedir } from 'os';
+import { join, resolve } from 'path';
 import psTree from 'ps-tree';
 import { argv } from 'yargs';
 
-const Timeout = Symbol('timeout');
+const EMULATOR_HOME = resolve(homedir(), '.cache/firebase/emulators');
+const TIMEOUT = Symbol('timeout');
 
 /**
  * Determine whether prompts should be show when installing dependencies
@@ -18,9 +22,9 @@ export const disablePrompt = () => Boolean(process.env.CI || argv.y);
  * Set timeouts with promises
  */
 const timeout = (ms = 1500) =>
-  new Promise<symbol>(resolve => {
+  new Promise<symbol>(res => {
     setTimeout(() => {
-      resolve(Timeout);
+      res(TIMEOUT);
     }, ms);
   });
 
@@ -41,16 +45,32 @@ interface CheckEmulatorOptions {
 
 export type EmulatorType = 'database' | 'firestore';
 
+const emulatorNames = {
+  firestore: 'cloud-firestore-emulator',
+  database: 'firebase-database-emulator',
+};
+
+export const findEmulatorPath = async (type: EmulatorType) => {
+  const files = await readdir(EMULATOR_HOME);
+  const fileName = files.find(file => file.includes(emulatorNames[type]));
+  return fileName ? join(EMULATOR_HOME, fileName) : undefined;
+};
+
+export const emulatorExists = async (type: EmulatorType) => {
+  const location = await findEmulatorPath(type);
+  return Boolean(location);
+};
+
 /**
  * Promisified version of psTree which allows for killing all the children of a running process, for cleaner exits.
  */
 const psTreePromise = (pid: number) =>
-  new Promise<ReadonlyArray<psTree.PS>>((resolve, reject) => {
+  new Promise<ReadonlyArray<psTree.PS>>((res, rej) => {
     psTree(pid, (err, children) => {
       if (err) {
-        reject(err);
+        rej(err);
       } else {
-        resolve(children);
+        res(children);
       }
     });
   });
@@ -86,6 +106,9 @@ export const killEmulator = async (emulator: execa.ExecaChildProcess) => {
   emulator.kill();
 };
 
+/**
+ * @deprecated
+ */
 export const checkEmulatorInstalled = async ({
   type,
   errorMessage = `${startCase(type)} emulator not found`,
@@ -106,7 +129,7 @@ export const checkEmulatorInstalled = async ({
     const result = await Promise.race<symbol | execa.ExecaReturns>([emulator, timeout(ms)]);
 
     // ? This is probably always because of timeout. The emulator either throws or never stops. Refactor soon.
-    if (result === Timeout) {
+    if (result === TIMEOUT) {
       return;
     }
   } catch {
@@ -120,10 +143,10 @@ export const checkEmulatorInstalled = async ({
 };
 
 const installFirestoreEmulator = () => firebaseTools.setup.emulators.firestore();
-const checkFirestoreEmulator = () => checkEmulatorInstalled({ type: 'firestore' });
+const checkFirestoreEmulator = () => emulatorExists('firestore');
 
 const installDatabaseEmulator = () => firebaseTools.setup.emulators.database();
-const checkDatabaseEmulator = () => checkEmulatorInstalled({ type: 'database' });
+const checkDatabaseEmulator = () => emulatorExists('database');
 
 interface Dep {
   check: () => Promise<any>;

@@ -9,13 +9,13 @@
         "@google-cloud/firestore",
         "@live-test-helpers",
         "@unit-test-helpers",
-        "@firebase/testing"
+        "@firebase/testing",
+        "p-retry"
       ]
     ],
     "no-any": false,
     "max-classes-per-file": false,
     "no-empty-interface": false,
-    "no-console": false,
-    "completed-docs": true
+    "no-console": false
   }
 }

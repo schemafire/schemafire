@@ -17,24 +17,8 @@ import {
   isFirestoreAdminTimestamp,
   isGeoPoint,
   omitBaseFields,
-} from './base';
-import {
-  buildMirrorData,
-  buildUpdatedData,
-  createJSONRepresentation,
-  createMethods,
-  createTransaction,
-  createTransactionState,
-  createTypeHasData,
-  deleteTransaction,
-  getIdFieldFromSchema,
-  getTransaction,
-  queryTransaction,
-  runCallbacks,
-  snapshotExists,
-  updateTransaction,
-} from './model.utils';
-import { createDataProxy } from './proxy';
+} from '../base';
+import { createDataProxy } from '../proxy';
 import {
   BaseInjectedDeps,
   FirestoreRecord,
@@ -55,7 +39,7 @@ import {
   SchemaConfig,
   TransactionState,
   TypeOfPropsWithBase,
-} from './types';
+} from '../types';
 import {
   actionsContainCallback,
   actionsContainCreate,
@@ -68,8 +52,24 @@ import {
   getRecord,
   isBaseProp,
   serverUpdateTimestamp,
-} from './utils';
-import { SchemaFireValidationError } from './validation';
+} from '../utils';
+import { SchemaFireValidationError } from '../validation';
+import {
+  buildMirrorData,
+  buildUpdatedData,
+  createJSONRepresentation,
+  createMethods,
+  createTransaction,
+  createTransactionState,
+  createTypeHasData,
+  deleteTransaction,
+  getIdFieldFromSchema,
+  getTransaction,
+  queryTransaction,
+  runCallbacks,
+  snapshotExists,
+  updateTransaction,
+} from './model.utils';
 
 export class Model<
   GProps extends AnyProps,
@@ -92,19 +92,31 @@ export class Model<
   private existsViaCreation: boolean = false;
   private actionsRun: ModelActions = {};
   private baseData: BaseDefinition;
-  // After any successful run this is set to true. At this point we no longer provide mock values for any of the base data
+  /**
+   * Determines whether this model has received data before.
+   * After any successful run this is set to true. At this point we no longer provide mock values for any of the base data
+   */
   private hasRunSuccessfully = false;
-  private dataProxy: TypeOfPropsWithBase<GProps>;
+  private proxy: TypeOfPropsWithBase<GProps>;
 
-  get data(): TypeOfPropsWithBase<GProps> {
-    return this.dataProxy;
-  }
   public doc: FirebaseFirestore.DocumentReference;
   public id: string;
   public snap?: FirebaseFirestore.DocumentSnapshot;
   public schema: ISchema<GProps, GInstanceMethods, GDependencies>;
   public methods: MappedInstanceMethods<GProps, GInstanceMethods, GDependencies>;
 
+  /**
+   * Provides access to data held by this model
+   *
+   * @readonly
+   */
+  get data(): TypeOfPropsWithBase<GProps> {
+    return this.proxy;
+  }
+
+  /**
+   * Utility property to show whether model has already been created
+   */
   get exists(): boolean {
     return snapshotExists(this.snap, this.existsViaCreation);
   }
@@ -129,7 +141,7 @@ export class Model<
     this.rawData = { ...schema.defaultData, ...data };
     this.baseData = createDefaultBase({ schemaVersion: this.schema.version });
 
-    this.dataProxy = createDataProxy({
+    this.proxy = createDataProxy({
       actions: this.actions,
       baseData: this.baseData,
       useBaseData: () => !this.hasRunSuccessfully,
@@ -274,14 +286,6 @@ export class Model<
     });
   }
 
-  private removeAllDataExceptMirrorIdField() {
-    const idField: string | undefined = getIdFieldFromSchema(this.schema);
-    if (idField) {
-      return { [idField]: this.rawData[idField] };
-    }
-    return {};
-  }
-
   /**
    * Update the new data and create a new data proxy.
    *
@@ -289,7 +293,7 @@ export class Model<
    */
   private resetRawData(newData: any) {
     this.rawData = newData;
-    this.dataProxy = createDataProxy({
+    this.proxy = createDataProxy({
       actions: this.actions,
       baseData: this.baseData,
       useBaseData: () => !this.hasRunSuccessfully,
@@ -316,12 +320,10 @@ export class Model<
           const idField = getIdFieldFromSchema(this.schema);
           if (idField && !this.rawData[idField]) {
             state = await getTransaction({ transaction, doc, state });
-            // ! this.resetRawData(this.removeAllDataExceptMirrorIdField());
           }
 
           this.mirrorTransaction(transaction, 'delete');
           return deleteTransaction({ transaction, state, doc });
-          // ! Make sure the data is still reset after a delete
           // ! this.resetRawData({});
         }
 
@@ -453,9 +455,10 @@ export class Model<
     if (state.syncData) {
       this.syncData(state.syncData);
     }
-
     if (state.actionsRun.delete) {
       this.resetRawData({});
+    } else {
+      this.resetRawData(state.rawData);
     }
   }
 
@@ -577,6 +580,9 @@ export class Model<
     return report.fold(SchemaFireValidationError.create, () => undefined);
   };
 
+  /**
+   * A JSON representation of this models data.
+   */
   public toJSON(): JSONifyProps<GProps> {
     const initialData: JSONifyProps<GProps> = Cast({ id: this.id });
     const keys = uniq([...this.schema.keys, ...baseProps]);

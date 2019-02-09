@@ -5,7 +5,7 @@ Perhaps
 A list of things to do for the generator
 
 ☐ generateModels - break down the schema config into a collection name map of models
-☐ Need a way to recognise the distinct types of each prop that's passed in. I.e what's the semantic meaning behind a string (either as part of te configuration or
+☐ Need a way to recognise the distinct types of each prop that's passed in. I.e what's the semantic meaning behind a string (either as part of the configuration)
 ☐ Support for one-to-one relationships with document references
 ☐ Support for many to many relationships with document reference
 

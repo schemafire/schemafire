@@ -2,7 +2,7 @@ import { Cast, simpleError } from '@schemafire/core';
 import admin from 'firebase-admin';
 import * as t from 'io-ts';
 import { isPlainObject } from 'lodash';
-import { Model } from './model';
+import { Model } from './model/model';
 import { Query } from './query';
 import {
   AnySchema,
@@ -44,7 +44,6 @@ export class Schema<
    */
   private static defaultConfig: SchemaConfig = {
     mirror: true,
-    useTransactions: true,
     autoValidate: true,
   };
   private static instances: AnySchema[] = [];

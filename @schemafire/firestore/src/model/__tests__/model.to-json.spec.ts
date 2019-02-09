@@ -2,10 +2,10 @@ import { initializeFirebaseWithoutConfig, testCollection } from '@live-test-help
 import { Cast, utils } from '@schemafire/core';
 import admin from 'firebase-admin';
 import * as t from 'io-ts';
-import { schema } from '../__fixtures__/shared.fixtures';
-import { baseProps, collectionReference, documentReference, geoPoint } from '../base';
-import { Schema } from '../schema';
-import { ModelTypeOfSchema } from '../types';
+import { schema } from '../../__fixtures__/shared.fixtures';
+import { baseProps, collectionReference, documentReference, geoPoint } from '../../base';
+import { Schema } from '../../schema';
+import { ModelTypeOfSchema } from '../../types';
 
 jest.unmock('firebase-admin');
 initializeFirebaseWithoutConfig();
@@ -15,7 +15,7 @@ describe('#toJSON', () => {
   beforeEach(() => {
     model = schema.model({ schema });
   });
-  it('implements this method', () => {
+  it('should implement', () => {
     expect(model.toJSON()).toContainKeys([...Object.keys(model.schema.codec.props), ...baseProps, 'id']);
   });
 
