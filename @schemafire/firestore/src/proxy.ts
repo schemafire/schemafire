@@ -24,8 +24,10 @@ interface CreateDataProxyParams<GProps extends AnyProps, GModel extends AnyModel
   /**
    * A function which determines whether the base data should be used as a fallback when getting data.
    */
-  fallbackToBaseData: () => boolean;
+  useBaseData?: () => boolean;
 }
+
+const defaultUseBaseData = () => true;
 
 /**
  * Creates the proxy that is used when `model.data` is accessed, updated and deleted.
@@ -36,7 +38,7 @@ export const createDataProxy = <GProps extends AnyProps, GModel extends AnyModel
   target,
   baseData,
   actions,
-  fallbackToBaseData,
+  useBaseData = defaultUseBaseData,
 }: CreateDataProxyParams<GProps, GModel>) => {
   type PropsWithBase = TypeOfPropsWithBase<GProps>;
 
@@ -44,7 +46,7 @@ export const createDataProxy = <GProps extends AnyProps, GModel extends AnyModel
     get: (_, prop: string) => {
       return target[prop] !== undefined
         ? target[prop]
-        : isBaseProp(prop) && fallbackToBaseData()
+        : isBaseProp(prop) && useBaseData()
         ? baseData[prop]
         : undefined;
     },

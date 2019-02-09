@@ -1,3 +1,7 @@
+Perhaps
+☐ A sample twitter application to showcase how schema can be composed together
+
+
 A list of things to do for the generator
 
 ☐ generateModels - break down the schema config into a collection name map of models
@@ -8,3 +12,4 @@ A list of things to do for the generator
 More advanced
 ☐ Support references between models in generated data
 ☐ Explore a class based prop creation option
+

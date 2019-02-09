@@ -5,6 +5,7 @@
     "no-any": false,
     "max-classes-per-file": false,
     "no-empty-interface": false,
-    "no-console": false
+    "no-console": false,
+    "completed-docs": false
   }
 }

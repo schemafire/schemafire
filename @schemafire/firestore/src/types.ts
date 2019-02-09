@@ -586,6 +586,6 @@ export interface TransactionState<
   actionsRun: ModelActions;
   syncData?: GRecord;
   errors: Error[];
-  rawData: any;
+  rawData: t.TypeOfProps<GProps>;
   actions: GActions;
 }

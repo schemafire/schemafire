@@ -1,4 +1,4 @@
-import { Cast, invariant, logError, removeUndefined, simpleError } from '@schemafire/core';
+import { Cast, invariant, logError, removeUndefined } from '@schemafire/core';
 import admin from 'firebase-admin';
 import {
   AnyProps,
@@ -132,7 +132,7 @@ export class Model<
     this.dataProxy = createDataProxy({
       actions: this.actions,
       baseData: this.baseData,
-      fallbackToBaseData: () => !this.hasRunSuccessfully,
+      useBaseData: () => !this.hasRunSuccessfully,
       target: this.rawData,
     });
 
@@ -292,7 +292,7 @@ export class Model<
     this.dataProxy = createDataProxy({
       actions: this.actions,
       baseData: this.baseData,
-      fallbackToBaseData: () => !this.hasRunSuccessfully,
+      useBaseData: () => !this.hasRunSuccessfully,
       target: this.rawData,
     });
   }
@@ -310,7 +310,7 @@ export class Model<
     return this.schema.db.runTransaction(
       async transaction => {
         /* Create the state that will be passed out of this transaction if successful */
-        let state = createTransactionState<GProps, this>({ rawData: this.rawData });
+        let state = createTransactionState<GProps, this>({ rawData: this.rawData, actions: this.actions });
 
         if (actionsContainDelete(this.actions)) {
           const idField = getIdFieldFromSchema(this.schema);
@@ -333,7 +333,7 @@ export class Model<
 
         if (actionsContainCallback(this.actions)) {
           state = await getTransaction({ transaction, state, doc });
-          runCallbacks({ state, ctx: this });
+          runCallbacks({ state, ctx: this, baseData: this.baseData });
         }
 
         const actions = [...this.actions, ...state.actions];
@@ -360,10 +360,7 @@ export class Model<
         if (actionsContainFindOrCreate(this.actions)) {
           state = await getTransaction({ transaction, state, doc });
 
-          if (
-            !snapshotExists(this.snap, this.existsViaCreation) ||
-            !snapshotExists(state.syncData && state.syncData.snap)
-          ) {
+          if (!snapshotExists(state.syncData && state.syncData.snap, this.existsViaCreation)) {
             this.throwIfInvalid();
 
             state = createTransaction({ transaction, data: dataWithoutDeletes, state, doc });

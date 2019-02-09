@@ -1,7 +1,8 @@
 import { Cast } from '@schemafire/core';
 import admin from 'firebase-admin';
 import { AnyProps } from 'io-ts';
-import { get, pick } from 'lodash/fp';
+import { get } from 'lodash/fp';
+import { BaseDefinition } from './base';
 import { createDataProxy } from './proxy';
 import {
   AnyModel,
@@ -17,7 +18,6 @@ import {
   ModelActionType,
   ModelCallbackParams,
   SchemaCacheRules,
-  StringKeys,
   TransactionState,
   TypeOfProps,
   TypeOfPropsWithBase,
@@ -114,7 +114,7 @@ export const buildMirrorData = <GProps>(data: any, fields?: SchemaCacheRules<key
 export const createTransactionState = <GProps extends AnyProps, GModel extends AnyModel>(
   state: Partial<TransactionState<GProps, GModel>> & { rawData: any },
 ): TransactionState<GProps, GModel> => {
-  return updateTransactionState({ actionsRun: {}, errors: [], rawData: {}, actions: [] }, state);
+  return updateTransactionState({ actionsRun: {}, errors: [], rawData: Cast({}), actions: [] }, state);
 };
 
 /**
@@ -275,6 +275,7 @@ export const getTransaction = async <GProps extends AnyProps, GModel extends Any
         doc,
       },
       actionsRun,
+      rawData: noData || !snap.exists ? state.rawData : snap.data(),
     });
   } catch (error) {
     return updateTransactionState(state, { actionsRun, errors: [error] });
@@ -368,32 +369,38 @@ interface RunCallbacksParams<GProps extends AnyProps, GModel extends AnyModel> {
   /**
    * A Firestore transaction object
    */
-  // transaction: FirebaseFirestore.Transaction;
   state: TransactionState<GProps, GModel>;
+
+  /**
+   * The model context used.
+   */
   ctx: GModel;
+
+  /**
+   * Fallback to use for the base props in case they don't exist on the target.
+   */
+  baseData: BaseDefinition;
 }
 
 /**
- * Runs all the queued callbacks
- * ! This is incredibly dangerous and needs to be refactored. Any update or create called in the callback ... will lead to side effects
- * ! If runTransaction ran multiple times there would be no way of knowing what happens
+ * Runs all the queued callbacks in the order they were added to the queue
  */
 export const runCallbacks = <GProps extends AnyProps, GModel extends AnyModel>({
   state,
   ctx,
+  baseData,
 }: RunCallbacksParams<GProps, GModel>) => {
   state.actions.filter<CallbackModelAction<GModel>>(isCallbackAction).forEach(value => {
-    const data = createDataProxy<GProps, GModel>(state.rawData);
-    const exists = ctx.exists;
+    const data = createDataProxy<GProps, GModel>({ target: state.rawData, actions: state.actions, baseData });
     const update = updateMethodFactory<GProps, GModel>({ proxy: data, state });
     const create = createMethodFactory<GProps, GModel>({ proxy: data, state });
     const del = deleteMethodFactory<GProps, GModel>({ proxy: data, state });
     const params: ModelCallbackParams<GModel> = {
       data,
-      doc: ctx.doc,
+      doc: state.syncData ? state.syncData.doc : ctx.doc,
       id: ctx.id,
-      snap: ctx.snap,
-      exists,
+      snap: state.syncData ? state.syncData.snap : ctx.snap,
+      exists: state.syncData ? state.syncData.snap.exists : ctx.exists,
       update,
       delete: del,
       create,
@@ -436,7 +443,7 @@ const createMethodFactory = <GProps extends AnyProps, GModel extends AnyModel>({
   proxy,
   state,
 }: MethodFactoryParams<GProps, GModel>) => (data: TypeOfProps<GProps>) => {
-  Object.entries(data).forEach((key: unknown, val) => {
+  Object.entries(data).forEach(([key, val]) => {
     proxy[Cast(key)] = val;
     state.actions.push({
       data,

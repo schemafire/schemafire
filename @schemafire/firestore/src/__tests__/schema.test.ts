@@ -159,15 +159,15 @@ describe('#findById', () => {
   it('can find via callback', async () => {
     await Base.findById(id, params => {
       expect(params.exists).toBe(true);
-      expect(params.model.data).toEqual(expect.objectContaining(checkableData));
+      expect(params.data).toEqual(expect.objectContaining(checkableData));
     }).run();
     expect.assertions(2);
   });
   it('can update and delete from within the find method', async () => {
     const newData = { age: 99 };
-    await Base.findById(id, ({ model }) => {
-      model.update(newData);
-      model.delete(['name']);
+    await Base.findById(id, params => {
+      params.update(newData);
+      params.delete(['name']);
     }).run();
     const record = await getDocument<t.TypeOf<typeof codec>>(id, collection);
     expect(record.data).toEqual(expect.objectContaining(newData));

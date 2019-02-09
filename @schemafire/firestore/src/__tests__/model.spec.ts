@@ -22,7 +22,6 @@ import {
 } from '../__fixtures__/shared.fixtures';
 import { omitBaseFields } from '../base';
 import { Model } from '../model';
-import { pickModelProperties } from '../model.utils';
 import { Schema } from '../schema';
 import { ModelActionType, ModelTypeOfSchema } from '../types';
 import { SchemaFireValidationError } from '../validation';
@@ -144,12 +143,17 @@ describe('#attach', () => {
   it('receives the correct parameter object', async () => {
     const attachedMock = jest.fn();
     await model.attach(attachedMock).run();
-    expect(attachedMock).toHaveBeenCalledWith({
-      model: pickModelProperties(model),
-      exists: true,
-      data: realData,
-      get: mockTransaction.get,
-    });
+    expect(mockTransaction.get).toHaveBeenCalled();
+    expect(attachedMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        exists: true,
+        data: realData,
+        delete: expect.any(Function),
+        update: expect.any(Function),
+        create: expect.any(Function),
+        doc: expect.anything(),
+      }),
+    );
   });
   it('preserves context', async () => {
     const attachedMock = jest.fn();
@@ -157,24 +161,24 @@ describe('#attach', () => {
     expect(() => newContext.attach((...args) => attachedMock(...args))).not.toThrow();
   });
   it('updates the data', async () => {
-    await model.attach(p => p.model.update({ name: 'new', age: 21 })).run();
+    await model.attach(p => p.update({ name: 'new', age: 21 })).run();
     expect(model.data.name).toBe('new');
     expect(model.data.age).toBe(21);
   });
   it('deletes data', async () => {
-    await model.attach(p => p.model.delete(['name'])).run();
+    await model.attach(p => p.delete(['name'])).run();
     expect(model.data.name).toBeFalsy();
   });
   it('creates data', async () => {
-    await model.attach(p => p.model.create(realData)).run();
+    await model.attach(p => p.create(realData)).run();
     expect(model.data).toEqual(realData);
   });
   it('can be chained', async () => {
     const original = firestore.FieldValue.delete();
     typeSafeMockReturn(firestore.FieldValue.delete, undefined);
     await model
-      .attach(p => p.model.delete(['name']))
-      .attach(p => p.model.update({ age: 21 }))
+      .attach(p => p.delete(['name']))
+      .attach(p => p.update({ age: 21 }))
       .run();
     expect(model.data).toEqual({ age: 21, data: { real: 'stuff' }, custom: 'realness' });
     typeSafeMockReturn(firestore.FieldValue.delete, original);
@@ -359,51 +363,54 @@ describe('#run', () => {
     );
     expect(mm.exists).toBeTrue();
   });
-  it('handles FindOrCreate', async () => {
-    mockTransaction.set.mockClear();
-    mockTransaction.get.mockResolvedValueOnce({ exists: false, data: jest.fn() });
-    const mm = await schema
-      .model({
-        schema,
-        data: realData,
-        type: ModelActionType.FindOrCreate,
-      })
-      .run();
+  describe('FindOrCreate', () => {
+    it('creates data when none is found', async () => {
+      mockTransaction.set.mockClear();
+      mockTransaction.get.mockResolvedValueOnce({ exists: false, data: jest.fn() });
+      const mm = await schema
+        .model({
+          schema,
+          data: realData,
+          type: ModelActionType.FindOrCreate,
+        })
+        .run();
 
-    // Ignore the mirroring
-    expect(mockTransaction.set).not.toHaveBeenCalledWith(mm.doc, expect.objectContaining({ realData }), {
-      merge: true,
+      // Ignore the mirroring
+      expect(mockTransaction.set).not.toHaveBeenCalledWith(mm.doc, expect.objectContaining({ realData }), {
+        merge: true,
+      });
+      expect(mockTransaction.get).toHaveBeenCalledTimes(1);
+      expect(mockTransaction.create).toHaveBeenCalledWith(
+        mm.doc,
+        expect.objectContaining(removeUndefined(realData)),
+      );
+      expect(mm.exists).toBeTrue();
     });
-    expect(mockTransaction.get).toHaveBeenCalled();
-    expect(mockTransaction.create).toHaveBeenCalledWith(
-      mm.doc,
-      expect.objectContaining(removeUndefined(realData)),
-    );
-    expect(mm.exists).toBeTrue();
-
-    mockTransaction.create.mockClear();
-    await schema.findOrCreate('iod', realData).run();
-    expect(mockTransaction.get).toHaveBeenCalledTimes(2);
-    expect(mockTransaction.create).not.toHaveBeenCalled();
-    expect(mockTransaction.set).not.toHaveBeenCalledWith();
-  });
-  it('handles updates within findOrCreate', async () => {
-    mockTransaction.get.mockResolvedValueOnce({
-      exists: true,
-      data: jest.fn(() => realData),
+    it('does not create data when found', async () => {
+      mockTransaction.get.mockResolvedValueOnce({ exists: true, data: () => realData });
+      await schema.findOrCreate('iod', realData).run();
+      expect(mockTransaction.get).toHaveBeenCalledTimes(1);
+      expect(mockTransaction.create).not.toHaveBeenCalled();
+      expect(mockTransaction.set).not.toHaveBeenCalledWith();
     });
-    const mm = await schema
-      .findOrCreate('any-id', realData, ({ model }) => {
-        model.update({ age: 200 });
-      })
-      .run();
+    it('can be updated', async () => {
+      mockTransaction.get.mockResolvedValueOnce({
+        exists: true,
+        data: jest.fn(() => realData),
+      });
+      const mm = await schema
+        .findOrCreate('any-id', realData, ({ update }) => {
+          update({ age: 200 });
+        })
+        .run();
 
-    expect(mm.data.age).toBe(200);
-    expect(mockTransaction.set).toHaveBeenCalledWith(
-      mm.doc,
-      expect.objectContaining(removeUndefined({ ...realData, age: 200 })),
-      { merge: true },
-    );
+      expect(mm.data.age).toBe(200);
+      expect(mockTransaction.set).toHaveBeenCalledWith(
+        mm.doc,
+        expect.objectContaining(removeUndefined({ ...realData, age: 200 })),
+        { merge: true },
+      );
+    });
   });
 
   it('handles Delete', async () => {
@@ -431,25 +438,14 @@ describe('#run', () => {
   });
 
   it('handles Find with a callback containing a force create', async () => {
-    const mm = await schema.model({ type: ModelActionType.Find }).attach(({ model }) => {
-      model.create(realData);
+    const mm = await schema.model({ type: ModelActionType.Find }).attach(({ create }) => {
+      create(realData);
     });
     await mm.run();
     expect(mm.data.age).toBe(realData.age);
     expect(mockTransaction.set).toHaveBeenCalledWith(mm.doc, expect.objectContaining({ age: realData.age }));
   });
-  it('handles Find with a callback containing a non-forced create', async () => {
-    mockTransaction.get.mockResolvedValueOnce({ exists: false, data: jest.fn() });
-    const mm = schema.model({ type: ModelActionType.Find }).attach(({ model }) => {
-      model.create(realData, false);
-    });
-    await mm.run();
-    expect(mm.data.age).toBe(realData.age);
-    expect(mockTransaction.create).toHaveBeenCalledWith(
-      mm.doc,
-      expect.objectContaining({ age: realData.age }),
-    );
-  });
+
   it('handles Query', async () => {
     mockTransaction.get.mockResolvedValueOnce({
       size: 1,
@@ -485,8 +481,8 @@ describe('#run', () => {
         type: ModelActionType.Query,
         clauses: [['age', '==', 100]],
       })
-      .attach(({ model }) => {
-        model.update({});
+      .attach(({ update }) => {
+        update({});
       });
     await mm.run();
     expect(mockTransaction.get).toHaveBeenCalledTimes(1);

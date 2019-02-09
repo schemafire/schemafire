@@ -17,7 +17,7 @@
     "build:declaration": "tsc -p ./tsconfig.prod.json --emitDeclarationOnly --declarationMap",
     "clean": "rimraf lib",
     "dev": "run-p watch:*",
-    "lint": "tslint --project tsconfig.json --config ../../tslint.json",
+    "lint": "tslint --project tsconfig.json --config ../tslint.json",
     "test": "jest",
     "test:live": "cross-env TEST_ENV=live jest",
     "typecheck": "tsc -p ./tsconfig.json --noEmit",
