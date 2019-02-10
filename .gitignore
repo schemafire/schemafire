@@ -118,3 +118,6 @@ tmp**
 /support/secrets/key.json
 /config/test/db.json
 /config/test/key.json
+
+key.json
+secret.json

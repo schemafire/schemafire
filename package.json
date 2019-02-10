@@ -5,7 +5,8 @@
     "packages": [
       "@schemafire/*",
       "support/dependencies",
-      "support/jest-mocks"
+      "support/jest-mocks",
+      "examples/*"
     ]
   },
   "scripts": {
@@ -58,7 +59,7 @@
     }
   },
   "lint-staged": {
-    "@schemafire/*/src/**/*.{ts,tsx}": [
+    "{@schemafire,examples}/**/*.{ts,tsx}": [
       "tslint --fix",
       "git add"
     ],

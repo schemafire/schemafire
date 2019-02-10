@@ -1,5 +1,5 @@
 {
-  "packages": ["@schemafire/*", "support/dependencies", "support/jest-mocks"],
+  "packages": ["@schemafire/*", "support/dependencies", "support/jest-mocks", "examples/*"],
   "publish": {},
   "command": {
     "publish": {
@@ -17,6 +17,7 @@
   "useWorkspaces": true,
   "npmClientArgs": ["--no-lockfile"],
   "ignoreChanges": [
+    "examples/**",
     "**/__fixtures__/**",
     "**/__tests__/**",
     "**/__mocks__/**",
