@@ -1,4 +1,5 @@
 import chalk from 'chalk';
+import delay from 'delay';
 import execa from 'execa';
 import firebaseTools from 'firebase-tools';
 import inquirer from 'inquirer';
@@ -11,37 +12,11 @@ import psTree from 'ps-tree';
 import { argv } from 'yargs';
 
 const EMULATOR_HOME = resolve(homedir(), '.cache/firebase/emulators');
-const TIMEOUT = Symbol('timeout');
 
 /**
  * Determine whether prompts should be show when installing dependencies
  */
 export const disablePrompt = () => Boolean(process.env.CI || argv.y);
-
-/**
- * Set timeouts with promises
- */
-const timeout = (ms = 1500) =>
-  new Promise<symbol>(res => {
-    setTimeout(() => {
-      res(TIMEOUT);
-    }, ms);
-  });
-
-interface CheckEmulatorOptions {
-  type: EmulatorType;
-  errorMessage?: string;
-  ms?: number;
-  /**
-   * Whether this should only be killed when we an error occurs i.e. (false)
-   * Or we want to kill the server whether or not the error occurs (true) - useful for checks.
-   */
-  alwaysKill?: boolean;
-  /**
-   * Optionally pass in the emulator to use.
-   */
-  emulator?: execa.ExecaChildProcess;
-}
 
 export type EmulatorType = 'database' | 'firestore';
 
@@ -79,8 +54,15 @@ const psTreePromise = (pid: number) =>
  * Starts an emulator
  * @param type the emulator type
  */
-export const startEmulator = (type: EmulatorType) =>
-  execa('firebase', ['serve', '--only', type], { stdio: 'ignore' });
+export const startEmulator = (path: string, type: EmulatorType) =>
+  execa('java', ['-jar', path, '--host', '127.0.0.1', '--port', EMULATOR_PORTS[type]], {
+    stdio: 'ignore',
+  });
+
+export const EMULATOR_PORTS: Record<EmulatorType, string> = {
+  database: '9000',
+  firestore: '8080',
+};
 
 /**
  * Makes sure that all children of a process are properly removed.
@@ -104,42 +86,6 @@ export const killEmulator = async (emulator: execa.ExecaChildProcess) => {
   const children = await psTreePromise(emulator.pid);
   children.forEach(killProcessChildren);
   emulator.kill();
-};
-
-/**
- * @deprecated
- */
-export const checkEmulatorInstalled = async ({
-  type,
-  errorMessage = `${startCase(type)} emulator not found`,
-  ms = 2000,
-  alwaysKill = true,
-  emulator = startEmulator(type),
-}: CheckEmulatorOptions) => {
-  let killed = false;
-
-  const kill = async () => {
-    if (!killed) {
-      await killEmulator(emulator);
-      killed = true;
-    }
-  };
-
-  try {
-    const result = await Promise.race<symbol | execa.ExecaReturns>([emulator, timeout(ms)]);
-
-    // ? This is probably always because of timeout. The emulator either throws or never stops. Refactor soon.
-    if (result === TIMEOUT) {
-      return;
-    }
-  } catch {
-    await kill();
-    throw new Error(errorMessage);
-  } finally {
-    if (alwaysKill) {
-      await kill();
-    }
-  }
 };
 
 const installFirestoreEmulator = () => firebaseTools.setup.emulators.firestore();
@@ -175,7 +121,8 @@ const createTaskList = (failed = new Set()) => {
   return Object.entries(dependencies).reduce((current, [name, { check }]) => {
     const title = chalk`Checking for dependency: {bold.blue ${startCase(name)}}`;
     const task = () =>
-      check()
+      delay(disablePrompt() ? 0 : 1000) // Some aesthetic delay
+        .then(() => check())
         .then(() => 'Success')
         .catch(e => {
           failed.add(name);

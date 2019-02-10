@@ -22,7 +22,7 @@ before_install:
 install:
   - yarn ci
   - yarn ci:setup
-  - yarn dependencies:setup -v
+  - yarn deps:setup -v
 script:
   - yarn ci:checks
 after_script:

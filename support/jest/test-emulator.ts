@@ -1,17 +1,19 @@
 import chalk from 'chalk';
 import debug from 'debug';
 import execa from 'execa';
+import invariant from 'invariant';
 import Listr from 'listr';
 import { startCase } from 'lodash';
 import waitOn from 'wait-on';
-import { EmulatorType, findEmulatorPath, killEmulator } from '../scripts/dependencies';
+import {
+  EMULATOR_PORTS,
+  EmulatorType,
+  findEmulatorPath,
+  killEmulator,
+  startEmulator,
+} from '../scripts/dependencies';
 
 const log = debug('test:emulator');
-
-const PORTS: Record<EmulatorType, string> = {
-  database: '8084',
-  firestore: '8085',
-};
 
 interface ProcessData {
   emulator?: execa.ExecaChildProcess;
@@ -34,14 +36,6 @@ export class TestEmulator {
     firestore: { stopped: true },
   };
 
-  private static serve(path: string, type: EmulatorType) {
-    console.log('serving');
-    log(`${startCase(type)}: Starting server`);
-    return execa('java', ['-jar', path, '--host', '127.0.0.1', '--port', PORTS[type]], {
-      stdio: 'ignore',
-    });
-  }
-
   /**
    * Starts the firestore service
    */
@@ -50,32 +44,29 @@ export class TestEmulator {
       log(`There is a ${type} process already running. Skipping this \`start:${type}\` command.`);
       return;
     }
-    log(`Starting ${type} emulator`);
+    log(`Checking that ${type} emulator exists`);
+    let path: string;
+
+    const errorMessage = chalk`{red The emulator doesn\'t exist yet. Please run the following command to resolve the issue:}\n\t{grey yarn setup}`;
+
+    try {
+      const value = await findEmulatorPath(type);
+      path = value || '';
+    } catch {
+      console.error(errorMessage);
+      throw errorMessage;
+    }
+
+    invariant(Boolean(path), errorMessage);
+
+    const emulator = startEmulator(path, type);
+    TestEmulator.data[type] = {
+      emulator,
+      stopped: false,
+    };
+    TestEmulator.emulatorInstalled[type] = true;
 
     const tasks = new Listr([
-      {
-        title: `Checking for ${type} emulator`,
-        task: ctx =>
-          findEmulatorPath(type)
-            .then(path => {
-              if (!path) {
-                throw new Error('No path');
-              }
-              const emulator = TestEmulator.serve(path, type);
-              TestEmulator.data[type] = {
-                emulator,
-                stopped: false,
-              };
-              ctx.start = true;
-              TestEmulator.emulatorInstalled[type] = true;
-              return 'Success';
-            })
-            .catch(e => {
-              ctx.start = false;
-              TestEmulator.emulatorInstalled[type] = false;
-              throw new Error('The emulator has not been set up properly: ' + e.message);
-            }),
-      },
       {
         // Wait for the emulator to be running
         title: `Starting the ${type} emulator`,
@@ -138,7 +129,7 @@ export class TestEmulator {
 
   private static createWaitPromise(name: EmulatorType) {
     const data = TestEmulator.data[name];
-    const url = `tcp:${PORTS[name]}`;
+    const url = `tcp:${EMULATOR_PORTS[name]}`;
     if (!data.emulator) {
       return Promise.resolve();
     }
@@ -150,7 +141,7 @@ export class TestEmulator {
 
       waitOn({
         resources: [url],
-        interval: 500,
+        interval: 400,
         timeout: 10000,
         verbose: false,
         log: false,
