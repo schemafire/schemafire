@@ -1,7 +1,7 @@
 import { Cast, removeUndefined } from '@schemafire/core';
 import admin from 'firebase-admin';
 import * as t from 'io-ts';
-import { overSome, pipe } from 'lodash/fp';
+import { pipe } from 'lodash/fp';
 import { baseProps } from './base';
 import {
   AnyModel,
@@ -20,87 +20,88 @@ import {
   UpdateModelAction,
 } from './types';
 
-export const isUpdateAction = <T, M extends AnyModel>(
-  action: ModelAction<T, M>,
-): action is UpdateModelAction<T> => {
-  return action.type === ModelActionType.Update;
-};
-export const isFindAction = <T, M extends AnyModel>(action: ModelAction<T, M>): action is FindModelAction => {
-  return action.type === ModelActionType.Find;
-};
-export const isQueryAction = <T, M extends AnyModel>(
-  action: ModelAction<T, M>,
-): action is QueryModelAction => {
-  return action.type === ModelActionType.Query;
-};
-export const isCallbackAction = <T, M extends AnyModel>(
-  action: ModelAction<T, M>,
-): action is CallbackModelAction<M> => {
-  return action.type === ModelActionType.Callback;
-};
-export const isCreateAction = <T, M extends AnyModel>(
-  action: ModelAction<T, M>,
-): action is CreateModelAction<T> => {
-  return action.type === ModelActionType.Create;
-};
-export const isDeleteFieldAction = <T, M extends AnyModel>(
-  action: ModelAction<T, M>,
-): action is DeleteFieldModelAction<T> => {
-  return action.type === ModelActionType.DeleteField;
-};
-export const isFindOrCreateAction = <T, M extends AnyModel>(
-  action: ModelAction<T, M>,
-): action is FindOrCreateModelAction<T> => {
-  return action.type === ModelActionType.FindOrCreate;
+// const a: 'Create' = ModelActionType.Create;
+// type B = ModelActionType;
+
+type FindActionType<
+  GData,
+  GModel extends AnyModel,
+  GAction extends ModelActionType
+> = GAction extends ModelActionType.Callback
+  ? CallbackModelAction<GModel>
+  : GAction extends ModelActionType.Create
+  ? CreateModelAction<GData>
+  : GAction extends ModelActionType.FindOrCreate
+  ? FindOrCreateModelAction<GData>
+  : GAction extends ModelActionType.Update
+  ? UpdateModelAction<GData>
+  : GAction extends ModelActionType.DeleteField
+  ? DeleteFieldModelAction<GData>
+  : GAction extends ModelActionType.Delete
+  ? DeleteModelAction
+  : GAction extends ModelActionType.Find
+  ? FindModelAction
+  : GAction extends ModelActionType.Query
+  ? QueryModelAction
+  : never;
+
+/**
+ * A curried function for obtaining the action type of a model action
+ * @param type
+ */
+export const isActionOfType = <GAction extends ModelActionType>(type: GAction) => <
+  GModel extends AnyModel,
+  GData = any
+>(
+  action: ModelAction<GData, GModel>,
+): action is FindActionType<GData, GModel, GAction> => {
+  return action.type === type;
 };
 
-export const isDeleteAction = <T, M extends AnyModel>(
-  action: ModelAction<T, M>,
-): action is DeleteModelAction => {
-  return action.type === ModelActionType.Delete;
-};
+export const isUpdateAction = isActionOfType(ModelActionType.Update);
+export const isFindAction = isActionOfType(ModelActionType.Find);
+export const isQueryAction = isActionOfType(ModelActionType.Query);
+export const isCallbackAction = isActionOfType(ModelActionType.Callback);
+export const isCreateAction = isActionOfType(ModelActionType.Create);
+export const isDeleteFieldAction = isActionOfType(ModelActionType.DeleteField);
+export const isFindOrCreateAction = isActionOfType(ModelActionType.FindOrCreate);
+export const isDeleteAction = isActionOfType(ModelActionType.Delete);
 
+/**
+ * Checks if a key (string) is a base property
+ *
+ * @param prop
+ */
 export const isBaseProp = (prop: any): prop is BaseDefinitionKeys => {
   return baseProps.includes(Cast<BaseDefinitionKeys>(prop));
 };
 
-export const actionsContainDelete = <T, M extends AnyModel>(actions: Array<ModelAction<T, M>>) => {
-  return actions.some(isDeleteAction);
-};
+type IsActionPredicate<GAction extends ModelActionType> = <GModel extends AnyModel, GData = any>(
+  action: ModelAction<GData, GModel>,
+) => action is FindActionType<GData, GModel, GAction>;
 
-export const actionsContainFindOrCreate = <T, M extends AnyModel>(actions: Array<ModelAction<T, M>>) => {
-  return actions.some(isFindOrCreateAction);
-};
+/**
+ * Provide a predicate to determine the actions to check for in the array of actions.
+ * @param predicate
+ */
+const actionsContain = <GAction extends ModelActionType>(predicate: IsActionPredicate<GAction>) => <
+  GModel extends AnyModel,
+  GData = any
+>(
+  actions: Array<ModelAction<GData, GModel>>,
+) => actions.some(predicate);
 
-export const actionsContainCreate = <T, M extends AnyModel>(actions: Array<ModelAction<T, M>>) => {
-  return actions.some(isCreateAction);
-};
-
-export const actionsContainFind = <T, M extends AnyModel>(actions: Array<ModelAction<T, M>>) => {
-  return actions.some(isFindAction);
-};
+export const actionsContainDelete = actionsContain(isDeleteAction);
+export const actionsContainFindOrCreate = actionsContain(isFindOrCreateAction);
+export const actionsContainCreate = actionsContain(isCreateAction);
+export const actionsContainFind = actionsContain(isFindAction);
+export const actionsContainCallback = actionsContain(isCallbackAction);
+export const actionsContainUpdate = actionsContain(isUpdateAction);
+export const actionsContainDeleteField = actionsContain(isDeleteFieldAction);
 
 export const findQueryAction = <T, M extends AnyModel>(actions: Array<ModelAction<T, M>>) => {
   return actions.find(isQueryAction);
 };
-
-export const actionsContainCallback = <T, M extends AnyModel>(actions: Array<ModelAction<T, M>>) => {
-  return actions.some(isCallbackAction);
-};
-
-export const actionsContainUpdate = <T, M extends AnyModel>(actions: Array<ModelAction<T, M>>) => {
-  return actions.some(isUpdateAction);
-};
-
-export const actionsContainDeleteField = <T, M extends AnyModel>(actions: Array<ModelAction<T, M>>) => {
-  return actions.some(isDeleteFieldAction);
-};
-
-export const hasUpdateActions = overSome<any>([
-  actionsContainCreate,
-  actionsContainDeleteField,
-  actionsContainUpdate,
-]);
 
 /**
  * Builds a query which can be used to obtain data

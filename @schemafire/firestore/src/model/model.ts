@@ -139,12 +139,7 @@ export class Model<
     this.rawData = { ...schema.defaultData, ...data };
     this.baseData = createDefaultBase({ schemaVersion: this.schema.version });
 
-    this.proxy = createDataProxy({
-      actions: this.actions,
-      baseData: this.baseData,
-      useBaseData: () => !this.hasRunSuccessfully,
-      target: this.rawData,
-    });
+    this.proxy = this.createDataProxy();
 
     this.snap = snap;
     this.doc = this.getDoc(doc, id);
@@ -153,6 +148,19 @@ export class Model<
     this.methods = createMethods(methods, this);
     this.setupInitialActions(type, data, callback, clauses);
     this.currentRunConfig = this.schema.config;
+  }
+
+  /**
+   * Instance wrapper around the createDataProxy method.
+   * Recommended for de-duping the codebase
+   */
+  private createDataProxy() {
+    return createDataProxy({
+      actions: this.actions,
+      baseData: this.baseData,
+      useBaseData: () => !this.hasRunSuccessfully,
+      target: this.rawData,
+    });
   }
 
   /**
@@ -291,14 +299,9 @@ export class Model<
    *
    * @param newData the data to be updated
    */
-  private resetRawData(newData: any) {
+  private resetRawData(newData: Partial<TypeOfProps<GProps>>) {
     this.rawData = newData;
-    this.proxy = createDataProxy({
-      actions: this.actions,
-      baseData: this.baseData,
-      useBaseData: () => !this.hasRunSuccessfully,
-      target: this.rawData,
-    });
+    this.proxy = this.createDataProxy();
   }
 
   /**
