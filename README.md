@@ -1,6 +1,6 @@
 # SchemaFire
 
-[![Build Status](https://travis-ci.com/ifiokjr/schemafire.svg?branch=master)](https://travis-ci.org/ifiokjr/schemafire) [![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lernajs.io/) [![Maintainability](https://api.codeclimate.com/v1/badges/bde2fc9e3dec543a875a/maintainability)](https://codeclimate.com/github/ifiokjr/schemafire/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/bde2fc9e3dec543a875a/test_coverage)](https://codeclimate.com/github/ifiokjr/schemafire/test_coverage)
+[![Build Status](https://travis-ci.com/ifiokjr/schemafire.svg?branch=master)](https://travis-ci.org/ifiokjr/schemafire) [![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lernajs.io/) [![Maintainability](https://api.codeclimate.com/v1/badges/d434635844348e59c894/maintainability)](https://codeclimate.com/github/ifiokjr/schemafire/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/d434635844348e59c894/test_coverage)](https://codeclimate.com/github/ifiokjr/schemafire/test_coverage)
 
 Manage your schema with built in run-time type checking.
 
