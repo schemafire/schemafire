@@ -15,6 +15,7 @@ import {
   JSONRepresentation,
   JSONRepresentationType,
   MappedInstanceMethods,
+  ModelAction,
   ModelActionType,
   ModelCallbackParams,
   SchemaCacheRules,
@@ -392,9 +393,9 @@ export const runCallbacks = <GProps extends AnyProps, GModel extends AnyModel>({
 }: RunCallbacksParams<GProps, GModel>) => {
   state.actions.filter<CallbackModelAction<GModel>>(isCallbackAction).forEach(value => {
     const data = createDataProxy<GProps, GModel>({ target: state.rawData, actions: state.actions, baseData });
-    const update = updateMethodFactory<GProps, GModel>({ proxy: data, state });
-    const create = createMethodFactory<GProps, GModel>({ proxy: data, state });
-    const del = deleteMethodFactory<GProps, GModel>({ proxy: data, state });
+    const update = updateMethodFactory<GProps, GModel>({ proxy: data, actions: state.actions });
+    const create = createMethodFactory<GProps, GModel>({ proxy: data, actions: state.actions });
+    const del = deleteMethodFactory<GProps, GModel>({ proxy: data, actions: state.actions });
     const params: ModelCallbackParams<GModel> = {
       data,
       doc: state.syncData ? state.syncData.doc : ctx.doc,
@@ -413,9 +414,13 @@ export const runCallbacks = <GProps extends AnyProps, GModel extends AnyModel>({
   });
 };
 
-interface MethodFactoryParams<GProps extends AnyProps, GModel extends AnyModel> {
+interface MethodFactoryParams<
+  GProps extends AnyProps,
+  GModel extends AnyModel,
+  GActions = Array<ModelAction<TypeOfProps<GProps>, GModel>>
+> {
   proxy: TypeOfPropsWithBase<GProps>;
-  state: TransactionState<GProps, GModel>;
+  actions: GActions;
 }
 
 const updateMethodFactory = <GProps extends AnyProps, GModel extends AnyModel>({
@@ -441,12 +446,12 @@ const deleteMethodFactory = <GProps extends AnyProps, GModel extends AnyModel>({
 
 const createMethodFactory = <GProps extends AnyProps, GModel extends AnyModel>({
   proxy,
-  state,
+  actions,
 }: MethodFactoryParams<GProps, GModel>) => (data: TypeOfProps<GProps>) => {
   Object.entries(data).forEach(([key, val]) => {
     proxy[Cast(key)] = val;
   });
-  state.actions.push({
+  actions.push({
     data,
     type: ModelActionType.Create,
   });

@@ -78,8 +78,6 @@ export class Model<
 > implements IModel<GProps, GInstanceMethods, GDependencies> {
   /**
    * All actions which are queued for this model that haven't yet been synced with the database.
-   *
-   * @private
    */
   private actions: Array<
     ModelAction<TypeOfProps<GProps>, IModel<GProps, GInstanceMethods, GDependencies>>
@@ -199,7 +197,9 @@ export class Model<
     }
 
     if (type === ModelActionType.Query) {
+      // Will throw when no clauses have been passed in despite a query being used.
       invariant(Boolean(clauses && clauses.length), `Type '${type}' must be defined with clauses`);
+
       this.actions.push({ type: ModelActionType.Query, data: clauses! });
     }
   }
@@ -442,12 +442,27 @@ export class Model<
     this.existsViaCreation = ['updated', 'created', 'force-created'].includes(this.lastRunStatus);
   }
 
+  /**
+   * When creating data the timestamp is automatically created on the server. ForceGet as a configuration option
+   * ensures that the latest server data is available to you after run.
+   *
+   * @param config
+   */
   private async forceGetIfNeeded(config: RunConfig) {
     if (config.forceGet && (this.actionsRun.create || this.actionsRun.forceCreate)) {
       await this.getSnap();
     }
   }
 
+  /**
+   * Update the model with the state after a successful transaction. We can't update the model during the transaction since changes
+   * can be rolled back at any time.
+   *
+   * Instead we gather the state during the transaction and pass it back to the run command. This function is called to synchronise the accumulated state
+   * with the current model.
+   *
+   * @param state
+   */
   private updateModelWithTransactionState(state: TransactionState<GProps, this>) {
     this.actionsRun = state.actionsRun;
     this.errors = state.errors;
@@ -500,6 +515,9 @@ export class Model<
     return this;
   };
 
+  /**
+   * Delete specified keys, or if none are passed, delete the whole model.
+   */
   public delete = (keys?: Array<keyof GProps>) => {
     if (keys) {
       keys.forEach(key => {
