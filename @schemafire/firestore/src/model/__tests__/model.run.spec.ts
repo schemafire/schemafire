@@ -89,7 +89,7 @@ describe('#run', () => {
         docGetter.mockResolvedValueOnce(Cast(expectedSnap));
       });
 
-      const mm = schema.create(createData);
+      const mm = schema.create({ data: createData });
       const initialSnap = mm.snap;
       await mm.run({ forceGet: true });
       expect(initialSnap).not.toEqual(mm.snap);
@@ -146,7 +146,7 @@ describe('#run', () => {
 
     it('does not create data when found', async () => {
       mockTransaction.get.mockResolvedValueOnce({ exists: true, data: () => realData });
-      await schema.findOrCreate('iod', realData).run();
+      await schema.findOrCreate({ id: 'iod', data: realData }).run();
       expect(mockTransaction.get).toHaveBeenCalledTimes(1);
       expect(mockTransaction.create).not.toHaveBeenCalled();
       expect(mockTransaction.set).not.toHaveBeenCalledWith();
@@ -159,8 +159,12 @@ describe('#run', () => {
       });
 
       const mm = await schema
-        .findOrCreate('any-id', realData, ({ update }) => {
-          update({ age: 200 });
+        .findOrCreate({
+          id: 'any-id',
+          data: realData,
+          callback: ({ update }) => {
+            update({ age: 200 });
+          },
         })
         .run();
       expect(mm.data.age).toBe(200);

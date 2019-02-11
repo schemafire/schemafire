@@ -1,7 +1,7 @@
 import { Key, Omit } from '@schemafire/core';
 import * as t from 'io-ts';
 import { BaseDefinition } from './base';
-import { SchemaFireValidationError } from './validation';
+import { ValidationError } from './errors';
 
 /**
  * Determines where data should be copied to when an update happens in the model.
@@ -112,9 +112,25 @@ export interface QueryParams<
   attach?: ModelCallback<IModel<GProps, GInstanceMethods, GDependencies>>;
 }
 
+export type QueryOptions<
+  GProps extends t.AnyProps,
+  GInstanceMethods extends InstanceMethodConfig<GProps, GDependencies>,
+  GDependencies extends BaseInjectedDeps
+> = Omit<QueryParams<GProps, GInstanceMethods, GDependencies>, 'schema' | 'clauses'>;
+
 export interface BaseInjectedDeps {
   initialized: boolean;
 }
+
+export interface Rules {
+  /**
+   * Checks the collection for any ID's that correspond to the desired value
+   * If any exists this doesn't evaluate to true.
+   */
+  uniqueInCollection?: string;
+}
+
+export type SchemaRules<GProps extends t.AnyProps> = Partial<{ [P in keyof GProps]: Rules }>;
 
 export interface SchemaParams<
   GProps extends t.AnyProps,
@@ -126,12 +142,13 @@ export interface SchemaParams<
 > {
   codec: FieldsOfProps<GProps>;
   collection: string;
-  defaultData: TypeOfProps<GProps>;
+  rules?: SchemaRules<GProps>;
+  defaultData?: Partial<TypeOfProps<GProps>>;
   mirror?: SchemaCacheRules<keyof GProps>;
   instanceMethods?: GInstanceMethods;
   staticMethods?: GStaticMethods;
   dependencies?: GDependencies;
-  config?: SchemaConfig;
+  config?: Partial<SchemaConfig>;
 }
 
 export interface ISchema<
@@ -143,7 +160,7 @@ export interface ISchema<
   readonly version: number;
   codec: FieldsOfProps<GProps>;
   collection: string;
-  defaultData: TypeOfProps<GProps>;
+  defaultData: Partial<TypeOfProps<GProps>>;
   mirror?: SchemaCacheRules<keyof GProps>;
   methods: MappedStaticMethods<this, GStaticMethods>;
   dependencies: GDependencies;
@@ -169,10 +186,11 @@ export interface ISchema<
    * @param params
    */
   query(
-    params?: Partial<QueryParams<GProps, GInstanceMethods, GDependencies>>,
+    clauses: QueryTuples<GProps>,
+    options?: QueryOptions<GProps, GInstanceMethods, GDependencies>,
   ): IQuery<GProps, GInstanceMethods, GDependencies>;
 
-  create(data: TypeOfProps<GProps>, id?: string): IModel<GProps, GInstanceMethods, GDependencies>;
+  create(params: CreateArgs<GProps>): IModel<GProps, GInstanceMethods, GDependencies>;
   /**
    * This will find the firestore model if it exists, otherwise a new one is created with the passed data.
    *
@@ -181,9 +199,7 @@ export interface ISchema<
    * @param [callback] called if the model doesn't exist in Firestore
    */
   findOrCreate(
-    id: string,
-    data: TypeOfProps<GProps>,
-    callback?: ModelCallback<IModel<GProps, GInstanceMethods, GDependencies>>,
+    params: FindOrCreateArgs<GProps, GInstanceMethods, GDependencies>,
   ): IModel<GProps, GInstanceMethods, GDependencies>;
 
   /**
@@ -251,32 +267,52 @@ export interface ISchema<
  */
 export interface RunConfig {
   /**
-   * Should data be mirrored for this run
+   * Should data be mirrored for the current update or create run.
    * @default true
    */
-  mirror?: boolean;
+  mirror: boolean;
   /**
    * Whether to run the actions inside a transaction
    * @default true
    */
-  // useTransactions?: boolean;
+  // useTransactions: boolean;
   /**
    * Number of attempts the transaction should take before failing
    */
-  maxAttempts?: number;
+  maxAttempts: number;
   /**
    * Whether we want to get the latest data after an Create or Update action.
    * This can be useful when creating data for the first time and we want to view the ServerTimestamp.
+   * @default false
    */
-  forceGet?: boolean;
+  forceGet: boolean;
   /**
    * Determines whether validation should happen on create and update.
    * @default true
    */
-  autoValidate?: boolean;
+  autoValidate: boolean;
+
+  /**
+   * Used in tests when running on the emulator rather than with the live database.
+   * e.g. the Firestore runTransaction method takes two args but the testing library only allows one.
+   * @default false
+   */
+  testMode: boolean;
 }
 
-export interface SchemaConfig extends RunConfig {}
+export interface SchemaConfig extends RunConfig {
+  /**
+   * A function which returns the db instance to use throughout the schema
+   * @default admin.firestore
+   */
+  databaseGetter: () => FirebaseFirestore.Firestore;
+
+  /**
+   * Used to set a collection to only store its id
+   * @default false
+   */
+  emptyCollection: boolean;
+}
 
 export type FieldsOf<GModel extends AnyModel> = GModel extends IModel<infer GFields, any, any>
   ? GFields
@@ -308,7 +344,7 @@ export interface IModel<
    * 3. **Create** will unconditionally create a new document and override anything in the process.
    * 4. **Find** will find data for usage
    */
-  run(config?: RunConfig): Promise<this>;
+  run(config?: Partial<RunConfig>): Promise<this>;
   /**
    * Delete data from model
    */
@@ -334,7 +370,7 @@ export interface IModel<
    */
   create(data: TypeOfProps<GProps>, force?: boolean): this;
 
-  validate(): undefined | SchemaFireValidationError;
+  validate(): undefined | ValidationError;
 
   /**
    * Returns a valid JSON representation of this model
@@ -355,7 +391,7 @@ export interface IQuery<
    * Async method that runs all pending actions.
    * The order of preference is as such.
    */
-  run(config?: RunConfig): Promise<this>;
+  run(config?: Partial<RunConfig>): Promise<this>;
 
   /**
    * Delete data from model
@@ -589,3 +625,46 @@ export interface TransactionState<
   rawData: t.TypeOfProps<GProps>;
   actions: GActions;
 }
+
+export type CreateArgs<GProps extends t.AnyProps> = Key<GProps> extends never
+  ? NoDataCreateParams<GProps>
+  : CreateParams<GProps>;
+
+export type FindOrCreateArgs<
+  GProps extends t.AnyProps,
+  GInstanceMethods extends InstanceMethodConfig<GProps, GDependencies>,
+  GDependencies extends BaseInjectedDeps
+> = Key<GProps> extends never
+  ? NoDataFindOrCreateParams<GProps, GInstanceMethods, GDependencies>
+  : FindOrCreateParams<GProps, GInstanceMethods, GDependencies>;
+
+export interface CreateParams<GProps extends t.AnyProps> {
+  /** The id to use for the document */
+  id?: string;
+  /** The data to create this model with */
+  data: TypeOfProps<GProps>;
+}
+
+export type NoDataCreateParams<GProps extends t.AnyProps> = Omit<CreateParams<GProps>, 'data'>;
+
+export interface FindOrCreateParams<
+  GProps extends t.AnyProps,
+  GInstanceMethods extends InstanceMethodConfig<GProps, GDependencies>,
+  GDependencies extends BaseInjectedDeps
+> {
+  /** The id to search for (required) */
+  id: string;
+  /** The data to create this model with */
+  data: TypeOfProps<GProps>;
+  /**
+   * An optional callback for updating data once the model is found.
+   * This is not called if data is not found and needs to be created.
+   */
+  callback?: ModelCallback<IModel<GProps, GInstanceMethods, GDependencies>>;
+}
+
+export type NoDataFindOrCreateParams<
+  GProps extends t.AnyProps,
+  GInstanceMethods extends InstanceMethodConfig<GProps, GDependencies>,
+  GDependencies extends BaseInjectedDeps
+> = Omit<FindOrCreateParams<GProps, GInstanceMethods, GDependencies>, 'data'>;

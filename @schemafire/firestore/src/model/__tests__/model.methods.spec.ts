@@ -12,9 +12,9 @@ import {
   schema,
   simpleSchema,
 } from '../../__fixtures__/shared.fixtures';
+import { ValidationError } from '../../errors';
 import { Schema } from '../../schema';
 import { ModelTypeOfSchema } from '../../types';
-import { SchemaFireValidationError } from '../../validation';
 
 beforeEach(() => {
   typeSafeMockImplementation(
@@ -241,7 +241,7 @@ describe('#validate', () => {
 
   it('is invalid when no actions taken and default data is invalid', () => {
     const expectedError = invalidModel.validate();
-    expect(expectedError).toBeInstanceOf(SchemaFireValidationError);
+    expect(expectedError).toBeInstanceOf(ValidationError);
     expect(expectedError!.messages[0]).toMatchInlineSnapshot(
       `"Invalid value \\"a\\" supplied to username: \`(min(5) & max(10) & start.with.letter & letters.numbers.underscores)\`.0: \`min(5)\`"`,
     );
@@ -250,7 +250,7 @@ describe('#validate', () => {
   it('only returns an error when invalid data is pass in', () => {
     validModel.create({ age: 50, username: 'abc', me: undefined });
     const expectedError = validModel.validate();
-    expect(expectedError).toBeInstanceOf(SchemaFireValidationError);
+    expect(expectedError).toBeInstanceOf(ValidationError);
     expect(expectedError!.errors).toContainAllKeys(['age', 'username']);
     expect(expectedError!.keys).toContainValues(['age', 'username']);
   });
@@ -268,7 +268,7 @@ describe('#validate', () => {
     expect(validSpy).toHaveBeenCalledTimes(1);
 
     invalidModel.create({ ...validData, age: 100 });
-    await expect(invalidModel.run()).rejects.toThrowError(SchemaFireValidationError);
+    await expect(invalidModel.run()).rejects.toThrowError(ValidationError);
     expect(invalidSpy).toHaveBeenCalledTimes(1);
   });
 

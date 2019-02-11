@@ -8,6 +8,7 @@ import { Schema } from '../../schema';
 import { ModelTypeOfSchema } from '../../types';
 
 jest.unmock('firebase-admin');
+
 initializeFirebaseWithoutConfig();
 
 describe('#toJSON', () => {

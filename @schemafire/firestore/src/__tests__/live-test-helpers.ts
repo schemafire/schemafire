@@ -1,5 +1,6 @@
-import firebaseTesting from '@firebase/testing';
+import { apps, firestore, initializeAdminApp } from '@firebase/testing';
 import admin from 'firebase-admin';
+import { FirestoreRecord } from '../types';
 
 export const testCollection = (name: string) => `${global.__DB_PREFIX__}/${name}`;
 
@@ -23,17 +24,36 @@ export const initializeFirebaseWithoutConfig = () => {
   admin.initializeApp();
 };
 
-export const setupFirebaseTesting = async () => {
-  const app = await firebaseTesting.initializeAdminApp({
-    projectId: global.__DB_PREFIX__,
+export const setupFirebaseTesting = () => {
+  const app = initializeAdminApp({
+    projectId: 'TEST',
   });
 
   const db = app.firestore();
   return db;
 };
 
-export type FirestoreTesting = firebaseTesting.firestore.Firestore;
+export type FirestoreTesting = firestore.Firestore;
 
 export const teardownFirebaseTesting = async () => {
-  await Promise.all(firebaseTesting.apps().map(app => app.delete()));
+  await Promise.all(apps().map(app => app.delete()));
+};
+
+/**
+ * Retrieve any document from any firestore collection.
+ *
+ * @param documentId
+ * @param collection
+ */
+export const getDocument = async <T extends {}>(
+  documentId: string,
+  collection: string,
+): Promise<FirestoreRecord<T>> => {
+  const doc = admin
+    .firestore()
+    .collection(collection)
+    .doc(documentId);
+  const snap = await doc.get();
+  const data = snap.exists ? (snap.data() as T) : undefined;
+  return { doc, snap, data };
 };

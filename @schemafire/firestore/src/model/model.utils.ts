@@ -3,6 +3,7 @@ import admin from 'firebase-admin';
 import { AnyProps } from 'io-ts';
 import { get } from 'lodash/fp';
 import { BaseDefinition } from '../base';
+import { TransactionError } from '../errors';
 import { createDataProxy } from '../proxy';
 import {
   AnyModel,
@@ -278,8 +279,8 @@ export const getTransaction = async <GProps extends AnyProps, GModel extends Any
       actionsRun,
       rawData: noData || !snap.exists ? state.rawData : Cast<TypeOfProps<GProps>>(snap.data()),
     });
-  } catch (error) {
-    return updateTransactionState(state, { actionsRun, errors: [error] });
+  } catch (e) {
+    throw new TransactionError(TransactionError.Type.Get, 'GET transaction failed', e);
   }
 };
 
@@ -304,7 +305,7 @@ export const queryTransaction = async <GProps extends AnyProps, GModel extends A
       syncData: { data: Cast<TypeOfProps<GProps>>(snap.data()), snap, doc: snap.ref },
     });
   } catch (error) {
-    return updateTransactionState(state, { actionsRun, errors: [error] });
+    throw new TransactionError(TransactionError.Type.Query, 'The query failed to complete', error);
   }
 };
 
@@ -456,3 +457,23 @@ const createMethodFactory = <GProps extends AnyProps, GModel extends AnyModel>({
     type: ModelActionType.Create,
   });
 };
+
+// export const checkRules = async <GProps extends AnyProps>(
+//   transaction: FirebaseFirestore.Transaction,
+//   rules: SchemaRules<GProps>,
+//   data: TypeOfProps<GProps>,
+//   db: FirebaseFirestore.Firestore
+// ) => {
+//   return Object.entries(rules).map(([key, rule]) => {
+//     if (!rule) return;
+//     Object.entries(rule).map(([ruleKey, ruleValue]) => {
+//       if (ruleKey === 'uniqueInCollection') {
+//         const collection = ruleValue;
+//         const doc = db.collection(collection).doc(data[key]);
+//         return transaction.get(doc).then(snap => {
+//           return !snap.exists;
+//         })
+//       }
+//     })
+//   })
+// };
