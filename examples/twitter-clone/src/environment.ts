@@ -17,30 +17,21 @@ export class Env {
   private static serviceAccountKey =
     process.env.LOCAL_DEPLOY === 'true'
       ? require('../../../support/secrets/key.json')
-      : Env.isDev
-      ? require('../secret.json')
       : require('../secret.json');
 
   public static get info() {
-    return Env.isDev
-      ? {
-          credential: admin.credential.cert(Env.serviceAccountKey),
-          databaseURL: 'https://plejio-test.firebaseio.com',
-          projectId: 'plejio-test',
-          storageBucket: 'plejio-test.appspot.com',
-        }
+    return process.env.LOCAL_DEPLOY === 'true'
+      ? require('../../../support/secrets/db.json')
       : {
           credential: admin.credential.cert(Env.serviceAccountKey),
-          databaseURL: 'https://plejio-test.firebaseio.com',
-          projectId: 'plejio-test',
-          storageBucket: 'plejio-test.appspot.com',
+          ...require('../db.json'),
         };
   }
 
   public static debug = start({
     allowExpressions: true,
     projectId: Env.info.projectId,
-    keyFilename: resolve(__dirname, '../../secret.json'),
+    keyFilename: resolve(__dirname, '../secret.json'),
     appPathRelativeToRepository: '@cloud/firebase',
   });
 
@@ -48,14 +39,7 @@ export class Env {
     if (Env.initialized) {
       return;
     }
-    if (process.env.LOCAL_DEPLOY === 'true') {
-      admin.initializeApp(Env.info);
-    } else {
-      // ! This is here because firebase realtime db isn't able to read from the environment even in the production serverless firebase function.
-      // ? Once there's a fix this be run with no arguments
-      admin.initializeApp(Env.info);
-      // admin.initializeApp();
-    }
+    admin.initializeApp(Env.info);
 
     const settings = { timestampsInSnapshots: true };
     const firestore = admin.firestore();

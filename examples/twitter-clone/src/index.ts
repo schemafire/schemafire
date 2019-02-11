@@ -9,8 +9,7 @@ const files = glob.sync('./**/*.function?(s).js', {
 
 files.forEach(file => {
   const functions = require(file);
-  Object.entries(functions).forEach(entry => {
-    /* TODO figure out why array destructuring was causing issues */
-    exports[entry[0]] = entry[1];
+  Object.entries(functions).forEach(([name, fn]) => {
+    exports[name] = fn;
   });
 });
