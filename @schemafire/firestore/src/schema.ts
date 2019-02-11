@@ -1,13 +1,16 @@
-import { Cast, simpleError } from '@schemafire/core';
-import admin from 'firebase-admin';
-import * as t from 'io-ts';
+import { Cast, Omit, simpleError } from '@schemafire/core';
+import { AnyProps, TypeOfProps } from 'io-ts';
 import { isPlainObject } from 'lodash';
+import { SCHEMA_CONFIG } from './constants';
+import { ValidationError } from './errors';
 import { Model } from './model/model';
 import { Query } from './query';
 import {
   AnySchema,
   BaseInjectedDeps,
+  CreateArgs,
   FieldsOfProps,
+  FindOrCreateArgs,
   IModel,
   InstanceMethodConfig,
   IQuery,
@@ -16,7 +19,7 @@ import {
   ModelActionType,
   ModelCallback,
   ModelParams,
-  QueryParams,
+  QueryOptions,
   QueryTuples,
   SchemaCacheRules,
   SchemaConfig,
@@ -25,7 +28,7 @@ import {
   StringKeys,
   TypeOfPropsWithBase,
 } from './types';
-import { SchemaFireValidationError } from './validation';
+import { hasData } from './utils';
 
 /**
  * Create schema for your Firestore collections
@@ -34,7 +37,7 @@ import { SchemaFireValidationError } from './validation';
  * const User = new Schema({ });
  */
 export class Schema<
-  GProps extends t.Props,
+  GProps extends AnyProps,
   GInstanceMethods extends InstanceMethodConfig<GProps, GDependencies>,
   GDependencies extends BaseInjectedDeps = BaseInjectedDeps,
   GStaticMethods extends StaticMethodConfig<ISchema<GProps, any, GDependencies, any>> = any
@@ -43,9 +46,9 @@ export class Schema<
    * The default
    */
   private static defaultConfig: SchemaConfig = {
-    mirror: true,
-    autoValidate: true,
+    ...SCHEMA_CONFIG,
   };
+
   private static instances: AnySchema[] = [];
 
   /**
@@ -65,8 +68,12 @@ export class Schema<
   public static get version(): number {
     return 0;
   }
-  public static setDefaultConfig(config: SchemaConfig) {
-    Schema.defaultConfig = { ...Schema.defaultConfig, ...config };
+  /**
+   * Set the default configuration for all the schema created. Leave empty to reset
+   * @param config
+   */
+  public static setDefaultConfig(config: Partial<Omit<SchemaConfig, 'emptyCollection'>> = {}) {
+    Schema.defaultConfig = { ...Schema.defaultConfig, ...config, emptyCollection: false };
   }
 
   /**
@@ -87,6 +94,11 @@ export class Schema<
   private instanceMethods: GInstanceMethods = Cast<GInstanceMethods>({});
 
   /**
+   * This is the customConfig passed in at configuration.
+   */
+  private readonly customConfig: Partial<SchemaConfig>;
+
+  /**
    * The codec used to validate all models and provide typings for the models.
    */
   public readonly codec: FieldsOfProps<GProps>;
@@ -105,21 +117,30 @@ export class Schema<
    * Gives easy access to the collectionReference for all instance models.
    */
   get ref(): FirebaseFirestore.CollectionReference {
-    return admin.firestore().collection(this.collection);
+    return this.db.collection(this.collection);
   }
 
   /**
    * Utility db reference.
    */
   get db(): FirebaseFirestore.Firestore {
-    return admin.firestore();
+    return Schema.defaultConfig.databaseGetter();
+  }
+
+  /**
+   * The configuration for this schema
+   *
+   * @readonly
+   */
+  get config(): SchemaConfig {
+    return { ...Schema.defaultConfig, ...this.customConfig };
   }
 
   /**
    * The default data for every model created with this schema.
    * Ideally default data should be valid data that is always overwritten at creation time.
    */
-  public readonly defaultData: t.TypeOfProps<GProps>;
+  public readonly defaultData: Partial<TypeOfProps<GProps>>;
 
   /**
    * Mirrors allow for data in one collection to automatically be copied over to another collection.
@@ -136,12 +157,25 @@ export class Schema<
    * While on the client side one read of the user gives us all the user profile data.
    */
   public readonly mirror?: SchemaCacheRules<keyof GProps>;
-  public dependencies: GDependencies = Cast<GDependencies>({ initialized: false });
-  public config: SchemaConfig;
-  public methods: MappedStaticMethods<this, GStaticMethods> = Cast<MappedStaticMethods<this, GStaticMethods>>(
-    {},
-  );
 
+  /**
+   * The dependencies injected into the instance methods at runtime.
+   */
+  public dependencies: GDependencies = Cast<GDependencies>({ initialized: false });
+
+  /**
+   * Static methods for this schema which were defined at configuration
+   */
+  public methods: MappedStaticMethods<
+    ISchema<GProps, GInstanceMethods, GDependencies, GStaticMethods>,
+    GStaticMethods
+  > = Cast<
+    MappedStaticMethods<ISchema<GProps, GInstanceMethods, GDependencies, GStaticMethods>, GStaticMethods>
+  >({});
+
+  /**
+   * The current version of data in this schema. This will be used more once data migrations are supported.
+   */
   get version(): number {
     return Schema.version;
   }
@@ -160,7 +194,7 @@ export class Schema<
    * const defaultData = { name: '', data: {}, age: 20 };
    *
    * const User = new Schema({
-   *   fields: definition,
+   *   codec: fields,
    *   defaultData,
    *   collection: 'User',
    *   staticMethods: {
@@ -177,7 +211,7 @@ export class Schema<
    * ```
    */
   constructor({
-    codec: fields,
+    codec,
     collection,
     defaultData,
     mirror,
@@ -186,8 +220,8 @@ export class Schema<
     config,
     staticMethods,
   }: SchemaParams<GProps, GInstanceMethods, GDependencies, GStaticMethods>) {
-    this.codec = fields;
-    this.defaultData = defaultData;
+    this.codec = codec;
+    this.defaultData = defaultData || {};
     this.collection = collection;
 
     this.mirror = mirror;
@@ -201,7 +235,7 @@ export class Schema<
     if (dependencies) {
       this.dependencies = dependencies;
     }
-    this.config = { ...Schema.defaultConfig, ...(config ? config : {}) };
+    this.customConfig = config || {};
     this.keys = Cast<Array<StringKeys<GProps>>>(Object.keys(this.codec.props));
     Schema.registerSchema(Cast<AnySchema>(this));
   }
@@ -209,8 +243,12 @@ export class Schema<
   /**
    * Create the static methods which can be called directly from the Schema instance.
    */
-  private createStaticMethods(methods?: GStaticMethods): MappedStaticMethods<this, GStaticMethods> {
-    const defaultMethods = Cast<MappedStaticMethods<this, GStaticMethods>>({});
+  private createStaticMethods(
+    methods?: GStaticMethods,
+  ): MappedStaticMethods<ISchema<GProps, GInstanceMethods, GDependencies, GStaticMethods>, GStaticMethods> {
+    const defaultMethods = Cast<
+      MappedStaticMethods<ISchema<GProps, GInstanceMethods, GDependencies, GStaticMethods>, GStaticMethods>
+    >({});
     if (!methods) {
       return defaultMethods;
     }
@@ -233,14 +271,15 @@ export class Schema<
   /**
    * A model instance with the create action. When run is called this model will be created.
    */
-  public create(data: t.TypeOfProps<GProps>, id?: string): IModel<GProps, GInstanceMethods, GDependencies> {
+  public create(params: CreateArgs<GProps>): IModel<GProps, GInstanceMethods, GDependencies> {
     /* Potential options for a custom ID */
+    const data = hasData(params) ? params.data : {};
     const mergedData = { ...this.defaultData, ...data };
     return this.model({
       schema: this,
       methods: this.instanceMethods,
       data: mergedData,
-      id,
+      id: params.id,
       type: ModelActionType.Create,
     });
   }
@@ -265,10 +304,10 @@ export class Schema<
    * Tries to find a document but if not found one is created.
    */
   public findOrCreate(
-    id: string,
-    data: Partial<t.TypeOfProps<GProps>>,
-    callback?: ModelCallback<IModel<GProps, GInstanceMethods, GDependencies>>,
+    params: FindOrCreateArgs<GProps, GInstanceMethods, GDependencies>,
   ): IModel<GProps, GInstanceMethods, GDependencies> {
+    const { callback, id } = params;
+    const data = hasData(params) ? params.data : {};
     return this.model({
       schema: this,
       methods: this.instanceMethods,
@@ -353,19 +392,24 @@ export class Schema<
     }
 
     if (isPlainObject(data)) {
-      return this.codec.decode(data).fold(SchemaFireValidationError.create, () => undefined);
+      return this.codec.decode(data).fold(ValidationError.create, () => undefined);
     }
 
-    return SchemaFireValidationError.create();
+    return ValidationError.create();
   }
 
   /**
    * Utility for creating plain queries.
    */
   public query(
-    params: QueryParams<GProps, GInstanceMethods, GDependencies>,
+    clauses: QueryTuples<GProps>,
+    options?: QueryOptions<GProps, GInstanceMethods, GDependencies>,
   ): IQuery<GProps, GInstanceMethods, GDependencies> {
-    return new Query(params);
+    return new Query({
+      schema: this,
+      clauses,
+      ...options,
+    });
   }
 
   /**
@@ -376,7 +420,7 @@ export class Schema<
       throw simpleError('Must pass through query params');
     }
 
-    return this.query({ schema: this, clauses });
+    return this.query(clauses);
   }
 }
 
