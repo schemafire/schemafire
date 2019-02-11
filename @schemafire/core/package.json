@@ -29,7 +29,7 @@
     "@types/node": "10.12.24",
     "@types/validator": "10.9.0",
     "invariant": "2.2.4",
-    "io-ts": "1.8.1",
+    "io-ts": "1.8.2",
     "io-ts-reporters": "0.0.21",
     "lodash": "4.17.11",
     "nanoid": "2.0.1",

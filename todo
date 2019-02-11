@@ -13,3 +13,7 @@ More advanced
 ☐ Support references between models in generated data
 ☐ Explore a class based prop creation option
 
+
+Collection helpers
+☐ Add rules config - like uniqueness rule, string is unique in the provided collection
+☐ Add EMPTY collection option. A collection that only has ID's (no data) for e.g. usernames - relationships

@@ -92,6 +92,6 @@
     ]
   },
   "resolutions": {
-    "@google-cloud/firestore": "1.0.1"
+    "firebase": "5.8.2"
   }
 }

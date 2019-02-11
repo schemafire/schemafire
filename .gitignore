@@ -120,4 +120,5 @@ tmp**
 /config/test/key.json
 
 key.json
+db.json
 secret.json
