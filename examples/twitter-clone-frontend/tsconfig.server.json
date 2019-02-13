@@ -1,0 +1,20 @@
+{
+  "extends": "../../base.tsconfig.json",
+  "compilerOptions": {
+    "jsx": "react",
+    "outDir": "dist",
+    "noEmit": true,
+    "paths": {
+    "lib": ["esnext", "dom"],
+    "types": ["jest"]
+  },
+  "include": [
+    "start.ts",
+    "server/**/*.ts",
+    "redux/**/*.ts",
+    "typings/**/*.ts",
+    "utils/**/*.ts",
+    "typings/globals.d.ts"
+  ],
+  "exclude": ["node_modules", "**/*.spec.ts", "**/*.spec.tsx", "**/*.test.ts", "**/*.test.tsx"]
+}

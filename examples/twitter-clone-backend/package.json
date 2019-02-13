@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "twitter-clone-example",
+  "name": "twitter-clone-backend",
   "description": "An example api consuming the libraries in this project",
   "license": "MIT",
   "author": "Ifiok Jr. <ifiokotung@gmail.com>",

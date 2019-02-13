@@ -1,0 +1,6 @@
+{
+  "watch": ["./server", "next.config.js", "./routes", "./start.ts", "./worker"],
+  "ext": "ts",
+  "ignore": ["**/*.test.ts", "dist", "coverage"],
+  "exec": "DEBUG=\"schemafire:*\" ts-node -T -P ./tsconfig.server.json start.ts"
+}

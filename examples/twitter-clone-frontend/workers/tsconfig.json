@@ -1,0 +1,9 @@
+{
+  "extends": "../../../base.tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["jest", "firebase", "jest-extended"],
+    "lib": ["esnext", "webworker"]
+  },
+  "include": ["./"]
+}

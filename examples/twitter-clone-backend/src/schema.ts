@@ -1,4 +1,4 @@
-import { Schema, TypeOfCreateData } from '@schemafire/firestore';
+import { RunConfig, Schema, TypeOfCreateData } from '@schemafire/firestore';
 import { Collection, relationshipCodec, tweetCodec, userCodec, usernameCodec } from './codecs';
 import { relationshipId } from './utils';
 
@@ -20,8 +20,11 @@ export const Relationship = new Schema({
   codec: relationshipCodec,
   collection: Collection.Relationship,
   staticMethods: {
-    createRelationship: schema => (data: TypeOfCreateData<typeof schema>) => {
-      return schema.create({ data, id: relationshipId(data.follower, data.following) });
+    createRelationship: schema => (
+      data: TypeOfCreateData<typeof schema>,
+      options: Partial<RunConfig> = {},
+    ) => {
+      return schema.create({ data, id: relationshipId(data.follower, data.following) }).run(options);
     },
   },
 });
