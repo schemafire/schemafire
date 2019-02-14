@@ -4,12 +4,35 @@
     "noEmit": true,
     "jsx": "react",
     "allowJs": false,
-    "types": ["jest", "jest-extended"],
     "lib": ["esnext", "dom"],
-    "plugins": [{ "name": "typescript-styled-plugin" }]
+    "plugins": [{ "name": "typescript-styled-plugin", "tags": ["styled"] }],
+    "baseUrl": "./",
+    "paths": {
+      "@unit-test-helpers": ["../../@schemafire/core/src/__tests__/unit-test-helpers.ts"],
+      "@live-test-helpers": ["../../@schemafire/firestore/src/__tests__/live-test-helpers.ts"],
+      "@schemafire/jest-mocks/lib/*": ["../../support/jest-mocks/src/*"],
+      "@schemafire/core": ["../../@schemafire/core/src/index.ts"],
+      "@schemafire/firestore": ["../../@schemafire/firestore/src/index.ts"],
+      "@components": ["components"],
+      "@components/*": ["components/*"],
+      "@firebase": ["firebase"],
+      "@firebase/*": ["firebase/*"],
+      "@containers": ["containers"],
+      "@containers/*": ["containers/*"],
+      "@routes": ["routes"],
+      "@routes/*": ["routes/*"],
+      "@server": ["server"],
+      "@server/*": ["server/*"],
+      "@typings": ["typings"],
+      "@typings/*": ["typings/*"],
+      "@utils": ["utils"],
+      "@utils/*": ["utils/*"],
+      "*": ["../../support/types/*"]
+    }
   },
   "include": [
     "./pages",
+    "./firebase",
     "./components",
     "./typings",
     "./utils",
@@ -18,6 +41,7 @@
     "./server",
     "./start.ts",
     "./containers",
-    "*.ts"
+    "*.ts",
+    "firebase/firebase.ts"
   ]
 }

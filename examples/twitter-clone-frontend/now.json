@@ -1,0 +1,5 @@
+{
+  "version": 2,
+  "name": "twitter-clone-frontend",
+  "builds": [{ "src": "package.json", "use": "@now/next" }]
+}

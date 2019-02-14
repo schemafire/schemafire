@@ -1,20 +1,21 @@
-/* eslint-disable import/no-extraneous-dependencies */
-
 require('dotenv').config();
 
 const path = require('path');
-const withTypescript = require('@zeit/next-typescript');
 const Dotenv = require('dotenv-webpack');
+const { compose } = require('lodash/fp');
+
+const withTypescript = require('@zeit/next-typescript');
 const withBundleAnalyzer = require('@zeit/next-bundle-analyzer');
-const { compose } = require('ramda');
-const nextOffline = require('next-offline');
+const withCSS = require('@zeit/next-css');
+const withOffline = require('next-offline');
 
 const { BUNDLE_ANALYZE } = process.env;
 
 module.exports = compose(
   withTypescript,
   withBundleAnalyzer,
-  nextOffline,
+  withOffline,
+  withCSS,
 )({
   dontAutoRegisterSw: true,
   // workboxOpts: {
@@ -46,6 +47,20 @@ module.exports = compose(
         systemvars: true,
       }),
     );
+
+    config.module.rules.push({
+      test: /\.(png|svg|eot|otf|ttf|woff|woff2)$/,
+      use: {
+        loader: 'url-loader',
+        options: {
+          limit: 8192,
+          publicPath: '/_next/static/',
+          outputPath: 'static/',
+          name: '[name].[ext]',
+        },
+      },
+    });
+
     return config;
   },
 });

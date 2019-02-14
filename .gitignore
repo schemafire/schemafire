@@ -122,3 +122,6 @@ tmp**
 key.json
 db.json
 secret.json
+
+.env
+*.env

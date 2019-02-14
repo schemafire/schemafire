@@ -1,14 +1,10 @@
-import { createCustomError, respondWithError } from '@kj/plejio-server-core';
 import { Env } from '@utils/environment';
-import { namespace } from '@utils/logger';
-import debug from 'debug';
 import { RequestHandler } from 'express';
-
-const log = debug(namespace('middleware'));
+import { createCustomError, respondWithError } from './errors';
 
 export const asyncMiddleware = (fn: RequestHandler): RequestHandler => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch(error => {
-    log('A fatal error has occurred', error);
+    console.log('A fatal error has occurred', error);
     const err = createCustomError({
       status: 'unknown',
       message: 'an unknown error has occurred',

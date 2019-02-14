@@ -1,39 +1,22 @@
-import '@kj/plejio-server-core/setup-server-environment';
 import 'source-map-support/register';
 
-import { APPLE_SITE_ASSOCIATION } from '@kj/plejio-core/constants';
 import { json } from 'body-parser';
 import colors from 'chalk';
 import cookieParser from 'cookie-parser';
 import csurf from 'csurf';
-import debug from 'debug';
 import dotenv from 'dotenv';
 import express from 'express';
 import admin from 'firebase-admin';
-import v4 from 'nanoid';
 import next from 'next';
 
 import routes from '@routes';
-import { getDeviceId, getSession } from '@utils/helpers';
-import { namespace } from '@utils/logger';
+import { getSession } from '@utils/helpers';
 
-import {
-  getDateLocale,
-  getLocaleDataScript,
-  getMessages,
-  supportedLocales,
-} from '@kj/plejio-messages/lib/server';
-import { login, logout } from '@server/api/auth';
+import { login, logout } from '@server/auth.api';
 import { getTokenFromUserSession, isInternalNextUrl, isUserLoggedIn } from '@server/helpers';
 import { asyncMiddleware } from '@server/middleware';
-import { IncomingMessage } from 'http';
 import { join } from 'path';
 import { parse } from 'url';
-
-import acceptLanguageParser from 'accept-language-parser';
-import { pathOr } from 'ramda';
-
-const log = debug(namespace('server'));
 
 dotenv.config();
 
@@ -52,7 +35,7 @@ const handler = routes.getRequestHandler(app);
 
 /* Decode the base64 key */
 
-const decoded = Buffer.from(process.env.FIREBASE_JSON_SECRET, 'base64').toString('ascii');
+const decoded = Buffer.from(process.env.FIREBASE_JSON_SECRET || '', 'base64').toString('ascii');
 const serviceAccountKey = JSON.parse(decoded);
 
 /* Initialize Firebase Admin */
@@ -75,13 +58,9 @@ server.use(cookieParser('my-secret')); // TODO enable signed cookies with a secr
 server.use(json());
 server.use('/', express.static(dev ? join(__dirname, 'dist', 'workers') : join(__dirname, 'workers')));
 
-log('Next app ready: Adding routes');
+console.info('Next app ready: Adding routes');
 
 /* iOS Deep Links */
-
-server.get('/apple-app-site-association', (_, res) => {
-  res.json(APPLE_SITE_ASSOCIATION);
-});
 
 server.get('/firebase-messaging-sw.js', (req, res) => {
   const filePath = join(__dirname, 'workers', '/firebase-messaging-sw.js');
@@ -97,12 +76,6 @@ server.get('/sw.js', (req, res) => {
 
 server.post('/api/login', csrfProtection, asyncMiddleware(login));
 server.post('/api/logout', csrfProtection, asyncMiddleware(logout));
-
-/* Retrieve the preferred language for the user */
-const getAcceptsLanguage: (req: IncomingMessage) => string = pathOr('en-gb,en;q=0.8', [
-  'headers',
-  'accept-language',
-]);
 
 /* NextJS Handler */
 
@@ -129,9 +102,6 @@ server.get('*', csrfProtection, async (req, res) => {
     return;
   }
 
-  const deviceId = getDeviceId(req) || v4();
-  req.deviceId = deviceId;
-
   /* Obtain the decoded token  and user ID */
   const userSession = await getTokenFromUserSession(getSession(req));
 
@@ -140,13 +110,6 @@ server.get('*', csrfProtection, async (req, res) => {
     initial state the state and pass it into the request object */
     req.uid = userSession.token.uid;
   }
-
-  /* i18n locale setup */
-  req.locale = acceptLanguageParser.pick(supportedLocales, getAcceptsLanguage(req))!;
-  // req.locale = 'de';
-  req.localeDataScript = getLocaleDataScript(req.locale);
-  req.messages = getMessages(req.locale);
-  req.dateLocale = getDateLocale(req.locale);
 
   handler(req, res);
 });
@@ -160,10 +123,10 @@ export default app
       if (err) {
         throw err;
       }
-      log(`Server started on port: ${colors.green.bold(port.toString())}`);
+      console.info(`Server started on port: ${colors.green.bold(port.toString())}`);
     });
   })
 
   /* Start listening to the express application */
 
-  .catch(error => log('something went wrong', error));
+  .catch(error => console.error('something went wrong', error));

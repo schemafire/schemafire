@@ -1,7 +1,9 @@
 import React from 'react';
 
+import { LoginForm } from '@components/login-form.component';
+
 const IndexPage = () => {
-  return <div />;
+  return <LoginForm />;
 };
 
 export default IndexPage;

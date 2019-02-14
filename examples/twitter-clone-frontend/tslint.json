@@ -1,0 +1,10 @@
+{
+  "extends": ["../../tslint.json"],
+  "rules": {
+    "no-implicit-dependencies": [
+      true,
+      "dev",
+      ["@components", "@firebase", "@containers", "@routes", "@server", "@typings", "@utils"]
+    ]
+  }
+}
