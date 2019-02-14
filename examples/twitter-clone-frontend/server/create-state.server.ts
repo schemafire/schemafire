@@ -1,4 +1,5 @@
-import { AuthContainer, AuthContainerState } from '@containers/auth.container';
+import { AuthContainer } from '@containers/auth.container';
+import { AuthContainerState } from '@containers/types';
 import { obtainAuthStateFromUserId } from './helpers';
 
 interface CreateServerStateParams {

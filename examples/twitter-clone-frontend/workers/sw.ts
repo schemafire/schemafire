@@ -1,3 +1,4 @@
+// tslint:disable-next-line:no-reference
 /// <reference path="./service-worker.d.ts" />
 
 importScripts('https://www.gstatic.com/firebasejs/5.5.6/firebase-app.js');

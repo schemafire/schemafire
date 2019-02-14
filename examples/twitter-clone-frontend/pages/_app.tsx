@@ -2,7 +2,8 @@
 
 import React, { ComponentType } from 'react';
 
-import { AuthContainer, AuthContainerState } from '@containers/auth.container';
+import { AuthContainer } from '@containers/auth.container';
+import { AuthContainerState } from '@containers/types';
 import { createServerState } from '@server/create-state.server';
 import { Context, PageContext } from '@typings/next.types';
 import { getCsrfToken, getUid } from '@utils/helpers';
@@ -23,7 +24,6 @@ interface Props {
  * @param initialState
  */
 const decoratePageContext = (pageContext: PageContext, authContainer: AuthContainer) => {
-  pageContext.authContainer = authContainer;
   pageContext.authState = authContainer.state;
 };
 

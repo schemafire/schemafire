@@ -65,7 +65,7 @@ const authMapper = once(([imports, , rxfireAuth]: [FirebaseImports, {}, RxfireAu
   const user$ = rxfireAuth.user(imports.app.auth());
   const authState$ = rxfireAuth.authState(auth);
   const idToken$ = rxfireAuth.idToken(auth);
-  return { user$, authState$, idToken$, rxfireAuth, ...imports };
+  return { user$, authState$, idToken$, rxfireAuth, auth, ...imports };
 });
 
 export function loadAuth() {

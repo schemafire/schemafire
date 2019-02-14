@@ -1,4 +1,4 @@
-import { AuthContainer, AuthContainerState } from '@containers/auth.container';
+import { AuthContainerState } from '@containers/types';
 import { NextContext } from 'next';
 import { AppComponentContext } from 'next/app';
 import { DefaultQuery } from 'next/router';
@@ -12,6 +12,5 @@ export interface Context extends AppComponentContext {
 }
 
 export interface PageContext extends NextContext<DefaultQuery> {
-  authContainer: AuthContainer;
   authState: AuthContainerState;
 }

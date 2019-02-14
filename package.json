@@ -21,6 +21,7 @@
     "clean:modules": "git clean -fdx @schemafire support/dependencies",
     "deps:setup": "yarn t support/scripts/dependencies.ts",
     "dev": "lerna run dev --parallel",
+    "dev:modules": "lerna run dev --no-private",
     "fix": "run-s fix:lint:* fix:*",
     "fix:lint:js": "eslint support *.js @schemafire --fix",
     "fix:lint:support": "tslint --project support/tsconfig.json --config support/tslint.json --fix",

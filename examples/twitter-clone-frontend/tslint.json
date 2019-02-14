@@ -1,5 +1,5 @@
 {
-  "extends": ["../../tslint.json"],
+  "extends": ["@kj/tslint-rules/react", "../../tslint.json"],
   "rules": {
     "no-implicit-dependencies": [
       true,

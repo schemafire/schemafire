@@ -1,5 +1,4 @@
-import { Errors } from 'io-ts';
-import { createErrorMap, createMessage } from './utils';
+import { Context, Errors, getFunctionName, ValidationError as IOValidationError } from 'io-ts';
 
 export class SchemaFireError extends Error {
   constructor(message: string) {
@@ -144,3 +143,36 @@ const getStringMessages = (errors: Error[]) =>
     }
     return `GeneralError: ${error.message}`;
   });
+
+function stringify(v: any): string {
+  return typeof v === 'function' ? getFunctionName(v) : JSON.stringify(v);
+}
+
+function getContextPath(context: Context, withType = true): string {
+  return context
+    .filter(({ key }) => Boolean(key))
+    .map(({ key, type }) => (withType ? `${key}: \`${type.name}\`` : key))
+    .join('.');
+}
+
+function mapMessage(e: IOValidationError): string {
+  return e.message !== undefined
+    ? e.message
+    : `Invalid value ${stringify(e.value)} supplied to ${getContextPath(e.context)}`;
+}
+
+export function createMessage(errors: Errors) {
+  return errors.map(mapMessage);
+}
+
+export function createErrorMap(errors: Errors) {
+  return errors.reduce((prev, { message, context, value }) => {
+    const path = getContextPath(context, false);
+    return path
+      ? {
+          ...prev,
+          [path.split('.')[0]]: message || `Invalid value ${stringify(value)}`,
+        }
+      : prev;
+  }, {});
+}
