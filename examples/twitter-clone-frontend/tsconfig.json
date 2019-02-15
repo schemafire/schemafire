@@ -19,6 +19,8 @@
       "@firebase/*": ["firebase/*"],
       "@containers": ["containers"],
       "@containers/*": ["containers/*"],
+      "@components": ["components"],
+      "@components/*": ["components/*"],
       "@routes": ["routes"],
       "@routes/*": ["routes/*"],
       "@server": ["server"],

@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { Button, Form as SemanticForm, Grid, Header, Image, Message, Segment } from 'semantic-ui-react';
 import isEmail from 'validator/lib/isEmail';
 
-const LoginFormWrapper = styled('div')`
+const AuthFormWrapper = styled('div')`
   height: 100%;
 `;
 
@@ -19,7 +19,7 @@ enum FieldName {
 
 type FormData = Record<FieldName, string> & object;
 
-interface LoginFormProps {
+interface AuthFormProps {
   auth: AuthContainer;
   mode: 'login' | 'create';
 }
@@ -36,15 +36,15 @@ const validate: FormikConfig<FormData>['validate'] = ({ email, password }) => {
   return errors;
 };
 
-const LoginFormComponent: FunctionComponent<LoginFormProps> = ({ auth, mode }) => {
+const AuthFormComponent: FunctionComponent<AuthFormProps> = ({ auth, mode }) => {
   const header = mode === 'create' ? 'Create a new account' : 'Log-in to your account';
   const button = mode === 'create' ? 'Register' : 'Login';
 
   const onSubmit: FormikConfig<FormData>['onSubmit'] = async ({ email, password }, { setSubmitting }) => {
     try {
       await auth.loginViaEmail({ email, password, create: mode === 'create' });
-      console.log('Successful login');
       setSubmitting(false);
+      console.log('Successful login');
     } catch (error) {
       setSubmitting(false);
       console.error(error);
@@ -52,7 +52,7 @@ const LoginFormComponent: FunctionComponent<LoginFormProps> = ({ auth, mode }) =
   };
 
   return (
-    <LoginFormWrapper>
+    <AuthFormWrapper>
       <Grid textAlign='center' style={{ height: '100%' }} verticalAlign='middle'>
         <Grid.Column style={{ maxWidth: 450 }}>
           <Header as='h2' color='teal' textAlign='center'>
@@ -98,26 +98,26 @@ const LoginFormComponent: FunctionComponent<LoginFormProps> = ({ auth, mode }) =
           <SwitchAuthenticationMode mode={mode} />
         </Grid.Column>
       </Grid>
-    </LoginFormWrapper>
+    </AuthFormWrapper>
     // null
   );
 };
 
-const SwitchAuthenticationMode: FC<Pick<LoginFormProps, 'mode'>> = ({ mode }) =>
+const SwitchAuthenticationMode: FC<Pick<AuthFormProps, 'mode'>> = ({ mode }) =>
   mode === 'login' ? (
     <Message>
       New to us?{' '}
       <Link href='/register'>
-        <a href='#'>Register</a>
+        <a>Register</a>
       </Link>
     </Message>
   ) : (
     <Message>
       Already have an account?{' '}
       <Link href='/login'>
-        <a href='#'>Login</a>
+        <a>Login</a>
       </Link>
     </Message>
   );
 
-export const LoginForm = withContainers({ auth: AuthContainer })(LoginFormComponent);
+export const AuthForm = withContainers({ auth: AuthContainer })(AuthFormComponent);

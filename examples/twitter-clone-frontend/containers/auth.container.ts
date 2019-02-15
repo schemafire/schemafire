@@ -2,6 +2,7 @@ import { loadAuth } from '@firebase/loaders';
 import { ServerUserInfo } from '@server/helpers';
 import { getFirebaseUserProperty } from '@utils/helpers';
 import ky from 'ky/umd';
+import Router from 'next/router';
 import { Container } from 'unstated';
 import { FirebaseUser } from '../typings/firebase.types';
 import { AuthContainerState } from './types';
@@ -51,25 +52,42 @@ export class AuthContainer extends Container<AuthContainerState> {
     return { 'csrf-token': this.state.csrfToken };
   }
 
-  public async loginViaEmail({ email, password, create = false }: LoginViaEmailParams) {
-    await this.setState({ loading: true });
+  private async auth() {
     const { auth } = await loadAuth().toPromise();
+    return auth;
+  }
+
+  public loginViaEmail = async ({ email, password, create = false }: LoginViaEmailParams) => {
+    await this.setState({ loading: true });
+    const auth = await this.auth();
     try {
       if (create) {
         await auth.createUserWithEmailAndPassword(email, password);
       } else {
         await auth.signInWithEmailAndPassword(email, password);
       }
-      await this.setState({ loading: false, loginSource: 'browser' });
+      await Router.replace(this.state.nextUrl);
+      await this.setState({
+        loading: false,
+        loginSource: 'browser',
+        nextUrl: AuthContainer.initialState.nextUrl,
+      });
     } catch (error) {
       await this.setState({ loading: false });
       throw error;
     }
-  }
+  };
+
+  public logout = async () => {
+    await this.setState({ loading: true });
+    const auth = await this.auth();
+    await auth.signOut();
+    await this.setState({ loading: false, loginSource: 'browser' });
+  };
 
   /** Sets the data for the user in response to a change in the auth state */
   public async setData(data: FirebaseUser | ServerUserInfo | null, token: string | null) {
-    console.log('setting data', data, token);
+    // console.log('setting data', data, token);
     await this.setState(AuthContainer.authStateFromData(data));
     if (data && token && this.state.loginSource === 'browser') {
       // Login on the server
