@@ -1,9 +1,10 @@
-import React, { FunctionComponent } from 'react';
+import React, { FC, FunctionComponent } from 'react';
 
 import { AuthContainer } from '@containers/auth.container';
 import withContainers from '@containers/unstated.hoc';
 import styled from '@emotion/styled';
-import { Form, Formik, FormikConfig } from 'formik';
+import { Formik, FormikConfig } from 'formik';
+import Link from 'next/link';
 import { Button, Form as SemanticForm, Grid, Header, Image, Message, Segment } from 'semantic-ui-react';
 import isEmail from 'validator/lib/isEmail';
 
@@ -20,28 +21,34 @@ type FormData = Record<FieldName, string> & object;
 
 interface LoginFormProps {
   auth: AuthContainer;
+  mode: 'login' | 'create';
 }
 
 const validate: FormikConfig<FormData>['validate'] = ({ email, password }) => {
-  return {
-    email: isEmail(email) ? undefined : 'The email entered is invalid',
-    password: password.length >= 6 ? undefined : 'Password too short',
-  };
+  const errors: Partial<FormData> = {};
+  if (!isEmail(email)) {
+    errors.email = 'The email entered is invalid';
+  }
+
+  if (password.length <= 5) {
+    errors.password = 'Password too short';
+  }
+  return errors;
 };
 
-const LoginFormComponent: FunctionComponent<LoginFormProps> = ({ auth }) => {
-  const onSubmit: FormikConfig<FormData>['onSubmit'] = ({ email, password }, { setSubmitting }) => {
-    console.log('submitted');
-    auth.loginViaEmail({ email, password }).then(
-      () => {
-        console.log('Successful login');
-        setSubmitting(false);
-      },
-      error => {
-        setSubmitting(false);
-        console.error(error);
-      },
-    );
+const LoginFormComponent: FunctionComponent<LoginFormProps> = ({ auth, mode }) => {
+  const header = mode === 'create' ? 'Create a new account' : 'Log-in to your account';
+  const button = mode === 'create' ? 'Register' : 'Login';
+
+  const onSubmit: FormikConfig<FormData>['onSubmit'] = async ({ email, password }, { setSubmitting }) => {
+    try {
+      await auth.loginViaEmail({ email, password, create: mode === 'create' });
+      console.log('Successful login');
+      setSubmitting(false);
+    } catch (error) {
+      setSubmitting(false);
+      console.error(error);
+    }
   };
 
   return (
@@ -49,21 +56,12 @@ const LoginFormComponent: FunctionComponent<LoginFormProps> = ({ auth }) => {
       <Grid textAlign='center' style={{ height: '100%' }} verticalAlign='middle'>
         <Grid.Column style={{ maxWidth: 450 }}>
           <Header as='h2' color='teal' textAlign='center'>
-            <Image src='/static/logo.png' /> Log-in to your account
+            <Image src='/static/logo.png' /> {header}
           </Header>
           <Formik initialValues={{ email: '', password: '' }} validate={validate} onSubmit={onSubmit}>
-            {({
-              values,
-              errors,
-              touched,
-              handleChange,
-              handleBlur,
-              handleSubmit,
-              isSubmitting,
-              setSubmitting,
-            }) => {
+            {({ values, errors, touched, handleChange, handleBlur, handleSubmit, isSubmitting }) => {
               return (
-                <SemanticForm size='large' onSubmit={handleSubmit} as={Form}>
+                <SemanticForm size='large' onSubmit={handleSubmit}>
                   <Segment stacked={true}>
                     <SemanticForm.Input
                       fluid={true}
@@ -89,30 +87,37 @@ const LoginFormComponent: FunctionComponent<LoginFormProps> = ({ auth }) => {
                       onBlur={handleBlur}
                       value={values.password}
                     />
-                    <Button
-                      color='teal'
-                      fluid={true}
-                      size='large'
-                      type='submit'
-                      disabled={isSubmitting}
-                      // tslint:disable-next-line:jsx-no-lambda
-                      onClick={() => onSubmit(values, { setSubmitting })}
-                    >
-                      Login
+                    <Button color='teal' fluid={true} size='large' type='submit' disabled={isSubmitting}>
+                      {button}
                     </Button>
                   </Segment>
                 </SemanticForm>
               );
             }}
           </Formik>
-          <Message>
-            New to us? <a href='#'>Sign Up</a>
-          </Message>
+          <SwitchAuthenticationMode mode={mode} />
         </Grid.Column>
       </Grid>
     </LoginFormWrapper>
     // null
   );
 };
+
+const SwitchAuthenticationMode: FC<Pick<LoginFormProps, 'mode'>> = ({ mode }) =>
+  mode === 'login' ? (
+    <Message>
+      New to us?{' '}
+      <Link href='/register'>
+        <a href='#'>Register</a>
+      </Link>
+    </Message>
+  ) : (
+    <Message>
+      Already have an account?{' '}
+      <Link href='/login'>
+        <a href='#'>Login</a>
+      </Link>
+    </Message>
+  );
 
 export const LoginForm = withContainers({ auth: AuthContainer })(LoginFormComponent);

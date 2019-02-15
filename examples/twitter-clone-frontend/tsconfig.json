@@ -36,12 +36,12 @@
     "./components",
     "./typings",
     "./utils",
+    "./routes",
     "./typings/globals.d.ts",
     "./globals.d.ts",
     "./server",
     "./start.ts",
     "./containers",
-    "*.ts",
-    "firebase/firebase.ts"
+    "*.ts"
   ]
 }

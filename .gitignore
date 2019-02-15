@@ -79,6 +79,7 @@ jspm_packages/
 
 dist
 @schemafire/**/lib
+examples/**/lib
 support/jest-mocks/lib
 
 # We are using yarn

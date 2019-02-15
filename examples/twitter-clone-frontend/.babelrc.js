@@ -2,7 +2,7 @@ const defaultConfig = require('../../support/babel/base.babel');
 
 module.exports = {
   ...defaultConfig,
-  presets: ['@emotion/babel-preset-css-prop', 'next/babel', ...defaultConfig.presets],
+  presets: ['next/babel', ...defaultConfig.presets, '@emotion/babel-preset-css-prop'],
   plugins: [
     ...defaultConfig.plugins,
     [
