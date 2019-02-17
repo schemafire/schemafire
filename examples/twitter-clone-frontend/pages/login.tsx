@@ -5,9 +5,7 @@ import { redirect } from '@routes/route.helpers';
 import { PageContext } from '@typings/next.types';
 import { NextFunctionComponent } from 'next';
 
-const LoginPage: NextFunctionComponent<{}, {}, PageContext> = () => {
-  return <AuthForm mode='login' />;
-};
+const LoginPage: NextFunctionComponent<{}, {}, PageContext> = () => <AuthForm mode='login' />;
 
 LoginPage.getInitialProps = async (context: PageContext) => {
   if (context.authState.loggedIn) {
