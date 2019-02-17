@@ -2,15 +2,10 @@ import React, { FC, FunctionComponent } from 'react';
 
 import { AuthContainer } from '@containers/auth.container';
 import withContainers from '@containers/unstated.hoc';
-import styled from '@emotion/styled';
 import { Formik, FormikConfig } from 'formik';
 import Link from 'next/link';
 import { Button, Form as SemanticForm, Grid, Header, Image, Message, Segment } from 'semantic-ui-react';
 import isEmail from 'validator/lib/isEmail';
-
-const AuthFormWrapper = styled('div')`
-  height: 100%;
-`;
 
 enum FieldName {
   Email = 'email',
@@ -52,7 +47,13 @@ const AuthFormComponent: FunctionComponent<AuthFormProps> = ({ auth, mode }) => 
   };
 
   return (
-    <AuthFormWrapper>
+    <div className='root'>
+      <style jsx={true}>{`
+        .root {
+          height: 100%;
+          margin-top: 5%;
+        }
+      `}</style>
       <Grid textAlign='center' style={{ height: '100%' }} verticalAlign='middle'>
         <Grid.Column style={{ maxWidth: 450 }}>
           <Header as='h2' color='teal' textAlign='center'>
@@ -98,7 +99,7 @@ const AuthFormComponent: FunctionComponent<AuthFormProps> = ({ auth, mode }) => 
           <SwitchAuthenticationMode mode={mode} />
         </Grid.Column>
       </Grid>
-    </AuthFormWrapper>
+    </div>
     // null
   );
 };

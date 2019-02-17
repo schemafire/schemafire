@@ -30,7 +30,8 @@
       "@utils": ["utils"],
       "@utils/*": ["utils/*"],
       "*": ["../../support/types/*"]
-    }
+    },
+    "types": ["styled-jsx"]
   },
   "include": [
     "./pages",

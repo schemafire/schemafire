@@ -1,4 +1,4 @@
-import { initializeLiveFirebase, testCollection } from '@live-test-helpers';
+import { getDocument, initializeLiveFirebase, testCollection } from '@live-test-helpers';
 import { generateId } from '@schemafire/core';
 import admin from 'firebase-admin';
 import * as t from 'io-ts';
@@ -6,7 +6,6 @@ import { pick } from 'lodash/fp';
 import { codec, defaultData, realData } from '../__fixtures__/shared.fixtures';
 import { Schema } from '../schema';
 import { AnyModel, ModelTypeOfSchema, TypeOfData } from '../types';
-import { getDocument } from '../utils';
 
 jest.unmock('firebase-admin');
 

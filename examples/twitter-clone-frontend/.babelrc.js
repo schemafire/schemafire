@@ -2,9 +2,11 @@ const defaultConfig = require('../../support/babel/base.babel');
 
 module.exports = {
   ...defaultConfig,
-  presets: ['next/babel', ...defaultConfig.presets, '@emotion/babel-preset-css-prop'],
+  presets: ['next/babel', '@babel/preset-typescript'],
   plugins: [
-    ...defaultConfig.plugins,
+    'lodash',
+    ['@babel/plugin-proposal-decorators', { legacy: true }],
+    ['@babel/plugin-proposal-class-properties', { loose: true }],
     [
       'module-resolver',
       {

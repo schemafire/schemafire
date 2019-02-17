@@ -2,7 +2,6 @@
 
 import React, { ComponentType } from 'react';
 
-import { ScopeProvider } from '@components/scope-provider';
 import { AuthContainer } from '@containers/auth.container';
 import { AuthContainerState } from '@containers/types';
 import { authListener } from '@firebase/listeners';
@@ -82,13 +81,11 @@ class TwitterCloneApp extends App<Props> {
     const { Component, pageProps } = this.props;
     return (
       <Container>
-        <ScopeProvider scope={'#__next .App'}>
-          <UnstatedProvider inject={[this.authContainer]}>
-            <div className='App'>
-              <Component {...pageProps} />
-            </div>
-          </UnstatedProvider>
-        </ScopeProvider>
+        <UnstatedProvider inject={[this.authContainer]}>
+          <div className='App'>
+            <Component {...pageProps} />
+          </div>
+        </UnstatedProvider>
       </Container>
     );
   }

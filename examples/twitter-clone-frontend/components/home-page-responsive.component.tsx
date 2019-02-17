@@ -7,9 +7,12 @@ import { HomepageHeading } from './home-page-heading.component';
 
 const DesktopContainer: FC = ({ children }) => {
   const [state, setState] = useState({ fixed: false });
+
   const hideFixedMenu = () => setState({ fixed: false });
   const showFixedMenu = () => setState({ fixed: true });
+
   const { fixed } = state;
+
   return (
     <Responsive getWidth={getWidth} minWidth={Responsive.onlyTablet.minWidth}>
       <Visibility once={false} onBottomPassed={showFixedMenu} onBottomPassedReverse={hideFixedMenu}>
@@ -70,7 +73,7 @@ const MobileContainer: FC = ({ children }) => {
                 <Icon name='sidebar' />
               </Menu.Item>
               <Menu.Item position='right'>
-                <AuthMenu mobile={false} inverted={true} fixed={false} />
+                <AuthMenu mobile={false} fixed={false} />
               </Menu.Item>
             </Menu>
           </Container>

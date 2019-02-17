@@ -33,11 +33,6 @@
     "watch:server": "babel . --out-dir dist --extensions .ts --only server,utils,routes,start.ts,typings,workers -s --watch"
   },
   "dependencies": {
-    "@emotion/cache": "10.0.7",
-    "@emotion/core": "10.0.7",
-    "@emotion/css": "10.0.7",
-    "@emotion/memoize": "0.7.1",
-    "@emotion/styled": "10.0.7",
     "@firebase/functions-types": "0.2.2",
     "@schemafire/core": "0.0.1-alpha.3",
     "@types/cookie-parser": "1.4.1",
@@ -81,6 +76,7 @@
   },
   "devDependencies": {
     "@types/hoist-non-react-statics": "3.0.1",
+    "@types/styled-jsx": "2.2.8",
     "@zeit/next-bundle-analyzer": "0.1.2",
     "@zeit/next-css": "1.0.1",
     "@zeit/next-typescript": "1.1.1",
