@@ -93,6 +93,7 @@
     ]
   },
   "resolutions": {
-    "hoist-non-react-statics": "3.3.0"
+    "hoist-non-react-statics": "3.3.0",
+    "@babel/parser": "7.3.1"
   }
 }
