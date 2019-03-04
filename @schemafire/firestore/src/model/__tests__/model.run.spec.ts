@@ -278,7 +278,7 @@ describe('#run', () => {
   });
 
   it('can be rerun after an error occurs', async () => {
-    mockRunTransaction.mockRejectedValueOnce(new Error('Test'));
+    mockRunTransaction.mockRejectedValueOnce(Cast(new Error('Test')));
     await expect(testModel.update(data).run()).rejects.toThrowErrorMatchingInlineSnapshot(`"Test"`);
     expect(mockTransaction.set).not.toHaveBeenCalled();
     await testModel.run();
