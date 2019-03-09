@@ -1,4 +1,4 @@
-import { apps, firestore, initializeAdminApp } from '@firebase/testing';
+import { firestore, initializeAdminApp } from '@firebase/testing';
 import admin from 'firebase-admin';
 import { FirestoreRecord } from '../types';
 
@@ -34,10 +34,6 @@ export const setupFirebaseTesting = () => {
 };
 
 export type FirestoreTesting = firestore.Firestore;
-
-export const teardownFirebaseTesting = async () => {
-  await Promise.all(apps().map(app => app.delete()));
-};
 
 /**
  * Retrieve any document from any firestore collection.
