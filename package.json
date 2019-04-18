@@ -5,8 +5,7 @@
     "packages": [
       "@schemafire/*",
       "support/dependencies",
-      "support/jest-mocks",
-      "examples/*"
+      "support/jest-mocks"
     ]
   },
   "scripts": {
@@ -14,7 +13,6 @@
     "checks": "run-s integrity lint typecheck test",
     "checks:parallel": "run-p integrity lint typecheck test",
     "ci": "yarn clean; yarn frozen;",
-    "install:v": "yarn install --registry=http://localhost:4873",
     "ci:checks": "run-s integrity lint typecheck build test:ci",
     "ci:coverage": "codeclimate-test-reporter < coverage/lcov.info",
     "ci:setup": "node support/scripts/ci-setup.js",
@@ -29,6 +27,7 @@
     "fix:lint:ts": "lerna run lint --parallel -- --fix",
     "fix:prettier": "prettier --write \"**/*.{json,yml,yaml,md}\"",
     "frozen": "yarn --frozen-lockfile install",
+    "install:v": "yarn install --registry=http://localhost:4873",
     "integrity": "yarn check --integrity",
     "lint": "run-s lint:*",
     "lint:dts": "tslint -p dtslint/tsconfig.custom.json -c dtslint/tslint.custom.json dtslint/*.dts.ts",
@@ -95,6 +94,6 @@
   },
   "resolutions": {
     "hoist-non-react-statics": "3.3.0",
-    "@babel/parser": "7.3.1"
+    "@babel/parser": "7.4.3"
   }
 }

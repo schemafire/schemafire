@@ -1,5 +1,5 @@
 {
-  "packages": ["@schemafire/*", "support/dependencies", "support/jest-mocks", "examples/*"],
+  "packages": ["@schemafire/*", "support/dependencies", "support/jest-mocks"],
   "publish": {},
   "command": {
     "publish": {
