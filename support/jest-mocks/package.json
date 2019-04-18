@@ -4,7 +4,7 @@
   "description": "A collection of mocks used throughout schemafire packages",
   "author": "Ifiok Jr. <ifiokotung@gmail.com>",
   "repository": "https://github.com/ifiokjr/schemafire/tree/@schemafire/jest-mocks",
-  "version": "0.0.1-alpha.0",
+  "version": "0.0.1-alpha.1",
   "main": "lib/index.js",
   "files": [
     "lib",

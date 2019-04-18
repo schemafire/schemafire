@@ -5,7 +5,7 @@
   "license": "MIT",
   "author": "Ifiok Jr. <ifiokotung@gmail.com>",
   "repository": "https://github.com/ifiokjr/schemafire",
-  "version": "0.0.1-alpha.3",
+  "version": "0.0.1-alpha.4",
   "main": "lib/index.js",
   "files": [
     "lib",
@@ -27,8 +27,8 @@
   },
   "types": "lib/index.d.ts",
   "dependencies": {
-    "@schemafire/core": "0.0.1-alpha.3",
-    "@schemafire/firestore": "0.0.1-alpha.3",
+    "@schemafire/core": "0.0.1-alpha.4",
+    "@schemafire/firestore": "0.0.1-alpha.4",
     "@types/faker": "4.1.5",
     "faker": "4.1.0",
     "lodash": "4.17.11"
