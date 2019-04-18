@@ -8,9 +8,9 @@ module.exports = {
         },
       },
     ],
+    '@babel/preset-typescript',
   ],
   plugins: [
-    '@babel/plugin-transform-typescript',
     'lodash',
     '@babel/plugin-proposal-object-rest-spread',
     '@babel/plugin-transform-arrow-functions',

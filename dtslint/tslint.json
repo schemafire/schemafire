@@ -1,8 +1,12 @@
 {
-  "extends": "dtslint/dtslint.json",
+  "extends": ["@kj/tslint-rules/base"],
   "rules": {
-    "no-useless-files": false,
-    "ordered-imports": false,
-    "no-shadowed-variable": false
+    "custom-expect": true,
+    "no-console": false,
+    "no-any": false,
+    "no-implicit-dependencies": false,
+    "no-shadowed-variable": false,
+    "no-unused": false,
+    "ordered-imports": false
   }
 }

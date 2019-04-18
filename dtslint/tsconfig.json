@@ -19,5 +19,5 @@
     "skipLibCheck": true,
     "alwaysStrict": true
   },
-  "files": ["firestore.dts.ts"]
+  "include": ["*.dts.ts"]
 }

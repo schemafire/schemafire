@@ -1,6 +1,6 @@
 import { Cast, removeUndefined } from '@schemafire/core';
 import admin from 'firebase-admin';
-import * as t from 'io-ts';
+import { AnyProps } from 'io-ts';
 import { pipe } from 'lodash/fp';
 import { baseProps } from './base';
 import {
@@ -20,9 +20,9 @@ import {
   UpdateModelAction,
 } from './types';
 
-// const a: 'Create' = ModelActionType.Create;
-// type B = ModelActionType;
-
+/**
+ * Checks the action type and returns the corresponding ModelAction interface.
+ */
 type FindActionType<
   GData,
   GModel extends AnyModel,
@@ -99,6 +99,11 @@ export const actionsContainCallback = actionsContain(isCallbackAction);
 export const actionsContainUpdate = actionsContain(isUpdateAction);
 export const actionsContainDeleteField = actionsContain(isDeleteFieldAction);
 
+/**
+ * Finds the query action within the actions array
+ *
+ * @param actions
+ */
 export const findQueryAction = <T, M extends AnyModel>(actions: Array<ModelAction<T, M>>) => {
   return actions.find(isQueryAction);
 };
@@ -106,7 +111,7 @@ export const findQueryAction = <T, M extends AnyModel>(actions: Array<ModelActio
 /**
  * Builds a query which can be used to obtain data
  */
-export const buildQuery = <GProps extends t.Props>(
+export const buildQuery = <GProps extends AnyProps>(
   ref: FirebaseFirestore.CollectionReference | FirebaseFirestore.Query,
   clauses: QueryTuples<GProps>,
 ) => {
@@ -132,25 +137,6 @@ export const getRecord = async <T extends {}>(
   const snap = await doc.get();
   const data = snap.exists ? (snap.data() as T) : undefined;
 
-  return { doc, snap, data };
-};
-
-/**
- * Retrieve any document from any firestore collection.
- *
- * @param documentId
- * @param collection
- */
-export const getDocument = async <T extends {}>(
-  documentId: string,
-  collection: string,
-): Promise<FirestoreRecord<T>> => {
-  const doc = admin
-    .firestore()
-    .collection(collection)
-    .doc(documentId);
-  const snap = await doc.get();
-  const data = snap.exists ? (snap.data() as T) : undefined;
   return { doc, snap, data };
 };
 
@@ -233,3 +219,7 @@ export const safeFirestoreUpdate: (
   removeUndefined,
   serverUpdateTimestamp,
 );
+
+export const hasData = <GType extends {}>(params: GType): params is GType & { data: any } => {
+  return Boolean(params && Cast(params).data);
+};

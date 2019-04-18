@@ -1,10 +1,9 @@
 import firebaseTools from 'firebase-tools';
-import { GlobalConfig } from 'jest-cli';
 import { TestEmulator } from './test-emulator';
 
 const { isLiveTest, userFirebaseConfig } = require('../utils');
 
-module.exports = async (_: GlobalConfig) => {
+module.exports = async () => {
   if (!isLiveTest()) {
     return;
   }

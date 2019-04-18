@@ -1,4 +1,4 @@
-import { initializeLiveFirebase, testCollection } from '@live-test-helpers';
+import { getDocument, initializeLiveFirebase, testCollection } from '@live-test-helpers';
 import { generateId } from '@schemafire/core';
 import admin from 'firebase-admin';
 import * as t from 'io-ts';
@@ -6,7 +6,6 @@ import { pick } from 'lodash/fp';
 import { codec, defaultData, realData } from '../__fixtures__/shared.fixtures';
 import { Schema } from '../schema';
 import { AnyModel, ModelTypeOfSchema, TypeOfData } from '../types';
-import { getDocument } from '../utils';
 
 jest.unmock('firebase-admin');
 
@@ -34,7 +33,7 @@ describe('#create', () => {
     await Promise.all(modelsToDelete);
   });
   it('should create a document', async () => {
-    const m = Base.create(realData, ids[0]);
+    const m = Base.create({ data: realData, id: ids[0] });
     await m.run({ forceGet: true });
     expect(m.data).toEqual(expect.objectContaining(checkableData));
     expect(m.data).toHaveProperty('createdAt');
@@ -43,9 +42,9 @@ describe('#create', () => {
   });
 
   it('should override a previously created document', async () => {
-    const m = Base.create(realData);
+    const m = Base.create({ data: realData });
     ids.push(m.id);
-    const m2 = Base.create({ ...realData, age: 100 }, m.id);
+    const m2 = Base.create({ data: { ...realData, age: 100 }, id: m.id });
     await m.run();
     const record = await getDocument<TypeOfData<typeof Base>>(m.id, collection);
     await m2.run();
@@ -61,7 +60,7 @@ describe('#findOrCreate', () => {
     await Base.deleteById(id);
   });
   it('should create a document', async () => {
-    await Base.findOrCreate(id, realData).run();
+    await Base.findOrCreate({ id, data: realData }).run();
     const record = await getDocument<TypeOfData<typeof Base>>(id, collection);
     expect(record.data).toEqual(
       expect.objectContaining({
@@ -71,8 +70,8 @@ describe('#findOrCreate', () => {
   });
   it('should not recreate a created document', async () => {
     const testId = generateId();
-    const m = Base.findOrCreate(testId, realData);
-    const m2 = Base.findOrCreate(testId, { ...realData, age: 100 });
+    const m = Base.findOrCreate({ id: testId, data: realData });
+    const m2 = Base.findOrCreate({ id: testId, data: { ...realData, age: 100 } });
     await m.run({ forceGet: true });
     await m2.run({ forceGet: true });
     expect(m2.data!.createdAt.isEqual(m.data!.createdAt)).toBe(true);
@@ -83,7 +82,7 @@ describe('#deleteById', () => {
   const id: string = generateId();
   let model: ModelTypeOfSchema<typeof Base>;
   beforeEach(async () => {
-    model = Base.create(realData, id);
+    model = Base.create({ data: realData, id });
     await model.run();
   });
   it('deletes data', async () => {
@@ -143,7 +142,7 @@ describe('#fromSnap', () => {
 describe('#findById', () => {
   const id: string = generateId();
   beforeEach(async () => {
-    await Base.create(realData, id).run();
+    await Base.create({ data: realData, id }).run();
   });
 
   afterEach(async () => {
@@ -153,8 +152,10 @@ describe('#findById', () => {
   it('can find via id', async () => {
     const model = Base.findById(id);
     expect(model.data).not.toEqual(expect.objectContaining(checkableData));
+    expect(model.exists).toBeFalse();
     await model.run();
     expect(model.data).toEqual(expect.objectContaining(checkableData));
+    expect(model.exists).toBeTrue();
   });
   it('can find via callback', async () => {
     await Base.findById(id, params => {

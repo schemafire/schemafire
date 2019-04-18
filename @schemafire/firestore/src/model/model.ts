@@ -18,6 +18,7 @@ import {
   isGeoPoint,
   omitBaseFields,
 } from '../base';
+import { RunTransactionErrors, ValidationError } from '../errors';
 import { createDataProxy } from '../proxy';
 import {
   BaseInjectedDeps,
@@ -53,7 +54,6 @@ import {
   isBaseProp,
   serverUpdateTimestamp,
 } from '../utils';
-import { SchemaFireValidationError } from '../validation';
 import {
   buildMirrorData,
   buildUpdatedData,
@@ -304,102 +304,103 @@ export class Model<
     this.proxy = this.createDataProxy();
   }
 
+  private updateFunction = (alwaysGet: boolean) => async (transaction: FirebaseFirestore.Transaction) => {
+    const doc = this.doc;
+
+    /* Create the state that will be passed out of this transaction if successful */
+    let state = createTransactionState<GProps, this>({ rawData: this.rawData, actions: this.actions });
+
+    if (actionsContainDelete(this.actions)) {
+      const idField = getIdFieldFromSchema(this.schema);
+      if (idField && !this.rawData[idField]) {
+        state = await getTransaction({ transaction, doc, state });
+      }
+
+      this.mirrorTransaction(transaction, 'delete');
+      return deleteTransaction({ transaction, state, doc });
+    }
+
+    const queryModelAction = findQueryAction(this.actions);
+    if (queryModelAction) {
+      const query = buildQuery(this.schema.ref, queryModelAction.data);
+      state = await queryTransaction({ transaction, query, state });
+    }
+
+    if (actionsContainCallback(this.actions)) {
+      state = await getTransaction({ transaction, state, doc });
+      runCallbacks({ state, ctx: this, baseData: this.baseData });
+    }
+
+    const actions = [...this.actions, ...state.actions];
+
+    // Callbacks can add create actions so we need to check again.
+
+    const data = buildUpdatedData({
+      rawData: state.rawData,
+      actions,
+    });
+
+    // This allows us to ignore deleted fields when creating new data.
+
+    const dataWithoutDeletes = buildUpdatedData({
+      withoutDeletes: true,
+      rawData: state.rawData,
+      actions,
+    });
+
+    if (actionsContainFind(this.actions)) {
+      state = await getTransaction({ transaction, doc, state });
+    }
+
+    if (actionsContainFindOrCreate(this.actions)) {
+      state = await getTransaction({ transaction, state, doc });
+
+      if (!snapshotExists(state.syncData && state.syncData.snap, this.existsViaCreation)) {
+        this.throwIfInvalid();
+
+        state = createTransaction({ transaction, data: dataWithoutDeletes, state, doc });
+        this.mirrorTransaction(transaction, dataWithoutDeletes);
+        return state;
+      }
+    }
+
+    if (actionsContainCreate(this.actions)) {
+      this.throwIfInvalid();
+
+      state = createTransaction({ transaction, data: dataWithoutDeletes, force: true, doc, state });
+      this.mirrorTransaction(transaction, dataWithoutDeletes);
+      return state;
+    }
+
+    const emptyData = isEmpty(data);
+
+    if (alwaysGet) {
+      state = await getTransaction({ transaction, state, doc, noData: !emptyData });
+    }
+
+    if (emptyData) {
+      return state;
+    }
+
+    this.throwIfInvalid();
+
+    state = updateTransaction({ transaction, data, doc, state });
+    this.mirrorTransaction(transaction, data);
+    return state;
+  };
+
   /**
    * Runs a transaction that handles all use cases for the update state of a model.
    */
-  private async buildTransaction(maxAttempts?: number, alwaysGet?: boolean) {
+  private async buildTransaction(alwaysGet: boolean, testMode: boolean, maxAttempts: number) {
     if (isEmpty(this.actions) && !alwaysGet) {
       logError('No data to process for this model');
       return;
     }
-    const doc = this.doc;
 
-    return this.schema.db.runTransaction(
-      async transaction => {
-        /* Create the state that will be passed out of this transaction if successful */
-        let state = createTransactionState<GProps, this>({ rawData: this.rawData, actions: this.actions });
-
-        if (actionsContainDelete(this.actions)) {
-          const idField = getIdFieldFromSchema(this.schema);
-          if (idField && !this.rawData[idField]) {
-            state = await getTransaction({ transaction, doc, state });
-          }
-
-          this.mirrorTransaction(transaction, 'delete');
-          return deleteTransaction({ transaction, state, doc });
-          // ! this.resetRawData({});
-        }
-
-        const queryModelAction = findQueryAction(this.actions);
-        if (queryModelAction) {
-          const query = buildQuery(this.schema.ref, queryModelAction.data);
-          state = await queryTransaction({ transaction, query, state });
-        }
-
-        if (actionsContainCallback(this.actions)) {
-          state = await getTransaction({ transaction, state, doc });
-          runCallbacks({ state, ctx: this, baseData: this.baseData });
-        }
-
-        const actions = [...this.actions, ...state.actions];
-
-        // Callbacks can add create actions so we need to check again.
-
-        const data = buildUpdatedData({
-          rawData: state.rawData,
-          actions,
-        });
-
-        // This allows us to ignore deleted fields when creating new data.
-
-        const dataWithoutDeletes = buildUpdatedData({
-          withoutDeletes: true,
-          rawData: state.rawData,
-          actions,
-        });
-
-        if (actionsContainFind(this.actions)) {
-          state = await getTransaction({ transaction, doc, state });
-        }
-
-        if (actionsContainFindOrCreate(this.actions)) {
-          state = await getTransaction({ transaction, state, doc });
-
-          if (!snapshotExists(state.syncData && state.syncData.snap, this.existsViaCreation)) {
-            this.throwIfInvalid();
-
-            state = createTransaction({ transaction, data: dataWithoutDeletes, state, doc });
-            this.mirrorTransaction(transaction, dataWithoutDeletes);
-            return state;
-          }
-        }
-
-        if (actionsContainCreate(this.actions)) {
-          this.throwIfInvalid();
-
-          state = createTransaction({ transaction, data: dataWithoutDeletes, force: true, doc, state });
-          this.mirrorTransaction(transaction, dataWithoutDeletes);
-          return state;
-        }
-
-        const emptyData = isEmpty(data);
-
-        if (alwaysGet) {
-          state = await getTransaction({ transaction, state, doc, noData: !emptyData });
-        }
-
-        if (emptyData) {
-          return state;
-        }
-
-        this.throwIfInvalid();
-
-        state = updateTransaction({ transaction, data, doc, state });
-        this.mirrorTransaction(transaction, data);
-        return state;
-      },
-      { maxAttempts },
-    );
+    return testMode
+      ? this.schema.db.runTransaction(this.updateFunction(alwaysGet))
+      : this.schema.db.runTransaction(this.updateFunction(alwaysGet), { maxAttempts });
   }
 
   /**
@@ -430,7 +431,7 @@ export class Model<
     this.id = this.doc.id;
   }
 
-  private setCurrentConfig(config: RunConfig = {}) {
+  private setCurrentConfig(config: Partial<RunConfig> = {}) {
     this.currentRunConfig = { ...this.schema.config, ...config };
   }
 
@@ -483,10 +484,14 @@ export class Model<
   /**
    * Runs through all the pending actions and updates the cloud firestore database.
    */
-  public run = async (config: RunConfig = {}): Promise<this> => {
+  public run = async (config: Partial<RunConfig> = {}): Promise<this> => {
     this.setCurrentConfig(config);
     try {
-      const state = await this.buildTransaction(config.maxAttempts, config.forceGet);
+      const state = await this.buildTransaction(
+        this.currentRunConfig.forceGet,
+        this.currentRunConfig.testMode,
+        this.currentRunConfig.maxAttempts,
+      );
       if (!state) {
         return this;
       }
@@ -495,10 +500,11 @@ export class Model<
       this.manageLastRunStatus();
       if (this.errors.length) {
         // Manage the harder to catch errors and rethrow
-        throw this.errors[0];
+        console.log(this.errors);
+        throw new RunTransactionErrors(this.errors);
       }
 
-      await this.forceGetIfNeeded(config);
+      await this.forceGetIfNeeded(this.currentRunConfig);
 
       // Only reset if successful
       this.hasRunSuccessfully = true;
@@ -559,6 +565,9 @@ export class Model<
     return this;
   };
 
+  /**
+   * Adds a create action to the run queue for this model.
+   */
   public create = (data: TypeOfProps<GProps>, force: boolean = true) => {
     this.actions.push({
       data,
@@ -598,7 +607,7 @@ export class Model<
 
       report = codec.decode(pick(updatedKeys, data));
     }
-    return report.fold(SchemaFireValidationError.create, () => undefined);
+    return report.fold(ValidationError.create, () => undefined);
   };
 
   /**

@@ -43,10 +43,10 @@ const normalizeModels = (config: GenerateDataConfig[], count: number) => {
     let key: string;
     if (Array.isArray(current)) {
       const [schema, num] = current;
-      val = { createModel: (id, data) => schema.create(data, id), codec: schema.codec, count: num };
+      val = { createModel: (id, data) => schema.create({ data, id }), codec: schema.codec, count: num };
       key = schema.collection;
     } else {
-      val = { createModel: (id, data) => current.create(data, id), codec: current.codec, count };
+      val = { createModel: (id, data) => current.create({ data, id }), codec: current.codec, count };
       key = current.collection;
     }
     return { ...prev, [key]: val };

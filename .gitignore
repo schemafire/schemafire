@@ -79,6 +79,7 @@ jspm_packages/
 
 dist
 @schemafire/**/lib
+examples/**/lib
 support/jest-mocks/lib
 
 # We are using yarn
@@ -118,3 +119,10 @@ tmp**
 /support/secrets/key.json
 /config/test/db.json
 /config/test/key.json
+
+key.json
+db.json
+secret.json
+
+.env
+*.env

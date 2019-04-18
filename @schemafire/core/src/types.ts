@@ -9,6 +9,11 @@ export type Nullable<GType> = { [P in keyof GType]: GType[P] | null };
 export type Omit<GType, GKeys extends keyof GType> = Pick<GType, Exclude<keyof GType, GKeys>>;
 
 /**
+ * Give keys the type never
+ */
+export type Never<GType, GKeys extends keyof GType> = Omit<GType, GKeys> & Partial<Record<GKeys, never>>;
+
+/**
  * Makes specified keys of an interface Optional.
  */
 export type MakeOptional<GType, GKeys extends keyof GType> = Omit<GType, GKeys> &

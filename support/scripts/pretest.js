@@ -4,7 +4,7 @@ const chalk = require('chalk');
 const fs = require('mz/fs');
 const semver = require('semver');
 
-const REQ_YARN_VERSION = '1.0.0';
+const REQ_YARN_VERSION = '1.13.0';
 
 /**
  * Potential Problem #1:

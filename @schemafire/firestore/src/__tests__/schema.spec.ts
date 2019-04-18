@@ -3,10 +3,10 @@ import { Cast } from '@schemafire/core';
 import { collectionRef, docData, runTransaction, snapData } from '@schemafire/jest-mocks/lib/firebase-admin';
 import admin from 'firebase-admin';
 import { codec, defaultData, realData } from '../__fixtures__/shared.fixtures';
+import { ValidationError } from '../errors';
 import { Model } from '../model/model';
 import { Query } from '../query';
 import { Schema } from '../schema';
-import { SchemaFireValidationError } from '../validation';
 
 const collection = testCollection('base');
 const mock = jest.fn();
@@ -35,11 +35,11 @@ describe('constructor', () => {
     expect(() => new Schema({ codec, collection, defaultData })).toThrowError();
   });
   it('provides itself to the created models', () => {
-    const m = Base.create(realData);
+    const m = Base.create({ data: realData });
     expect(m.schema).toBe(Base);
   });
   it('creates models with correct params', () => {
-    const base = Base.create(realData);
+    const base = Base.create({ data: realData });
     const timestamp = admin.firestore.Timestamp.now(); // Works because of mocks
     expect(base.data.createdAt).toBe(timestamp);
     expect(base.data.updatedAt).toBe(timestamp);
@@ -92,8 +92,8 @@ describe('constructor', () => {
 });
 
 test('#validate', () => {
-  const m = Base.create(realData);
-  expect(Base.validate({})).toBeInstanceOf(SchemaFireValidationError);
+  const m = Base.create({ data: realData });
+  expect(Base.validate({})).toBeInstanceOf(ValidationError);
   expect(Base.validate(m)).toBeUndefined();
   expect(Base.validate(realData)).toBeUndefined();
   expect(Base.validate('failing string')!.message).toMatchInlineSnapshot(

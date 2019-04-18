@@ -17,6 +17,7 @@
   "useWorkspaces": true,
   "npmClientArgs": ["--no-lockfile"],
   "ignoreChanges": [
+    "examples/**",
     "**/__fixtures__/**",
     "**/__tests__/**",
     "**/__mocks__/**",

@@ -47,10 +47,10 @@ const schema = new Schema({
   },
 });
 
-// $ExpectType void
+// -$ExpectType void
 schema.methods.simple();
 
-// $ExpectType boolean
+// -$ExpectType boolean
 schema.methods.withReturnValue(true);
 
 // $ExpectError
@@ -59,15 +59,15 @@ schema.methods.simple({});
 // $ExpectError
 schema.methods.extraArgs({}, 10);
 
-// $ExpectType void
+// -$ExpectType void
 schema.methods.extraArgs('', 10);
 
 const model = schema.model();
 
-// $ExpectType void
+// -$ExpectType void
 model.methods.simple();
 
-// $ExpectType boolean
+// -$ExpectType boolean
 model.methods.withReturnValue(true);
 
 // $ExpectError
@@ -76,10 +76,10 @@ model.methods.simple({});
 // $ExpectError
 model.methods.extraArgs({}, 10);
 
-// $ExpectType void
+// -$ExpectType void
 model.methods.extraArgs('', 10);
 
-// $ExpectType "extraArg" | "extraArgs" | "simple" | "withReturnValue"
+// -$ExpectType "extraArg" | "extraArgs" | "simple" | "withReturnValue"
 type A = keyof typeof model.methods;
 
 model.attach(params => {

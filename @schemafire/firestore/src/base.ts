@@ -93,5 +93,3 @@ export const createDefaultBase = (base: Partial<BaseDefinition> = {}): BaseDefin
   schemaVersion: 0,
   ...base,
 });
-
-export { numbers, utils, strings } from '@schemafire/core';
