@@ -29,7 +29,7 @@
     "@schemafire/firestore": "0.0.1-alpha.5",
     "@types/faker": "4.1.5",
     "faker": "4.1.0",
-    "lodash": "4.17.11"
+    "lodash": "4.17.13"
   },
   "peerDependencies": {
     "firebase-admin": "^7.0.0",

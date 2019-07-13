@@ -29,7 +29,7 @@
     "invariant": "2.2.4",
     "io-ts": "1.8.5",
     "io-ts-reporters": "0.0.21",
-    "lodash": "4.17.11",
+    "lodash": "4.17.13",
     "nanoid": "2.0.1",
     "validator": "10.11.0"
   },
