@@ -27,16 +27,16 @@
   "dependencies": {
     "@schemafire/core": "0.0.1-alpha.5",
     "@schemafire/firestore": "0.0.1-alpha.5",
-    "@types/faker": "4.1.5",
+    "@types/faker": "4.1.6",
     "faker": "4.1.0",
-    "lodash": "4.17.11"
+    "lodash": "4.17.15"
   },
   "peerDependencies": {
     "firebase-admin": "^7.0.0",
     "io-ts": "^1.8.1"
   },
   "devDependencies": {
-    "io-ts": "1.8.5"
+    "io-ts": "2.0.1"
   },
   "publishConfig": {
     "access": "public"

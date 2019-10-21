@@ -66,7 +66,7 @@ export type PrimitiveKeys<GType extends {}> = {
     ? JSONDocumentReference
     : GType[P] extends FirebaseFirestore.CollectionReference
     ? JSONCollectionReference
-    : GType[P]
+    : GType[P];
 };
 
 /**
@@ -554,7 +554,7 @@ export type StringKeys<GProps extends t.AnyProps> = Extract<keyof GProps, string
 export type QueryTuple<GKeys extends string> = [
   GKeys | [GKeys] | [GKeys, string] | [GKeys, string, string],
   FirebaseFirestore.WhereFilterOp,
-  unknown
+  unknown,
 ];
 export type QueryTuples<GProps extends t.AnyProps> = Array<QueryTuple<StringKeys<GProps>>>;
 
@@ -572,7 +572,7 @@ export interface StaticMethodConfig<GSchema extends AnySchema> {
 }
 
 export type MappedStaticMethods<GSchema extends AnySchema, S extends StaticMethodConfig<GSchema> = any> = {
-  [P in keyof S]: ReturnType<S[P]>
+  [P in keyof S]: ReturnType<S[P]>;
 };
 
 /* Instance Methods */

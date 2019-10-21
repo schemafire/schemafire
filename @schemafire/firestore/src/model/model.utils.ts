@@ -1,5 +1,6 @@
 import { Cast } from '@schemafire/core';
 import admin from 'firebase-admin';
+import { entries } from '@remirror/core-helpers';
 import { AnyProps } from 'io-ts';
 import { get } from 'lodash/fp';
 import { BaseDefinition } from '../base';
@@ -427,8 +428,8 @@ interface MethodFactoryParams<
 const updateMethodFactory = <GProps extends AnyProps, GModel extends AnyModel>({
   proxy,
 }: MethodFactoryParams<GProps, GModel>) => (data: TypeOfProps<GProps>) => {
-  Object.entries(data).forEach(([key, val]) => {
-    proxy[key] = val;
+  entries(data).forEach(([key, val]) => {
+    proxy[key as keyof TypeOfPropsWithBase<GProps>] = val;
   });
 };
 
@@ -449,8 +450,8 @@ const createMethodFactory = <GProps extends AnyProps, GModel extends AnyModel>({
   proxy,
   actions,
 }: MethodFactoryParams<GProps, GModel>) => (data: TypeOfProps<GProps>) => {
-  Object.entries(data).forEach(([key, val]) => {
-    proxy[Cast(key)] = val;
+  entries(data).forEach(([key, val]) => {
+    proxy[key as keyof TypeOfPropsWithBase<GProps>] = val;
   });
   actions.push({
     data,

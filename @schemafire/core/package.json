@@ -23,15 +23,16 @@
     "watch:declaration": "tsc -p ./tsconfig.prod.json --emitDeclarationOnly --declarationMap --watch"
   },
   "dependencies": {
-    "@types/invariant": "2.2.29",
-    "@types/node": "11.13.4",
-    "@types/validator": "10.11.0",
-    "invariant": "2.2.4",
-    "io-ts": "1.8.5",
-    "io-ts-reporters": "0.0.21",
-    "lodash": "4.17.11",
-    "nanoid": "2.0.1",
-    "validator": "10.11.0"
+    "@types/invariant": "^2.2.30",
+    "@types/node": "^12.11.1",
+    "@types/validator": "^10.11.3",
+    "fp-ts": "^2.0.5",
+    "invariant": "^2.2.4",
+    "io-ts": "^2.0.1",
+    "io-ts-reporters": "^1.0.0",
+    "lodash": "^4.17.15",
+    "nanoid": "^2.1.4",
+    "validator": "^11.1.0"
   },
   "peerDependencies": {
     "@google-cloud/firestore": "^1.0.0",

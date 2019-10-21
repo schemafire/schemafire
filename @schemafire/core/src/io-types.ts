@@ -1,5 +1,3 @@
-/// <reference path="./patches.d.ts" />
-
 import * as t from 'io-ts';
 import { reporter } from 'io-ts-reporters';
 import isEmail from 'validator/lib/isEmail';

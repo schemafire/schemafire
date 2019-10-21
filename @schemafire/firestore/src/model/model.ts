@@ -70,6 +70,7 @@ import {
   snapshotExists,
   updateTransaction,
 } from './model.utils';
+import { fold } from 'fp-ts/lib/Either';
 
 export class Model<
   GProps extends AnyProps,
@@ -560,7 +561,8 @@ export class Model<
         data: Cast<Data>({ [key]: val }),
         type: ModelActionType.Update,
       });
-      this.data[key] = val;
+      this.data.createdAt;
+      this.data[key as keyof TypeOfPropsWithBase<GProps>] = val;
     });
     return this;
   };
@@ -607,7 +609,7 @@ export class Model<
 
       report = codec.decode(pick(updatedKeys, data));
     }
-    return report.fold(ValidationError.create, () => undefined);
+    return fold(ValidationError.create, () => undefined)(report);
   };
 
   /**

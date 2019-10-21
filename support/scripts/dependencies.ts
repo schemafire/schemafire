@@ -116,7 +116,7 @@ const dependencies: Record<string, Dep> = {
   },
 };
 
-const createTaskList = (failed = new Set()) => {
+const createTaskList = (failed = new Set<string>()) => {
   const initialTasks: ListrTask[] = [];
   return Object.entries(dependencies).reduce((current, [name, { check }]) => {
     const title = chalk`Checking for dependency: {bold.blue ${startCase(name)}}`;
@@ -175,7 +175,7 @@ const generateResult = (failedChecks: FailedChecks[]) => {
 };
 
 export const checkDependencies = async () => {
-  const failedChecks = new Set();
+  const failedChecks = new Set<string>();
   const list = createTaskList(failedChecks);
   const tasks = new Listr(list, { exitOnError: false, concurrent: false });
 

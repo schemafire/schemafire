@@ -94,6 +94,6 @@
   },
   "resolutions": {
     "hoist-non-react-statics": "3.3.0",
-    "@babel/parser": "7.4.3"
+    "@babel/parser": "7.6.4"
   }
 }

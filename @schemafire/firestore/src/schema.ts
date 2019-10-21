@@ -29,6 +29,7 @@ import {
   TypeOfPropsWithBase,
 } from './types';
 import { hasData } from './utils';
+import { fold } from 'fp-ts/lib/Either';
 
 /**
  * Create schema for your Firestore collections
@@ -392,7 +393,7 @@ export class Schema<
     }
 
     if (isPlainObject(data)) {
-      return this.codec.decode(data).fold(ValidationError.create, () => undefined);
+      return fold(ValidationError.create, () => undefined)(this.codec.decode(data));
     }
 
     return ValidationError.create();
