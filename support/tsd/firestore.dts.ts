@@ -47,44 +47,49 @@ const schema = new Schema({
   },
 });
 
-// -$ExpectType void
+// @dts-jest:pass:snap
 schema.methods.simple();
 
-// -$ExpectType boolean
+// @dts-jest:pass:snap
 schema.methods.withReturnValue(true);
 
-// $ExpectError
+// @dts-jest:fail:snap
 schema.methods.simple({});
 
-// $ExpectError
+// @dts-jest:fail:snap
 schema.methods.extraArgs({}, 10);
 
-// -$ExpectType void
+// @dts-jest:pass:snap
 schema.methods.extraArgs('', 10);
 
 const model = schema.model();
 
-// -$ExpectType void
+// @dts-jest:pass:snap
 model.methods.simple();
 
-// -$ExpectType boolean
+// @dts-jest:pass:snap
 model.methods.withReturnValue(true);
 
-// $ExpectError
+// @dts-jest:fail:snap
 model.methods.simple({});
 
-// $ExpectError
+// @dts-jest:fail:snap
 model.methods.extraArgs({}, 10);
 
-// -$ExpectType void
+// @dts-jest:pass:snap
 model.methods.extraArgs('', 10);
 
-// -$ExpectType "extraArg" | "extraArgs" | "simple" | "withReturnValue"
+// @dts-jest:pass:snap
 type A = keyof typeof model.methods;
 
 model.attach(params => {
   params.update({ age: 1, custom: '', data: {}, name: '' });
-  params.data.createdAt = new Date(); // $ExpectError
-  params.data.updatedAt = new Date(); // $ExpectError
-  params.data.schemaVersion = new Date(); // $ExpectError
+  // @dts-jest:fail:snap
+  params.data.createdAt = new Date();
+
+  // @dts-jest:fail:snap
+  params.data.updatedAt = new Date();
+
+  // @dts-jest:fail:snap
+  params.data.schemaVersion = new Date();
 });

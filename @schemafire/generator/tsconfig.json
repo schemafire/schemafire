@@ -1,9 +1,6 @@
 {
-  "extends": "../../base.tsconfig.json",
+  "extends": "../../support/tsconfig.base.json",
   "compilerOptions": {
-    "lib": ["esnext"],
-    "types": ["jest", "jest-extended"],
     "outDir": "lib"
-  },
-  "include": ["src"]
+  }
 }
