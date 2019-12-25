@@ -57,7 +57,7 @@ export interface JSONCollectionReference extends JSONRepresentation<string> {
   type: 'coll';
 }
 
-export type PrimitiveKeys<GType extends {}> = {
+export type PrimitiveKeys<GType extends object> = {
   [P in Key<GType>]: GType[P] extends FirebaseFirestore.Timestamp
     ? JSONTimestamp
     : GType[P] extends FirebaseFirestore.GeoPoint

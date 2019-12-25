@@ -3,6 +3,9 @@
   "files": [],
   "references": [
     {
+      "path": "@schemafire/core/tsconfig.prod.json"
+    },
+    {
       "path": "@schemafire/firestore/tsconfig.prod.json"
     }
   ],

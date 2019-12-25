@@ -21,6 +21,9 @@
   ],
   "references": [
     {
+      "path": "../core/tsconfig.prod.json"
+    },
+    {
       "path": "../firestore/tsconfig.prod.json"
     }
   ]

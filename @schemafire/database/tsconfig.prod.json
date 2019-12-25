@@ -19,5 +19,9 @@
     "**/__tests__/**",
     "**/__stories__/**"
   ],
-  "references": []
+  "references": [
+    {
+      "path": "../core/tsconfig.prod.json"
+    }
+  ]
 }

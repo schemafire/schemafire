@@ -3,6 +3,8 @@
   "compilerOptions": {
     "baseUrl": "../",
     "paths": {
+      "@schemafire/core": ["@schemafire/core/src/index.ts"],
+      "@schemafire/core/lib/*": ["@schemafire/core/src/*"],
       "@schemafire/database": ["@schemafire/database/src/index.ts"],
       "@schemafire/database/lib/*": ["@schemafire/database/src/*"],
       "@schemafire/firestore": ["@schemafire/firestore/src/index.ts"],
