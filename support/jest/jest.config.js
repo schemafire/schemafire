@@ -1,45 +1,26 @@
-const { supportDir, isLiveTest, baseDir } = require('../utils');
+const { jestSupportDir, baseDir } = require('./helpers');
 
-const testRegex = isLiveTest()
-  ? '/__tests__/.*\\.(spec|test)\\.tsx?$'
-  : '/__tests__/.*\\.spec\\.tsx?$';
+const { TEST_BUILD } = process.env;
 
+/** @type Partial<import("@jest/types").Config.GlobalConfig> */
 module.exports = {
-  globals: {
-    __DEV__: true,
-    __TEST__: true,
-    __DB_PREFIX__: global.__DB_PREFIX__,
-  },
-  coveragePathIgnorePatterns: [
-    '/node_modules/',
-    '/dtslint/',
-    '\\.d.ts',
-    '/__mocks__/',
-    '/__tests__/',
-    '/__fixtures__/',
-    'jest\\.*\\.ts',
-    'live-test-helpers\\.ts',
-    'unit-test-helpers\\.ts',
-  ],
   clearMocks: true,
   verbose: true,
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
+  globals: {
+    __DEV__: true,
+    __TEST__: true,
+    __E2E__: false,
+  },
+  transform: {
+    '^.+\\.(js|jsx|ts|tsx)$': [require.resolve('babel-jest'), { rootMode: 'upward' }],
+  },
   moduleDirectories: ['node_modules'],
   testPathIgnorePatterns: ['<rootDir>/lib/', '<rootDir>/node_modules/'],
-  testRegex,
-  setupFilesAfterEnv: [supportDir('jest/jest.framework.ts')],
-  cacheDirectory: baseDir('.jest/cache'),
-  testEnvironment: 'node',
-  transform: {
-    '^.+\\.(js|jsx|ts|tsx)$': supportDir('jest/jest.transformer.js'),
-  },
-  moduleNameMapper: {
-    '@schemafire/core$': baseDir('@schemafire/core/src'),
-    '@schemafire/firestore$': baseDir('@schemafire/firestore/src'),
-    '@schemafire/jest-mocks/lib(.*)$': baseDir('support/jest-mocks/src') + '$1',
-    '@unit-test-helpers$': baseDir('@schemafire/core/src/__tests__/unit-test-helpers.ts'),
-    '@live-test-helpers$': baseDir(
-      '@schemafire/firestore/src/__tests__/live-test-helpers.ts',
-    ),
-  },
+  testRegex: '/__tests__/.*\\.spec\\.tsx?$',
+  setupFilesAfterEnv: [
+    jestSupportDir('jest.framework.ts'),
+    jestSupportDir('jest.framework.dom.ts'),
+  ],
+  cacheDirectory: baseDir('.jest', TEST_BUILD ? 'build' : 'aliased'),
 };

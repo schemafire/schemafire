@@ -1,5 +1,7 @@
-const defaultConfig = require('./support/babel/base.babel');
+const baseBabel = require('./support/babel/base.babel');
 
 module.exports = {
-  ...defaultConfig,
+  ...baseBabel,
+  babelrcRoots: ['.', '@schemafire/*', 'docs/.babelrc.js'],
+  sourceType: 'unambiguous',
 };

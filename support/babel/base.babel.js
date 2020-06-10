@@ -1,47 +1,45 @@
+
+const ignore = [
+  '**/__tests__',
+  '**/__dts__',
+  '**/__mocks__',
+  '**/__fixtures__',
+  '*.{test,spec}.{ts,tsx}',
+  '**/*.d.ts',
+  '*.d.ts',
+];
+
+const basePreset = [];
+
+const presets = [...basePreset, ['@babel/preset-env']];
+
+const testBabelPresetEnv = ['@babel/preset-env', { targets: { node: '12' } }];
+const nonTestEnv = { ignore, presets };
+
 module.exports = {
-  presets: [
-    [
-      '@babel/preset-env',
-      {
-        targets: {
-          node: '8',
-        },
-      },
-    ],
-    '@babel/preset-typescript',
+  presets: [...basePreset, testBabelPresetEnv],
+  overrides: [
+    { test: /\.ts$/, plugins: [['@babel/plugin-transform-typescript', { isTSX: false }]] },
+    { test: /\.tsx$/, plugins: [['@babel/plugin-transform-typescript', { isTSX: true }]] },
+    {
+      test: /\.[jt]sx?$/,
+      plugins: [
+        ['@babel/plugin-proposal-class-properties'],
+        ['@babel/plugin-proposal-private-methods'],
+      ],
+    },
   ],
   plugins: [
-    'lodash',
+    'macros',
+    '@babel/plugin-transform-runtime',
     '@babel/plugin-proposal-object-rest-spread',
-    '@babel/plugin-transform-arrow-functions',
+    '@babel/plugin-syntax-dynamic-import',
+    '@babel/plugin-proposal-nullish-coalescing-operator',
+    '@babel/plugin-proposal-optional-chaining',
+    '@babel/plugin-proposal-numeric-separator',
     ['@babel/plugin-proposal-decorators', { legacy: true }],
-    ['@babel/plugin-proposal-class-properties', { loose: true }],
+    'annotate-pure-calls',
+    'dev-expression',
   ],
-  env: {
-    test: {
-      ignore: [],
-    },
-    production: {
-      ignore: [
-        '**/__tests__',
-        '**/__fixtures__',
-        '**/__mocks__',
-        '**/__stories__',
-        '*.{test,spec,stories}.{ts,tsx}',
-        '**/*.d.ts',
-        '*.d.ts',
-      ],
-    },
-    development: {
-      ignore: [
-        '**/__tests__',
-        '**/__fixtures__',
-        '**/__mocks__',
-        '**/__stories__',
-        '*.{test,spec,stories}.{ts,tsx}',
-        '**/*.d.ts',
-        '*.d.ts',
-      ],
-    },
-  },
+  env: { production: nonTestEnv, development: nonTestEnv },
 };

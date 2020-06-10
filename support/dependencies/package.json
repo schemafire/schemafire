@@ -20,14 +20,14 @@
     "@microsoft/api-documenter": "7.5.2",
     "@microsoft/api-extractor": "7.5.1",
     "@types/color": "3.0.0",
-    "@types/debug": "4.1.5",
+
     "@types/delay": "3.1.0",
     "@types/execa": "2.0.0",
     "@types/glob": "7.1.1",
-    "@types/inquirer": "6.5.0",
+
     "@types/jest": "24.0.19",
     "@types/jest-cli": "23.6.0",
-    "@types/listr": "0.14.2",
+
     "@types/mz": "0.0.32",
     "@types/nanoid": "2.1.0",
     "@types/next": "8.0.6",
@@ -37,13 +37,13 @@
     "@types/react-dom": "16.9.2",
     "@types/service_worker_api": "0.0.9",
     "@types/wait-on": "3.2.0",
-    "@types/yargs": "13.0.3",
+
     "babel-core": "7.0.0-bridge.0",
     "babel-jest": "24.9.0",
     "babel-plugin-lodash": "3.3.4",
     "cross-env": "6.0.3",
-    "debug": "4.1.1",
-    "delay": "4.3.0",
+
+
     "eslint": "^6.5.1",
     "dts-jest": "^23.0.0",
     "write-json-file":"4.2.0",
@@ -54,13 +54,13 @@
     "eslint-plugin-prettier": "3.1.1",
     "eslint-plugin-promise": "4.2.1",
     "eslint-plugin-standard": "4.0.1",
-    "execa": "3.2.0",
+
     "firebase": "7.2.1",
     "firebase-admin": "8.6.1",
     "firebase-functions": "3.3.0",
     "firebase-tools": "7.6.1",
     "husky": "3.0.9",
-    "inquirer": "7.0.0",
+
     "io-ts": "2.0.1",
     "jest": "24.9.0",
     "jest-cli": "24.9.0",
@@ -68,7 +68,7 @@
     "jest-watch-typeahead": "0.4.0",
     "lerna": "3.18.1",
     "lint-staged": "9.4.2",
-    "listr": "0.14.3",
+
     "mz": "2.7.0",
     "npm-run-all": "4.1.5",
     "p-retry": "4.1.0",
@@ -81,7 +81,7 @@
     "typescript": "3.6.4",
     "typescript-styled-plugin": "0.15.0",
     "wait-on": "3.3.0",
-    "which": "2.0.1",
-    "yargs": "14.2.0"
+    "which": "2.0.1"
+
   }
 }

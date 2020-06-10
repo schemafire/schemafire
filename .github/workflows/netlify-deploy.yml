@@ -1,0 +1,64 @@
+name: Netlify deploy docs
+
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize]
+    branches:
+      - master
+      - next # Temporarily enable
+
+env:
+  CI: true
+  PNPM_CACHE_FOLDER: .pnpm-store
+
+jobs:
+  deploy_docs:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' || github.event.pull_request
+
+    steps:
+      - name: checkout code repository
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 0
+
+      - uses: actions/cache@v1
+        with:
+          path: ${{ env.PNPM_CACHE_FOLDER }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: setup node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: install pnpm
+        run: |
+          curl -L https://unpkg.com/@pnpm/self-installer | node
+          pnpm config set store-dir $PNPM_CACHE_FOLDER
+
+      - name: audit dependencies
+        run: pnpm audit --audit-level high
+
+      - name: install dependencies
+        run: pnpm install
+
+      - name: build project
+        run: pnpm run build
+
+      - name: build docs
+        run: pnpm run build:docs
+
+      - name: deploy docs
+        uses: nwtgck/actions-netlify@develop
+        with:
+          publish-dir: './docs/public'
+          production-branch: master
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message:
+            'Deploy Docs from GitHub Actions - ${{ github.event.pull_request.title || github.ref }}'
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}

@@ -1,0 +1,33 @@
+{
+  "name": "@remirror/support",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The support directory for the remirror monorepo",
+  "repository": "https://github.com/remirror/remirror/tree/master/support",
+  "license": "ISC",
+  "main": "index.js",
+  "dependencies": {
+    "@remirror/pm": "0.0.0",
+    "@types/lodash.groupby": "^4.6.6",
+    "@types/prettier": "^2.0.1",
+    "@types/rimraf": "^3.0.0",
+    "chalk": "^4.1.0",
+    "diffable-html": "^4.0.0",
+    "globby": "^11.0.1",
+    "jest-axe": "^3.4.0",
+    "jest-diff": "^26.0.1",
+    "lodash.groupby": "^4.6.0",
+    "lodash.isequal": "^4.5.0",
+    "write-json-file": "^4.3.0",
+    "@types/debug": "4.1.5",
+"@types/inquirer": "6.5.0",
+"@types/listr": "0.14.2",
+"@types/yargs": "13.0.3",
+"debug": "4.1.1",
+"delay": "4.3.0",
+"execa": "3.2.0",
+"inquirer": "7.0.0",
+"listr": "0.14.3",
+"yargs": "14.2.0"
+  }
+}
