@@ -1,13 +1,13 @@
 {
-  "private": true,
   "name": "@schemafire/jest-mocks",
-  "description": "A collection of mocks used throughout schemafire packages",
-  "author": "Ifiok Jr. <ifiokotung@gmail.com>",
-  "repository": "https://github.com/ifiokjr/schemafire/tree/@schemafire/jest-mocks",
   "version": "0.0.1-alpha.5",
+  "private": true,
+  "description": "A collection of mocks used throughout schemafire packages",
+  "repository": "https://github.com/ifiokjr/schemafire/tree/@schemafire/jest-mocks",
+  "author": "Ifiok Jr. <ifiokotung@gmail.com>",
   "main": "lib/index.js",
   "files": [
-    "lib",
+    "dist",
     "src"
   ],
   "scripts": {

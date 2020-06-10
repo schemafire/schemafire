@@ -1,42 +1,30 @@
 {
-  "private": true,
   "name": "@schemafire/generator",
+  "version": "0.0.1-alpha.5",
+  "private": true,
   "description": "Quickly generate fake data from any schema",
+  "repository": "https://github.com/ifiokjr/schemafire",
   "license": "MIT",
   "author": "Ifiok Jr. <ifiokotung@gmail.com>",
-  "repository": "https://github.com/ifiokjr/schemafire",
-  "version": "0.0.1-alpha.5",
-  "main": "lib/index.js",
+  "main": "dist/generator.cjs.js",
+  "module": "dist/generator.esm.js",
   "files": [
-    "lib",
-    "src"
+    "dist"
   ],
-  "scripts": {
-    "build": "run-s build:declaration build:babel",
-    "build:babel": "babel src --out-dir lib --extensions \".ts\" --source-maps true",
-    "build:declaration": "tsc -p ./tsconfig.prod.json --emitDeclarationOnly --declarationMap",
-    "dev": "run-p watch:*",
-    "lint": "tslint --project tsconfig.json --config ../../tslint.json",
-    "test": "jest",
-    "test:live": "cross-env TEST_ENV=live jest",
-    "typecheck": "tsc -p ./tsconfig.json --noEmit",
-    "watch:babel": "babel src --out-dir lib --extensions \".ts\" --watch",
-    "watch:declaration": "tsc -p ./tsconfig.prod.json --emitDeclarationOnly --declarationMap --watch"
-  },
-  "types": "lib/index.d.ts",
   "dependencies": {
     "@schemafire/core": "0.0.1-alpha.5",
     "@schemafire/firestore": "0.0.1-alpha.5",
-    "@types/faker": "4.1.6",
+    "@types/faker": "4.1.12",
     "faker": "4.1.0",
     "lodash": "4.17.15"
+  },
+  "devDependencies": {
+    "firebase-admin": "^7.0.0",
+    "io-ts": "2.2.4"
   },
   "peerDependencies": {
     "firebase-admin": "^7.0.0",
     "io-ts": "^1.8.1"
-  },
-  "devDependencies": {
-    "io-ts": "2.0.1"
   },
   "publishConfig": {
     "access": "public"

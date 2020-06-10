@@ -1,11 +1,12 @@
 const { join } = require('path');
-const { getAllDependencies, formatFiles, baseDir, getRelativePathFromJson } = require('../scripts copy/helpers');
+const { getAllDependencies, formatFiles, baseDir, getRelativePathFromJson } = require('./helpers');
 const writeJSON = require('write-json-file');
 
 const configs = {
   sizeLimit: '.size-limit.json',
 };
 
+/** @type string[] */
 const filesToPrettify = [];
 
 const generateSizeLimitConfig = async () => {

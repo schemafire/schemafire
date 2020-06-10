@@ -1,35 +1,31 @@
 {
   "name": "@schemafire/firestore",
+  "version": "0.0.1-alpha.5",
   "description": "Quickly create schema for firestore",
+  "repository": "https://github.com/ifiokjr/schemafire/tree/master/@schemafire/firestore",
   "license": "MIT",
   "author": "Ifiok Jr. <ifiokotung@gmail.com>",
-  "repository": "https://github.com/ifiokjr/schemafire/tree/master/@schemafire/firestore",
-  "version": "0.0.1-alpha.5",
-  "main": "lib/index.js",
-  "files": [
-    "lib",
-    "src"
-  ],
-  "scripts": {
-    "build": "run-s build:declaration build:babel",
-    "build:babel": "babel src --out-dir lib --extensions \".ts\" --source-maps true",
-    "build:declaration": "tsc -p ./tsconfig.prod.json --emitDeclarationOnly --declarationMap",
-    "dev": "run-p watch:*",
-    "lint": "tslint --project tsconfig.json --config ../../tslint.json",
-    "test": "jest",
-    "test:live": "cross-env TEST_ENV=live jest",
-    "typecheck": "tsc -p ./tsconfig.json --noEmit",
-    "watch:babel": "babel src --out-dir lib --extensions \".ts\" --watch",
-    "watch:declaration": "tsc -p ./tsconfig.prod.json --emitDeclarationOnly --declarationMap --watch"
+  "main": "dist/firestore.cjs.js",
+  "module": "dist/firestore.esm.js",
+  "browser": {
+    "./dist/firestore.cjs.js": "./dist/firestore.browser.cjs.js",
+    "./dist/firestore.esm.js": "./dist/firestore.browser.esm.js"
   },
-  "types": "lib/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "dependencies": {
-    "@google-cloud/firestore": "^2.4.0",
-    "@remirror/core-helpers": "^0.6.1",
+    "@google-cloud/firestore": "^3.8.5",
+    "@remirror/core-helpers": "^0.7.6",
     "@schemafire/core": "^0.0.1-alpha.5",
     "@types/lodash": "^4.14.144",
-    "lodash": "^4.17.15",
+    "lodash": "4.17.15",
     "stringify-object": "^3.3.0"
+  },
+  "devDependencies": {
+    "firebase-admin": "^7.0.0",
+    "io-ts": "2.2.4",
+    "p-retry": "^4.2.0"
   },
   "peerDependencies": {
     "firebase-admin": "^7.0.0",

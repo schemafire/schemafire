@@ -1,29 +1,20 @@
 {
-  "private": true,
   "name": "@schemafire/database",
+  "version": "0.0.1-alpha.5",
+  "private": true,
   "description": "Quickly create schema for firebase realtime database",
+  "repository": "https://github.com/ifiokjr/schemafire/tree/@schemafire/database",
   "license": "MIT",
   "author": "Ifiok Jr. <ifiokotung@gmail.com>",
-  "repository": "https://github.com/ifiokjr/schemafire/tree/@schemafire/database",
-  "version": "0.0.1-alpha.5",
-  "main": "lib/index.js",
-  "files": [
-    "lib",
-    "src"
-  ],
-  "scripts": {
-    "build": "run-s build:declaration build:babel",
-    "build:babel": "babel src --out-dir lib --extensions \".ts\" --source-maps true",
-    "build:declaration": "tsc -p ./tsconfig.prod.json --emitDeclarationOnly --declarationMap",
-    "dev": "run-p watch:*",
-    "lint": "tslint --project tsconfig.json --config ../../tslint.json",
-    "test": "jest",
-    "test:live": "cross-env TEST_ENV=live jest",
-    "typecheck": "tsc -p ./tsconfig.json --noEmit",
-    "watch:babel": "babel src --out-dir lib --extensions \".ts\" --watch",
-    "watch:declaration": "tsc -p ./tsconfig.prod.json --emitDeclarationOnly --declarationMap --watch"
+  "main": "dist/database.cjs.js",
+  "module": "dist/database.esm.js",
+  "browser": {
+    "./dist/database.cjs.js": "./dist/database.browser.cjs.js",
+    "./dist/database.esm.js": "./dist/database.browser.esm.js"
   },
-  "types": "lib/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "dependencies": {
     "@schemafire/core": "0.0.1-alpha.5",
     "lodash": "4.17.15"
@@ -34,5 +25,9 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "devDependencies": {
+    "firebase-admin": "^7.0.0",
+    "io-ts": "2.2.4"
   }
 }

@@ -1,39 +1,30 @@
 {
   "name": "@schemafire/core",
+  "version": "0.0.1-alpha.5",
   "description": "Models and interfaces shared throughout the schemafire definitions",
+  "repository": "https://github.com/ifiokjr/schemafire/tree/master/@packages/core",
   "license": "MIT",
   "author": "Ifiok Jr. <ifiokotung@gmail.com>",
-  "repository": "https://github.com/ifiokjr/schemafire/tree/master/@packages/core",
-  "version": "0.0.1-alpha.5",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
-  "files": [
-    "lib",
-    "src"
-  ],
-  "scripts": {
-    "build": "run-s build:declaration build:babel",
-    "build:babel": "babel src --out-dir lib --extensions \".ts\" --source-maps true",
-    "build:declaration": "tsc -p ./tsconfig.prod.json --emitDeclarationOnly --declarationMap",
-    "dev": "run-p watch:*",
-    "lint": "tslint --project tsconfig.json --config ../../tslint.json",
-    "test": "jest",
-    "test:live": "cross-env TEST_ENV=live jest",
-    "typecheck": "tsc -p ./tsconfig.json --noEmit",
-    "watch:babel": "babel src --out-dir lib --extensions \".ts\" --watch",
-    "watch:declaration": "tsc -p ./tsconfig.prod.json --emitDeclarationOnly --declarationMap --watch"
+  "main": "dist/core.cjs.js",
+  "module": "dist/core.esm.js",
+  "browser": {
+    "./dist/core.cjs.js": "./dist/core.browser.cjs.js",
+    "./dist/core.esm.js": "./dist/core.browser.esm.js"
   },
+  "files": [
+    "dist"
+  ],
   "dependencies": {
     "@types/invariant": "^2.2.30",
-    "@types/node": "^12.11.1",
-    "@types/validator": "^10.11.3",
+    "@types/node": "^14.0.13",
+    "@types/validator": "^13.0.0",
     "fp-ts": "^2.0.5",
     "invariant": "^2.2.4",
-    "io-ts": "^2.0.1",
+    "io-ts": "2.2.4",
     "io-ts-reporters": "^1.0.0",
-    "lodash": "^4.17.15",
-    "nanoid": "^2.1.4",
-    "validator": "^11.1.0"
+    "lodash": "4.17.15",
+    "nanoid": "^3.1.9",
+    "validator": "^13.1.0"
   },
   "peerDependencies": {
     "@google-cloud/firestore": "^1.0.0",
@@ -41,5 +32,9 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "devDependencies": {
+    "@google-cloud/firestore": "^3.8.5",
+    "firebase-admin": "^7.0.0"
   }
 }
