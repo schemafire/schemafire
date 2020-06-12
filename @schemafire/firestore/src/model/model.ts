@@ -305,11 +305,16 @@ export class Model<
     this.proxy = this.createDataProxy();
   }
 
-  private updateFunction = (alwaysGet: boolean) => async (transaction: FirebaseFirestore.Transaction) => {
+  private updateFunction = (alwaysGet: boolean) => async (
+    transaction: FirebaseFirestore.Transaction,
+  ) => {
     const doc = this.doc;
 
     /* Create the state that will be passed out of this transaction if successful */
-    let state = createTransactionState<GProps, this>({ rawData: this.rawData, actions: this.actions });
+    let state = createTransactionState<GProps, this>({
+      rawData: this.rawData,
+      actions: this.actions,
+    });
 
     if (actionsContainDelete(this.actions)) {
       const idField = getIdFieldFromSchema(this.schema);
@@ -530,7 +535,7 @@ export class Model<
    */
   public delete = (keys?: Array<keyof GProps>) => {
     if (keys) {
-      keys.forEach(key => {
+      keys.forEach((key) => {
         if (isBaseProp(key)) {
           throw new Error(
             `An error occurred deleting the field '${key}': This is a protected field and should not be deleted`,
@@ -573,7 +578,9 @@ export class Model<
   public create = (data: TypeOfProps<GProps>, force: boolean = true) => {
     this.actions.push({
       data,
-      type: Cast<ModelActionType.Create>(force ? ModelActionType.Create : ModelActionType.FindOrCreate),
+      type: Cast<ModelActionType.Create>(
+        force ? ModelActionType.Create : ModelActionType.FindOrCreate,
+      ),
     });
     this.resetRawData({ ...this.rawData, ...data });
     return this;
@@ -599,7 +606,8 @@ export class Model<
   public validate = () => {
     const data = omitBaseFields(this.rawData);
     let report: IOValidation<any> = this.schema.codec.decode(data);
-    const isCreateAction = actionsContainCreate(this.actions) || actionsContainFindOrCreate(this.actions);
+    const isCreateAction =
+      actionsContainCreate(this.actions) || actionsContainFindOrCreate(this.actions);
     if (isCreateAction) {
       // Fall through
     } else if (actionsContainUpdate(this.actions)) {

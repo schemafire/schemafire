@@ -1,4 +1,3 @@
-
 const ignore = [
   '**/__tests__',
   '**/__dts__',
@@ -13,7 +12,7 @@ const basePreset = [];
 
 const presets = [...basePreset, ['@babel/preset-env']];
 
-const testBabelPresetEnv = ['@babel/preset-env', { targets: { node: '12' } }];
+const testBabelPresetEnv = ['@babel/preset-env', { targets: { node: 'current' } }];
 const nonTestEnv = { ignore, presets };
 
 module.exports = {

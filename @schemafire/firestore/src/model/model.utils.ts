@@ -46,7 +46,9 @@ export const getIdFieldFromSchema: (schema: AnySchema) => string = get(['mirror'
  */
 
 export function createTypeHasData(type: ModelActionType, data: any): boolean {
-  return [ModelActionType.FindOrCreate, ModelActionType.Create].includes(type) ? Boolean(data) : true;
+  return [ModelActionType.FindOrCreate, ModelActionType.Create].includes(type)
+    ? Boolean(data)
+    : true;
 }
 
 /**
@@ -100,7 +102,10 @@ export const createMethods = <
  * @param fields The fields to copy over when mirroring
  */
 
-export const buildMirrorData = <GProps>(data: any, fields?: SchemaCacheRules<keyof GProps>['fields']) => {
+export const buildMirrorData = <GProps>(
+  data: any,
+  fields?: SchemaCacheRules<keyof GProps>['fields'],
+) => {
   if (!fields) {
     return data;
   }
@@ -117,7 +122,10 @@ export const buildMirrorData = <GProps>(data: any, fields?: SchemaCacheRules<key
 export const createTransactionState = <GProps extends AnyProps, GModel extends AnyModel>(
   state: Partial<TransactionState<GProps, GModel>> & { rawData: any },
 ): TransactionState<GProps, GModel> => {
-  return updateTransactionState({ actionsRun: {}, errors: [], rawData: Cast({}), actions: [] }, state);
+  return updateTransactionState(
+    { actionsRun: {}, errors: [], rawData: Cast({}), actions: [] },
+    state,
+  );
 };
 
 /**
@@ -316,8 +324,10 @@ export const queryTransaction = async <GProps extends AnyProps, GModel extends A
  * @param snap the firebase snapshot
  * @param override any truthy value
  */
-export const snapshotExists = (snap?: FirebaseFirestore.DocumentSnapshot, override: unknown = false) =>
-  (snap && snap.exists) || Boolean(override);
+export const snapshotExists = (
+  snap?: FirebaseFirestore.DocumentSnapshot,
+  override: unknown = false,
+) => (snap && snap.exists) || Boolean(override);
 
 interface BuildUpdatedDataParams<GAction extends AnyModelAction> {
   /**
@@ -351,7 +361,8 @@ export const buildUpdatedData = <GAction extends AnyModelAction>({
   actions,
   rawData,
 }: BuildUpdatedDataParams<GAction>) => {
-  const initialValue = actionsContainCreate(actions) || actionsContainFindOrCreate(actions) ? rawData : {};
+  const initialValue =
+    actionsContainCreate(actions) || actionsContainFindOrCreate(actions) ? rawData : {};
 
   return actions.reduce((accumulated, current) => {
     if (isUpdateAction(current)) {
@@ -393,8 +404,12 @@ export const runCallbacks = <GProps extends AnyProps, GModel extends AnyModel>({
   ctx,
   baseData,
 }: RunCallbacksParams<GProps, GModel>) => {
-  state.actions.filter<CallbackModelAction<GModel>>(isCallbackAction).forEach(value => {
-    const data = createDataProxy<GProps, GModel>({ target: state.rawData, actions: state.actions, baseData });
+  state.actions.filter<CallbackModelAction<GModel>>(isCallbackAction).forEach((value) => {
+    const data = createDataProxy<GProps, GModel>({
+      target: state.rawData,
+      actions: state.actions,
+      baseData,
+    });
     const update = updateMethodFactory<GProps, GModel>({ proxy: data, actions: state.actions });
     const create = createMethodFactory<GProps, GModel>({ proxy: data, actions: state.actions });
     const del = deleteMethodFactory<GProps, GModel>({ proxy: data, actions: state.actions });
@@ -436,7 +451,7 @@ const updateMethodFactory = <GProps extends AnyProps, GModel extends AnyModel>({
 const deleteMethodFactory = <GProps extends AnyProps, GModel extends AnyModel>({
   proxy,
 }: MethodFactoryParams<GProps, GModel>) => (keys: Array<keyof GProps>) => {
-  keys.forEach(key => {
+  keys.forEach((key) => {
     if (isBaseProp(key)) {
       throw new Error(
         `An error occurred deleting the field '${key}': This is a protected field and should not be deleted`,

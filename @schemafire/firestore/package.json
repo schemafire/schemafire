@@ -15,21 +15,26 @@
     "dist"
   ],
   "dependencies": {
+    "@babel/runtime": "^7.10.2",
     "@google-cloud/firestore": "^3.8.5",
     "@remirror/core-helpers": "^0.7.6",
     "@schemafire/core": "^0.0.1-alpha.5",
     "@types/lodash": "^4.14.144",
+    "fp-ts": "^2.6.5",
     "lodash": "4.17.15",
-    "stringify-object": "^3.3.0"
+    "stringify-object": "^3.3.0",
+    "superstruct": "^0.10.11"
   },
   "devDependencies": {
-    "firebase-admin": "^7.0.0",
+    "firebase": "^7.15.1",
+    "firebase-admin": "^8.12.1",
     "io-ts": "2.2.4",
     "p-retry": "^4.2.0"
   },
   "peerDependencies": {
-    "firebase-admin": "^7.0.0",
-    "io-ts": "^1.8.1"
+    "firebase": "^7.15.1",
+    "firebase-admin": "^8.0.0",
+    "io-ts": "^2.2.4"
   },
   "publishConfig": {
     "access": "public"
