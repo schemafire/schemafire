@@ -31,7 +31,7 @@
     "io-ts-reporters": "0.0.21",
     "lodash": "4.17.11",
     "nanoid": "2.0.1",
-    "validator": "10.11.0"
+    "validator": "13.7.0"
   },
   "peerDependencies": {
     "@google-cloud/firestore": "^1.0.0",
